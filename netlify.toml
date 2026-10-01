@@ -1,0 +1,55 @@
+# GPUnlock · Plataforma unificada — un solo sitio de Netlify para todo.
+# Solo se publica la carpeta site/. supabase/ y scripts/ quedan fuera.
+[build]
+  publish = "site"
+  command = ""
+
+# Seguridad básica para todas las páginas
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+
+# Zonas internas: fuera de los buscadores
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+[[headers]]
+  for = "/cotizador/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+[[headers]]
+  for = "/marketing/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# La configuración cambia al actualizar claves: que no quede en caché vieja
+[[headers]]
+  for = "/js/gpunlock-config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Los paneles viejos de cada landing ahora viven en el panel único
+[[redirects]]
+  from = "/vertice/panel/*"
+  to = "/admin/"
+  status = 301
+[[redirects]]
+  from = "/prisma/panel/*"
+  to = "/admin/"
+  status = 301
+[[redirects]]
+  from = "/valle/panel/*"
+  to = "/admin/"
+  status = 301
+[[redirects]]
+  from = "/panel"
+  to = "/admin/"
+  status = 301
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin/"
+  status = 301

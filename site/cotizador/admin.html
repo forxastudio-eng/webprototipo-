@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administrar — Cotizador GPUnlock</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/assets/brand/favicon-32.png">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/gp-theme.css">
+</head>
+<body>
+
+<div class="internal-bar no-print">Panel de administración · solo admins</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-mark.png" alt="GPUnlock" onerror="this.style.display='none'">
+      <span class="brand-text"><strong>GPUnlock</strong><span>Administrar cotizador</span></span>
+    </a>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<main class="wrap" style="padding-top:28px;padding-bottom:110px;">
+
+  <div class="card">
+    <h3>Proyectos</h3>
+    <div id="project-list" class="admin-table-wrap"><div class="empty-state">Cargando…</div></div>
+  </div>
+
+  <div class="card">
+    <h3 id="project-form-title">Agregar proyecto nuevo</h3>
+    <p class="hint" style="margin-bottom:14px;">Elige el slug con cuidado (letras minúsculas, sin espacios) — es el identificador interno y no se puede cambiar después.</p>
+    <form id="project-form">
+      <div class="row2">
+        <div class="field"><label>Slug (id único) *</label><input type="text" id="p-id" placeholder="ej. nuevoproyecto" pattern="[a-z0-9\-]+" required></div>
+        <div class="field"><label>Nombre *</label><input type="text" id="p-nombre" required></div>
+      </div>
+      <div class="field"><label>Descripción corta</label><input type="text" id="p-tagline"></div>
+      <div class="row2">
+        <div class="field"><label>Color primario</label><input type="color" id="p-color1" value="#565a41"></div>
+        <div class="field"><label>Color de acento</label><input type="color" id="p-color2" value="#cdbd94"></div>
+      </div>
+      <div class="field">
+        <label>Prefijo de proforma</label>
+        <input type="text" id="p-prefijo" placeholder="ej. LUMEN" style="text-transform:uppercase;" maxlength="8">
+        <p class="hint" style="margin-top:6px;">Así se arma el número de cada proforma de este proyecto, ej. LUMEN-0001, LUMEN-0002…</p>
+      </div>
+      <div class="field">
+        <label>Tipo de financiamiento</label>
+        <select id="p-tipo">
+          <option value="cuotas_entrega">Cuotas hasta la entrega (reserva % + promesa % + cuotas + financiamiento del saldo)</option>
+          <option value="pago_directo">Pago directo (abono único + financiamiento del saldo) — proyectos listos para entrega</option>
+          <option value="simulacion">(anterior) Simulación de crédito</option>
+          <option value="vip_fijo">(anterior) Crédito fijo tipo VIP</option>
+          <option value="lote">(anterior) Lote — solo entrada, saldo a coordinar</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field"><label id="p-reserva-label">Reserva (%)</label><input type="number" id="p-reserva" step="0.01" value="0.02"></div>
+        <div class="field"><label>Promesa (%)</label><input type="number" id="p-promesa" step="0.01" value="0.08"></div>
+      </div>
+      <p class="hint" style="margin:-10px 0 14px;">Se escriben como fracción: 2% = 0.02, 8% = 0.08, 30% = 0.30. En "Pago directo" la reserva se usa como % de abono sugerido (editable por el asesor) y la promesa no se usa.</p>
+      <div class="row2">
+        <div class="field"><label>Tasa de interés sugerida (%)</label><input type="number" id="p-tasa" step="0.01" value="10.5"></div>
+        <div class="field"><label>Plazo sugerido (años)</label><input type="number" id="p-plazo" value="20"></div>
+      </div>
+      <p class="hint" style="margin:-10px 0 14px;">El asesor puede cambiar la tasa y el plazo en cada proforma — esto solo define el valor con el que arranca el formulario.</p>
+      <div class="field"><label><input type="checkbox" id="p-multi" style="width:auto;margin-right:8px;">Permite seleccionar varias unidades para comparar</label></div>
+      <div class="field"><label><input type="checkbox" id="p-desc" style="width:auto;margin-right:8px;">Permite descuento manual por negociación (monto libre, lo escribe el asesor)</label></div>
+      <div class="field">
+        <label>Portada (imagen)</label>
+        <input type="file" id="p-cover" accept="image/*">
+      </div>
+      <input type="hidden" id="p-editing-id">
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Guardar proyecto</button>
+        <button type="button" class="btn btn-ghost" id="p-cancel" hidden>Cancelar edición</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Asesores (GPUnlock)</h3>
+    <p class="hint" style="margin-bottom:14px;">Alimenta el desplegable de "Datos del asesor" en el cotizador — al elegir
+      un nombre ahí, el teléfono se rellena solo. Es solo un directorio de contacto, no crea cuentas de acceso
+      (eso se hace en Supabase → Authentication → Users).</p>
+    <div id="asesores-list" class="admin-table-wrap"><div class="empty-state">Cargando…</div></div>
+    <button class="btn btn-ghost btn-sm" id="add-asesor-btn" style="margin-top:14px;">+ Agregar asesor</button>
+  </div>
+
+  <div class="card">
+    <h3>Unidades</h3>
+    <div class="field" style="max-width:320px;">
+      <label>Proyecto</label>
+      <select id="unit-project-select"></select>
+    </div>
+    <div id="unit-list" class="admin-table-wrap"></div>
+    <button class="btn btn-ghost btn-sm" id="add-unit-btn" style="margin-top:14px;">+ Agregar unidad</button>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

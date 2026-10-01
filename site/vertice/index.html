@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<base href="/vertice/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vértice | Proyecto residencial y comercial en Ciudad Alta — Avenida Principal</title>
+<meta name="description" content="Vértice: unidades entre suites, departamentos y locales comerciales en Avenida Principal, Ciudad Alta, junto al río. Roof Top, Fire Zone y áreas comunales. Entrega 2028." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="img/logo-mark.png" type="image/png">
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ============ SPRITE DE ÍCONOS (auto-alojados, sin dependencias externas) ============ -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <!-- UI -->
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.02c-.24.68-1.4 1.3-1.93 1.36-.5.06-1.02.24-3.42-.71-2.88-1.14-4.73-4.08-4.87-4.27-.14-.19-1.16-1.55-1.16-2.96 0-1.41.74-2.1 1-2.39.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.15.07.14.12.31.02.5-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.14-.28.28-.12.56.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.44.2.5.32.07.12.07.66-.17 1.34Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v16M6 14l6 6 6-6"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M3 15v4a2 2 0 0 0 2 2h4"/></symbol>
+
+    <!-- Specs de unidades -->
+    <symbol id="i-bed" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 13h18M7 13V9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4M3 18v2M21 18v2"/></symbol>
+    <symbol id="i-bath" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 12h16a1 1 0 0 1 1 1 6 6 0 0 1-6 6H9a6 6 0 0 1-6-6 1 1 0 0 1 1-1Z M7 12V6a2 2 0 0 1 3.5-1.3 M4 21h16"/></symbol>
+    <symbol id="i-sofa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 14v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2 M3 14h18v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z M6 19v2 M18 19v2"/></symbol>
+    <symbol id="i-kitchen" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 10h14l-1 9H6l-1-9Z M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10 M12 13v3"/></symbol>
+    <symbol id="i-laundry" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z M7 6h.01 M11 6h.01 M12 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></symbol>
+    <symbol id="i-tree" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3a5 5 0 0 1 5 5c0 2-1.2 3-2.5 3.8A5 5 0 0 1 12 21a5 5 0 0 1-2.5-9.2C8.2 11 7 10 7 8a5 5 0 0 1 5-5Z M12 12v9"/></symbol>
+
+    <!-- Amenidades -->
+    <symbol id="i-rooftop" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21h18 M5 21V9l7-6 7 6v12 M9 21v-8h6v8 M12 3v3"/></symbol>
+    <symbol id="i-fire" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1.5-1-2-1-3.5 1 0 2 1.5 2 3.5a5 5 0 0 1-10 0c0-4 3-5 3-7Z"/></symbol>
+    <symbol id="i-coworking" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3.5 5.5h17a1 1 0 0 1 1 1V15h-19V6.5a1 1 0 0 1 1-1Z M1.5 18.5h21l-1.6 2.7a1 1 0 0 1-.86.5H3.96a1 1 0 0 1-.86-.5L1.5 18.5Z M8 9h8 M8 12h5"/></symbol>
+    <symbol id="i-firepit" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.3c1.5 2 .1 3.1-.5 4.5a2.7 2.7 0 0 0-.2 1.1 2.7 2.7 0 0 0 5.4 0c0-1.1-.6-1.7-1-2.4 1 .2 2.1 1.5 2.1 3a3.8 3.8 0 0 1-7.6 0c0-3 2.4-4 1.8-6.2Z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3.5 20.5h17 M5.5 20.5l3.8-6 M18.5 20.5l-3.8-6 M9 20.5l1.6-4.3 M15 20.5l-1.6-4.3"/></symbol>
+    <symbol id="i-lobby" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17 M5 21h13 M16 21V3 M13.2 12h.01"/></symbol>
+    <symbol id="i-garden" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M20 4C10 4 4 10 4 20c10 0 16-6 16-16Z M8.5 15.5 16 8"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 9l1.2-5h15.6L21 9 M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9 M3 9h18 M9.5 20v-6h5v6"/></symbol>
+    <symbol id="i-parking" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 17h16 M5 17l1.3-5.2A2 2 0 0 1 8.2 10.3h7.6a2 2 0 0 1 1.9 1.5L19 17 M5 17v3 M19 17v3 M7 14h10"/><circle cx="7" cy="17" r="1.6" fill="currentColor" stroke="none"/><circle cx="17" cy="17" r="1.6" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z M9 12.2l2 2 4-4.2"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M16 11a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z M2.5 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1 M15 14.3a5 5 0 0 1 6.5 4.7v1"/></symbol>
+
+    <!-- Ubicación -->
+    <symbol id="i-water" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0 M2 20c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/></symbol>
+    <symbol id="i-road" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 20 10 4h4l2 16 M11 10h2 M10.4 15h3.2"/></symbol>
+    <symbol id="i-landmark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 21V10l7-6 7 6v11 M9 21v-6h6v6 M12 4V1.5 M10.6 2.5h2.8"/></symbol>
+    <symbol id="i-grad" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></symbol>
+    <symbol id="i-medical" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 10 12 4l9 6 M4 10v9 M20 10v9 M8 10v9 M16 10v9 M2 21h20"/></symbol>
+
+    <!-- Contacto -->
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.99.36 1.96.68 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.18-1.25a2 2 0 0 1 2.11-.45c.94.32 1.91.55 2.9.68A2 2 0 0 1 22 16.92Z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4Z M22 6l-10 7L2 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a href="#inicio" class="brand"><img src="img/logo-gpunlock-white.png" alt="GPUnlock" /></a>
+    <nav class="nav" id="nav">
+      <a href="#proyecto">Proyecto</a>
+      <a href="#ubicacion">Ubicación</a>
+      <a href="#amenidades">Amenidades</a>
+      <a href="#tipologias">Tipologías</a>
+      <a href="#locales">Locales</a>
+      <a href="#galeria">Galería</a>
+      <a href="/" class="nav-more">Más proyectos</a>
+      <a href="#contacto" class="btn btn--primary btn--sm">Contáctanos</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="inicio">
+  <div class="hero__bg"><img src="img/vista-frontal.jpg" alt="Fachada frontal del proyecto Vértice" /></div>
+  <div class="hero__overlay"></div>
+  <div class="container hero__content">
+    <h1 class="hero__title">Vértice</h1>
+    <p class="hero__tagline">Solidez que genera movimiento</p>
+    <p class="hero__desc">Un proyecto residencial y comercial en el corazón de Ciudad Alta, a pasos del río. Suites, departamentos y locales comerciales pensados para vivir con equilibrio, comodidad y seguridad.</p>
+    <div class="hero__cta">
+      <a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VERTICE." class="btn btn--primary btn--whatsapp" target="_blank" rel="noopener">
+        <svg class="icon"><use href="#i-whatsapp"></use></svg> Escribir por WhatsApp
+      </a>
+    </div>
+    <div class="hero__stats">
+      <div><strong>5</strong><span>Unidades</span></div>
+      <div><strong>2028</strong><span>Fecha de entrega</span></div>
+      <div><strong>2</strong><span>Locales comerciales</span></div>
+      <div><strong>3</strong><span>Plantas + Roof Top</span></div>
+    </div>
+  </div>
+  <a href="#proyecto" class="scroll-cue" aria-label="Bajar"><svg class="icon"><use href="#i-arrow-down"></use></svg></a>
+</section>
+
+<!-- ============ SOBRE EL PROYECTO ============ -->
+<section class="section" id="proyecto">
+  <div class="container">
+    <div class="about">
+      <div class="about__media reveal">
+        <img src="img/vista-lateral.jpg" alt="Vista lateral del edificio Vértice" />
+      </div>
+      <div class="about__text reveal">
+        <p class="eyebrow">Sobre Vértice</p>
+        <h2>Solidez que genera movimiento</h2>
+        <p>Ubicado en una zona estratégica, Vértice ofrece un entorno que combina tranquilidad, conectividad y calidad de vida, en plena Avenida Principal, junto al río.</p>
+        <p>Desarrollado bajo una visión sostenible y con experiencia en el sector, el proyecto prioriza la seguridad y el bienestar de sus residentes, garantizando una experiencia integral. Cuenta con Roof Top en el último piso, Fire Zone y áreas comunales pensadas para la convivencia.</p>
+        <p>Una propuesta residencial planificada para brindar equilibrio, comodidad y espacios de encuentro en un entorno seguro. Entrega: 2028.</p>
+        <div class="about__badges">
+          <div class="badge"><strong>5</strong><span>Unidades totales</span></div>
+          <div class="badge"><strong>2028</strong><span>Fecha de entrega</span></div>
+          <div class="badge"><strong>2</strong><span>Locales comerciales</span></div>
+          <div class="badge"><strong>1</strong><span>Roof Top + Fire Zone</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ UBICACIÓN ============ -->
+<section class="section section--alt" id="ubicacion">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Ubicación privilegiada</p>
+      <h2>A pasos del río</h2>
+      <p>En Avenida Principal, uno de los sectores más conectados y tranquilos de Ciudad Alta, con acceso directo a la Av. Central.</p>
+    </div>
+    <div class="location">
+      <div class="location__maps reveal">
+        <img src="img/map-close.jpg" alt="Ubicación exacta del proyecto Vértice en Avenida Principal" />
+        <img src="img/map-wide.jpg" alt="Vista panorámica de Ciudad Alta con la ubicación de Vértice" />
+      </div>
+      <div class="poi-list reveal">
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-water"></use></svg></span><div><strong>Río</strong><span>A pasos del proyecto</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-road"></use></svg></span><div><strong>Av. Central</strong><span>Conexión directa a toda la ciudad</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-landmark"></use></svg></span><div><strong>Centro Histórico</strong><span>Pocos minutos en auto</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-grad"></use></svg></span><div><strong>Universidad de Ciudad Alta</strong><span>A corta distancia</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-medical"></use></svg></span><div><strong>Hospital Central</strong><span>Atención médica cercana</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-bank"></use></svg></span><div><strong>Oficinas públicas</strong><span>Servicios públicos a la mano</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AMENIDADES ============ -->
+<section class="section" id="amenidades">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Amenidades</p>
+      <h2>Espacios pensados para convivir</h2>
+      <p>Áreas comunales, seguridad y comodidad en cada rincón de Vértice.</p>
+    </div>
+    <div class="amenities-grid">
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-coworking"></use></svg></div><h3>Coworking</h3><p>Espacio equipado para trabajar o reunirte sin salir del edificio, ideal para home office y reuniones.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-firepit"></use></svg></div><h3>Fire Zone & BBQ</h3><p>Zona comunal con parrilla y fogata para compartir en familia o con amigos.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-lobby"></use></svg></div><h3>Lobby con recepción</h3><p>Ingreso controlado con lobby que recibe a residentes y visitas con calidez y elegancia.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-garden"></use></svg></div><h3>Áreas comunales y jardines</h3><p>Patios internos, jardines y salas de estar compartidas que integran naturaleza y arquitectura.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-store"></use></svg></div><h3>Locales comerciales</h3><p>4 locales disponibles en planta baja, ideales para cafetería, retail o servicios de proximidad.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-parking"></use></svg></div><h3>Parqueaderos y bodegas</h3><p>Subsuelo con parqueaderos para autos y motos, más bodegas privadas de almacenamiento.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-shield"></use></svg></div><h3>Diseño seguro y sostenible</h3><p>Proyecto desarrollado bajo criterios de sostenibilidad, priorizando la seguridad de sus residentes.</p></div>
+      <div class="amenity-card reveal"><div class="amenity-card__icon"><svg class="icon"><use href="#i-people"></use></svg></div><h3>Espacios de convivencia</h3><p>Áreas diseñadas para el encuentro entre vecinos, dentro de un entorno tranquilo y planificado.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TIPOLOGÍAS ============ -->
+<section class="section section--alt" id="tipologias">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Tipologías</p>
+      <h2>Encuentra tu espacio ideal</h2>
+      <p>Suites, monoambientes y departamentos dúplex distribuidos en planta baja y dos plantas altas. Haz clic en cualquier unidad para ver su ficha técnica completa.</p>
+    </div>
+
+    <div class="tabs reveal">
+      <button class="tab-btn is-active" data-tab="tab-a">Planta Baja · Suites A</button>
+      <button class="tab-btn" data-tab="tab-b">1ra Planta Alta · Suites B</button>
+      <button class="tab-btn" data-tab="tab-c">2da Planta Alta · Suites y Deptos C</button>
+    </div>
+
+    <div class="tab-panel is-active" id="tab-a"><div class="unit-grid" id="grid-a"></div></div>
+    <div class="tab-panel" id="tab-b"><div class="unit-grid" id="grid-b"></div></div>
+    <div class="tab-panel" id="tab-c"><div class="unit-grid" id="grid-c"></div></div>
+
+    <p class="tipologias-note">Áreas referenciales según planos arquitectónicos. Haz clic en una unidad para ver su ficha técnica del brochure. Escríbenos para conocer disponibilidad actualizada.</p>
+  </div>
+</section>
+
+<!-- ============ LOCALES COMERCIALES ============ -->
+<section class="section" id="locales">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Locales comerciales</p>
+      <h2>Emprende en planta baja</h2>
+      <p>2 locales disponibles con acceso directo desde Avenida Principal. Haz clic para ver la ficha de cada uno.</p>
+    </div>
+    <div class="locales-grid" id="localesGrid"></div>
+  </div>
+</section>
+
+<!-- ============ PLANTAS ============ -->
+<section class="section section--alt" id="planos">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Distribución del proyecto</p>
+      <h2>Un edificio pensado en cada nivel</h2>
+      <p>Desde el subsuelo con parqueaderos y bodegas, hasta el Roof Top con terrazas privadas.</p>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card reveal" data-ficha="img/planta-baja.jpg" data-title="Planta Baja">
+        <img src="img/planta-baja.jpg" alt="Planta baja: suites A, locales comerciales y sala comunal" />
+        <div class="plan-card__label">01 · Planta Baja — Suites A, locales comerciales y sala comunal</div>
+      </div>
+      <div class="plan-card reveal" data-ficha="img/primera-planta-alta.jpg" data-title="Primera Planta Alta">
+        <img src="img/primera-planta-alta.jpg" alt="Primera planta alta: suites B" />
+        <div class="plan-card__label">02 · Primera Planta Alta — Suites B0 a B12</div>
+      </div>
+      <div class="plan-card reveal" data-ficha="img/segunda-planta-alta.jpg" data-title="Segunda Planta Alta">
+        <img src="img/segunda-planta-alta.jpg" alt="Segunda planta alta: suites y departamentos C" />
+        <div class="plan-card__label">03 · Segunda Planta Alta — Suites y departamentos C</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERÍA ============ -->
+<section class="section" id="galeria">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Galería</p>
+      <h2>Un vistazo a Vértice</h2>
+      <p>Renders del proyecto: fachadas, áreas comunales e interiores.</p>
+    </div>
+    <div class="gallery-grid reveal">
+      <figure class="wide tall"><img src="img/vista-frontal.jpg" data-full="img/vista-frontal.jpg" data-lightbox alt="Vista frontal del edificio" /></figure>
+      <figure><img src="img/terraza.jpg" data-full="img/terraza.jpg" data-lightbox alt="Terraza Roof Top" /></figure>
+      <figure><img src="img/zona-comunal-bbq.jpg" data-full="img/zona-comunal-bbq.jpg" data-lightbox alt="Zona comunal con BBQ" /></figure>
+      <figure><img src="img/lobby.jpg" data-full="img/lobby.jpg" data-lightbox alt="Lobby de ingreso" /></figure>
+      <figure><img src="img/area-comunal-jardin.jpg" data-full="img/area-comunal-jardin.jpg" data-lightbox alt="Jardín interior" /></figure>
+      <figure class="wide"><img src="img/area-comunal-lounge.jpg" data-full="img/area-comunal-lounge.jpg" data-lightbox alt="Sala comunal lounge" /></figure>
+      <figure><img src="img/area-comunal-kitchen.jpg" data-full="img/area-comunal-kitchen.jpg" data-lightbox alt="Cocina comunal" /></figure>
+      <figure><img src="img/interior-01.jpg" data-full="img/interior-01.jpg" data-lightbox alt="Interior suite" /></figure>
+      <figure><img src="img/interior-02.jpg" data-full="img/interior-02.jpg" data-lightbox alt="Dormitorio" /></figure>
+      <figure class="tall"><img src="img/interior-04.jpg" data-full="img/interior-04.jpg" data-lightbox alt="Cocina departamento dúplex" /></figure>
+      <figure><img src="img/interior-06.jpg" data-full="img/interior-06.jpg" data-lightbox alt="Sala de estar" /></figure>
+      <figure><img src="img/interior-07.jpg" data-full="img/interior-07.jpg" data-lightbox alt="Sala moderna" /></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACTO ============ -->
+<section class="section contact" id="contacto">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <p class="eyebrow">Contacto</p>
+        <h2>Agenda tu visita a Vértice</h2>
+        <p>Cuéntanos qué tipología te interesa y te contactamos con toda la información: disponibilidad, planos y formas de pago.</p>
+
+        <div class="contact-details">
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-phone"></use></svg></span><div><strong>Teléfono / WhatsApp</strong><a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VERTICE." target="_blank" rel="noopener">093 908 7030</a></div></div>
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-mail"></use></svg></span><div><strong>Correo</strong><a href="mailto:hola@gpunlock.example">hola@gpunlock.example</a></div></div>
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-pin"></use></svg></span><div><strong>Ubicación</strong><span>Avenida Principal, Ciudad Alta</span></div></div>
+        </div>
+
+      </div>
+
+      <form class="contact-form reveal" id="contactForm">
+        <h3>Solicita información</h3>
+        <p>Completa el formulario y te escribimos por WhatsApp al instante.</p>
+        <div class="form-row">
+          <div class="field"><label for="name">Nombre completo *</label><input type="text" id="name" name="name" placeholder="Tu nombre" required /></div>
+          <div class="field"><label for="phone">Teléfono *</label><input type="tel" id="phone" name="phone" placeholder="09XXXXXXXX" required /></div>
+        </div>
+        <div class="field"><label for="email">Correo electrónico</label><input type="email" id="email" name="email" placeholder="tucorreo@email.com" /></div>
+        <div class="field">
+          <label for="unit">Tipología de interés</label>
+          <select id="unit" name="unit">
+            <option value="">Selecciona una opción</option>
+            <option value="Suite Planta Baja (A)">Suite Planta Baja (A)</option>
+            <option value="Suite Primera Planta Alta (B)">Suite Primera Planta Alta (B)</option>
+            <option value="Suite / Depto Segunda Planta Alta (C)">Suite / Depto Segunda Planta Alta (C)</option>
+            <option value="Local comercial">Local comercial</option>
+            <option value="Aún no lo sé">Aún no lo sé</option>
+          </select>
+        </div>
+        <div class="field"><label for="message">Mensaje</label><textarea id="message" name="message" placeholder="Cuéntanos qué te gustaría saber..."></textarea></div>
+        <button type="submit" class="btn btn--primary btn--block">Enviar por WhatsApp</button>
+        <p class="form-status" id="formStatus"></p>
+        <p class="form-note">Al enviar aceptas ser contactado por nuestro equipo comercial.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__brand"><img src="img/logo-mark.png" alt="Vértice" /><img class="footer__gpunlock" src="img/logo-gpunlock-white.png" alt="GPUnlock" /><span>© 2026 Vértice — GPUnlock. Todos los derechos reservados.</span></div>
+    <span>Avenida Principal, Ciudad Alta</span>
+  </div>
+</footer>
+
+<!-- WhatsApp floating button -->
+<a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VERTICE." class="whatsapp-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg class="icon"><use href="#i-whatsapp"></use></svg>
+</a>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox__box" id="lightboxBox">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Cerrar"><svg class="icon"><use href="#i-close"></use></svg></button>
+    <img src="" alt="" id="lightboxImg" />
+  </div>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" aria-label="Anterior"><svg class="icon"><use href="#i-chevron-left"></use></svg></button>
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" aria-label="Siguiente"><svg class="icon"><use href="#i-chevron-right"></use></svg></button>
+  <div class="lightbox__caption" id="lightboxCaption"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

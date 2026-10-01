@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel · GPUnlock</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#161616">
+<link rel="icon" type="image/png" href="/assets/brand/favicon-32.png">
+<link rel="stylesheet" href="/css/gp-tokens.css">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+
+<!-- ============ Cargando ============ -->
+<div class="boot" id="boot" aria-live="polite">
+  <img src="/assets/brand/gp-mark.png" alt="" width="415" height="504">
+  <span>Cargando panel…</span>
+</div>
+
+<!-- ============ Login ============ -->
+<main class="auth" id="auth" hidden>
+  <div class="auth-side" aria-hidden="true">
+    <img src="/assets/brand/gp-logo-lockup-white.png" alt="" width="1055" height="913">
+  </div>
+  <div class="auth-main">
+    <form class="auth-card" id="login-form" novalidate>
+      <img class="auth-logo" src="/assets/brand/gp-logo-horizontal.png" alt="GPUnlock" width="1539" height="430">
+      <h1>Panel de administración</h1>
+      <p class="muted">Ingresa con tu correo de GPUnlock. Si olvidaste tu contraseña, pídele una nueva al editor.</p>
+      <div class="notice notice-error" id="login-error" role="alert" hidden></div>
+      <div class="notice" id="login-info" role="status" hidden></div>
+      <label class="fld"><span>Correo</span>
+        <input type="email" id="login-email" autocomplete="username" required></label>
+      <label class="fld"><span>Contraseña</span>
+        <input type="password" id="login-password" autocomplete="current-password" required></label>
+      <button class="btn btn-primary btn-block" type="submit" id="login-btn">Entrar</button>
+      <a class="link-btn" href="/">Volver al sitio</a>
+    </form>
+  </div>
+</main>
+
+<!-- ============ Aplicación ============ -->
+<div class="app" id="app" hidden>
+  <aside class="side" id="side" aria-label="Menú del panel">
+    <div class="side-head">
+      <a href="#/escritorio" class="side-brand">
+        <img src="/assets/brand/gp-mark.png" alt="" width="415" height="504">
+        <span><strong>GPUnlock</strong><small>Panel de administración</small></span>
+      </a>
+      <button class="icon-btn side-close" id="side-close" aria-label="Cerrar menú"></button>
+    </div>
+    <nav class="side-nav" id="side-nav"></nav>
+    <div class="side-foot">
+      <a href="/" target="_blank" rel="noopener" class="side-site">Ver sitio público</a>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="main">
+    <header class="bar">
+      <button class="icon-btn bar-menu" id="bar-menu" aria-label="Abrir menú"></button>
+      <div class="bar-title">
+        <p class="crumbs" id="crumbs"></p>
+        <h1 id="page-title">Escritorio</h1>
+      </div>
+      <div class="bar-user">
+        <span class="role-badge" id="role-badge"></span>
+        <span class="bar-email" id="bar-email"></span>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Salir</button>
+      </div>
+    </header>
+    <main class="view" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<!-- ============ Modal y avisos ============ -->
+<dialog class="modal" id="modal">
+  <form method="dialog" class="modal-inner" id="modal-form">
+    <header class="modal-head">
+      <h2 id="modal-title"></h2>
+      <button class="icon-btn" value="cancel" formnovalidate aria-label="Cerrar" id="modal-x"></button>
+    </header>
+    <div class="modal-body" id="modal-body"></div>
+    <footer class="modal-foot" id="modal-foot"></footer>
+  </form>
+</dialog>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="/admin/js/core.js"></script>
+<script src="/admin/js/views.js"></script>
+<script src="/admin/js/app.js"></script>
+</body>
+</html>

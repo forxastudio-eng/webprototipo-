@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPUnlock · Proyectos inmobiliarios</title>
+<meta name="description" content="Proyectos inmobiliarios de GPUnlock: suites, departamentos, locales comerciales y lotes en Ciudad Alta y Valle Alto, con cotizador interno y panel de administración.">
+<meta name="theme-color" content="#161616">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/brand/favicon-180.png">
+<link rel="stylesheet" href="/css/gp-tokens.css">
+<link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+<a class="skip" href="#proyectos">Saltar a los proyectos</a>
+
+<header class="top" id="top">
+  <div class="wrap top-row">
+    <a class="brand" href="/" aria-label="GPUnlock, inicio">
+      <img src="/assets/brand/gp-logo-horizontal.png" alt="GPUnlock" width="1539" height="430">
+    </a>
+    <nav class="top-nav" aria-label="Principal">
+      <a href="#proyectos">Proyectos</a>
+      <a href="#contacto">Contacto</a>
+      <a href="/cotizador/" class="top-nav-btn top-nav-cotizador">Cotizador</a>
+      <a href="/admin/" class="top-nav-btn">Acceso</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="hero-place">Descubre tu nueva Inversión</p>
+        <h1 id="hero-title">Espacios para vivir, trabajar e invertir.</h1>
+        <p class="hero-lead">Suites, lofts, locales comerciales y lotes. Todos los proyectos de GPUnlock reunidos en un solo lugar, con disponibilidad actualizada.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#proyectos">Ver proyectos</a>
+          <a class="btn btn-quiet" id="hero-whatsapp" href="https://wa.me/593900000000" target="_blank" rel="noopener">Hablar con el equipo</a>
+        </div>
+      </div>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="/assets/brand/gp-isotipo.png" alt="" width="415" height="504">
+      </div>
+    </div>
+  </section>
+
+  <section class="projects" id="proyectos" aria-labelledby="proyectos-title">
+    <div class="wrap">
+      <div class="projects-head">
+        <h2 id="proyectos-title">Proyectos</h2>
+        <div class="filters" id="filters" role="group" aria-label="Filtrar por ubicación"></div>
+      </div>
+      <div class="grid" id="grid" aria-live="polite">
+        <div class="state">Cargando proyectos…</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contacto" aria-labelledby="contacto-title">
+    <div class="wrap contact-grid">
+      <div>
+        <h2 id="contacto-title">¿Buscas algo en particular?</h2>
+        <p>Cuéntanos qué necesitas y nuestro equipo te responde por WhatsApp con opciones y precios actualizados.</p>
+      </div>
+      <form class="contact-form" id="contact-form" novalidate>
+        <div class="field">
+          <label for="c-nombre">Nombre</label>
+          <input id="c-nombre" name="nombre" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="c-proyecto">Proyecto de interés</label>
+          <select id="c-proyecto" name="proyecto">
+            <option value="">Todavía no lo sé</option>
+          </select>
+        </div>
+        <div class="field field-wide">
+          <label for="c-mensaje">Mensaje</label>
+          <textarea id="c-mensaje" name="mensaje" rows="3" placeholder="Ej. Busco una suite para inversión, presupuesto aproximado…"></textarea>
+        </div>
+        <p class="form-error" id="c-error" role="alert"></p>
+        <button class="btn btn-primary" type="submit">Continuar en WhatsApp</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <img src="/assets/brand/gp-logo-horizontal-white.png" alt="GPUnlock" class="foot-logo" width="1539" height="430">
+    <p>© <span id="year"></span> GPUnlock Creative Studio.</p>
+    <nav class="foot-nav" aria-label="Equipo">
+      <a href="/cotizador/">Cotizador</a>
+      <a href="/admin/">Panel de administración</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="/js/home.js"></script>
+</body>
+</html>

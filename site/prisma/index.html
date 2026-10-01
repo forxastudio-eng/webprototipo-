@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<base href="/prisma/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prisma | Suites &amp; Lofts en Ciudad Alta — avenida del Parque</title>
+<meta name="description" content="Prisma Suites & Lofts: unidades residenciales, locales comerciales e islas en la avenida del Parque, Ciudad Alta. A pasos del Centro Histórico y la Universidad de Ciudad Alta." />
+<meta name="theme-color" content="#262626" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" href="img/brand/prisma-mark-black.png" type="image/png">
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ============ SPRITE DE ÍCONOS (auto-alojado, sin dependencias) ============ -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.02c-.24.68-1.4 1.3-1.93 1.36-.5.06-1.02.24-3.42-.71-2.88-1.14-4.73-4.08-4.87-4.27-.14-.19-1.16-1.55-1.16-2.96 0-1.41.74-2.1 1-2.39.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.15.07.14.12.31.02.5-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.14-.28.28-.12.56.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.44.2.5.32.07.12.07.66-.17 1.34Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 4v16M6 14l6 6 6-6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 12h16M14 6l6 6-6 6"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M3 15v4a2 2 0 0 0 2 2h4"/></symbol>
+
+    <symbol id="i-bed" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 13h18M7 13V9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4M3 18v2M21 18v2"/></symbol>
+    <symbol id="i-bath" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 12h16a1 1 0 0 1 1 1 6 6 0 0 1-6 6H9a6 6 0 0 1-6-6 1 1 0 0 1 1-1Z M7 12V6a2 2 0 0 1 3.5-1.3 M4 21h16"/></symbol>
+    <symbol id="i-sofa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 14v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2 M3 14h18v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z M6 19v2 M18 19v2"/></symbol>
+    <symbol id="i-kitchen" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 10h14l-1 9H6l-1-9Z M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10 M12 13v3"/></symbol>
+    <symbol id="i-laundry" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z M7 6h.01 M11 6h.01 M12 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></symbol>
+    <symbol id="i-tree" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3a5 5 0 0 1 5 5c0 2-1.2 3-2.5 3.8A5 5 0 0 1 12 21a5 5 0 0 1-2.5-9.2C8.2 11 7 10 7 8a5 5 0 0 1 5-5Z M12 12v9"/></symbol>
+
+    <symbol id="i-garden" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M20 4C10 4 4 10 4 20c10 0 16-6 16-16Z M8.5 15.5 16 8"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M3 9l1.2-5h15.6L21 9 M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9 M3 9h18 M9.5 20v-6h5v6"/></symbol>
+    <symbol id="i-parking" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M4 17h16 M5 17l1.3-5.2A2 2 0 0 1 8.2 10.3h7.6a2 2 0 0 1 1.9 1.5L19 17 M5 17v3 M19 17v3 M7 14h10"/><circle cx="7" cy="17" r="1.5" fill="currentColor" stroke="none"/><circle cx="17" cy="17" r="1.5" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M3 8l9-5 9 5-9 5-9-5Z M3 8v8l9 5 9-5V8 M12 13v8"/></symbol>
+    <symbol id="i-rooftop" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M3 21h18 M5 21V9l7-6 7 6v12 M9 21v-8h6v8 M12 3v3"/></symbol>
+    <symbol id="i-pin-area" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+
+    <symbol id="i-road" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 20 10 4h4l2 16 M11 10h2 M10.4 15h3.2"/></symbol>
+    <symbol id="i-landmark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M5 21V10l7-6 7 6v11 M9 21v-6h6v6 M12 4V1.5 M10.6 2.5h2.8"/></symbol>
+    <symbol id="i-grad" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></symbol>
+    <symbol id="i-stadium" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="6" fill="none" stroke="currentColor" stroke-width="1.7"/><ellipse cx="12" cy="12" rx="4.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.99.36 1.96.68 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.18-1.25a2 2 0 0 1 2.11-.45c.94.32 1.91.55 2.9.68A2 2 0 0 1 22 16.92Z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 7v5l3.5 2"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a href="#inicio" class="brand">
+      <img class="brand__mark" src="img/brand/prisma-mark-white.png" alt="" />
+      <span class="brand__word">PRISMA<small>Suites &amp; Lofts</small></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#proyecto">Proyecto</a>
+      <a href="#ubicacion">Ubicación</a>
+      <a href="#amenidades">Amenidades</a>
+      <a href="#tipologias">Suites &amp; Lofts</a>
+      <a href="#locales">Locales</a>
+      <a href="#planos">Plantas</a>
+      <a href="#galeria">Galería</a>
+      <a href="/" class="nav-more">Más proyectos</a>
+      <a href="#contacto" class="btn btn--cream btn--sm">Contáctanos</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="inicio">
+  <div class="hero__media">
+    <video autoplay muted loop playsinline poster="img/hero-poster.jpg">
+      <source src="video/hero-prisma.mp4" type="video/mp4" />
+      <img src="img/hero-poster.jpg" alt="Edificio Prisma al atardecer" />
+    </video>
+  </div>
+  <div class="hero__scrim"></div>
+
+  <div class="hero__inner">
+    <div class="hero__panel">
+      <span class="hero__kicker"><span class="dot"></span> Ciudad Alta · avenida del Parque</span>
+      <img class="hero__logo" src="img/brand/prisma-lockup-white.png" alt="Prisma Suites &amp; Lofts" />
+      <h1 class="hero__title">
+        <span class="line"><span>Arquitectura</span></span>
+        <span class="line"><span><em>que se eleva</em></span></span>
+      </h1>
+      <p class="hero__desc">Suites y lofts en el corazón de Ciudad Alta, con locales comerciales en planta baja y áreas verdes en altura. Elegancia, funcionalidad y vida urbana en una zona de alta revalorización.</p>
+      <div class="hero__cta">
+        <a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20PRISMA." class="btn btn--cream" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-whatsapp"></use></svg> Escribir por WhatsApp
+        </a>
+        <a href="#tipologias" class="btn btn--glass">Ver disponibilidad <svg class="icon"><use href="#i-arrow-right"></use></svg></a>
+      </div>
+    </div>
+
+    <div class="hero__stats">
+      <div><strong data-count="64">0</strong><span>Suites y lofts</span></div>
+      <div><strong data-count="13">0</strong><span>Locales e islas</span></div>
+      <div><strong data-count="6">0</strong><span>Plantas altas</span></div>
+      <div><strong data-count="2">0</strong><span>Subsuelos</span></div>
+    </div>
+  </div>
+
+  <a href="#proyecto" class="scroll-cue" aria-label="Bajar al contenido"><svg class="icon"><use href="#i-arrow-down"></use></svg></a>
+</section>
+
+<!-- ============ CINTA ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span>Suites &amp; Lofts<span></span></span>
+    <span>Locales comerciales</span>
+    <span>Áreas verdes en altura</span>
+    <span>Dos subsuelos de parqueadero</span>
+    <span>Centro Histórico a minutos</span>
+    <span>Zona de alta plusvalía</span>
+    <span>Suites &amp; Lofts</span>
+    <span>Locales comerciales</span>
+    <span>Áreas verdes en altura</span>
+    <span>Dos subsuelos de parqueadero</span>
+    <span>Centro Histórico a minutos</span>
+    <span>Zona de alta plusvalía</span>
+  </div>
+</div>
+
+<!-- ============ SOBRE EL PROYECTO ============ -->
+<section class="section" id="proyecto">
+  <div class="container">
+    <div class="about">
+      <div class="about__media reveal">
+        <img src="img/exterior/lateral.jpg" alt="Vista lateral del edificio Prisma" data-parallax />
+        <div class="about__float">
+          <strong>77</strong>
+          <span>Unidades en total</span>
+        </div>
+      </div>
+      <div class="about__text reveal">
+        <p class="eyebrow">Sobre Prisma</p>
+        <h2>Elegancia, funcionalidad y vida urbana</h2>
+        <p>Ubicado en la avenida del Parque, este moderno proyecto residencial y comercial fusiona elegancia, funcionalidad y estilo de vida urbano.</p>
+        <p>Su arquitectura, pensada para adaptarse a las necesidades actuales, integra locales comerciales en la planta baja y exclusivas unidades de vivienda distribuidas en seis plantas altas. Dos niveles de subsuelo alojan parqueaderos, bodegas y zonas de servicios técnicos, garantizando máxima comodidad e independencia.</p>
+        <p>Incorpora además áreas verdes en la primera planta alta y en la terraza, diseñadas para el esparcimiento y el bienestar de los residentes.</p>
+        <div class="about__badges stagger">
+          <div class="badge"><strong>5</strong><span>Unidades de muestra</span></div>
+          <div class="badge"><strong>13</strong><span>Locales e islas</span></div>
+          <div class="badge"><strong>6</strong><span>Plantas altas</span></div>
+          <div class="badge"><strong>2</strong><span>Subsuelos</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ UBICACIÓN ============ -->
+<section class="section section--cream-2" id="ubicacion">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Ubicación privilegiada</p>
+      <h2>En el corazón de Ciudad Alta</h2>
+      <p>Una zona de alta revalorización con acceso directo a las principales avenidas de la ciudad.</p>
+    </div>
+    <div class="location">
+      <div class="location__maps reveal">
+        <figure class="location__map" style="margin:0">
+          <img src="img/ubicacion/mapa-1.jpg" alt="Ubicación de Prisma respecto al Centro Histórico y la Universidad de Ciudad Alta" />
+          <figcaption>Entorno inmediato</figcaption>
+        </figure>
+        <figure class="location__map" style="margin:0">
+          <img src="img/ubicacion/mapa-2.jpg" alt="Ubicación de Prisma respecto al Estadio Municipal" />
+          <figcaption>Conectividad urbana</figcaption>
+        </figure>
+      </div>
+      <div class="poi-list stagger">
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-road"></use></svg></span><div><strong>avenida del Parque</strong><span>Acceso directo a Av. Norte y Av. Sur</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-landmark"></use></svg></span><div><strong>Centro Histórico</strong><span>Pocos minutos en auto</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-grad"></use></svg></span><div><strong>Universidad de Ciudad Alta</strong><span>A corta distancia</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-garden"></use></svg></span><div><strong>Parque Central</strong><span>Área verde cercana</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-stadium"></use></svg></span><div><strong>Estadio Municipal</strong><span>A corta distancia</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-pin-area"></use></svg></span><div><strong>Zona de alta plusvalía</strong><span>Entorno residencial y comercial consolidado</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AMENIDADES ============ -->
+<section class="section section--cafe" id="amenidades">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Amenidades</p>
+      <h2>Comodidad en cada nivel</h2>
+      <p>Del subsuelo a la terraza, Prisma está pensado para la independencia y el bienestar de sus residentes.</p>
+    </div>
+    <div class="amenities-grid stagger">
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-parking"></use></svg></div><h3>Parqueaderos</h3><p>Dos niveles de subsuelo con amplios parqueaderos para residentes y visitas.</p></div>
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-box"></use></svg></div><h3>Bodegas privadas</h3><p>Zonas de bodegas y servicios técnicos en el subsuelo, para máxima independencia.</p></div>
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-garden"></use></svg></div><h3>Áreas verdes</h3><p>Espacios verdes en la primera planta alta, pensados para el esparcimiento.</p></div>
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-rooftop"></use></svg></div><h3>Terraza</h3><p>Planta de terraza con áreas verdes diseñadas para el bienestar de los residentes.</p></div>
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-store"></use></svg></div><h3>Locales comerciales</h3><p>7 locales y 6 islas en planta baja, ideales para retail, servicios o cafetería.</p></div>
+      <div class="amenity-card"><div class="amenity-card__icon"><svg class="icon"><use href="#i-pin-area"></use></svg></div><h3>Ubicación estratégica</h3><p>A pasos del Centro Histórico y la Universidad de Ciudad Alta.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BANDA DESTACADA ============ -->
+<section class="section--tight">
+  <div class="container">
+    <div class="feature-band reveal">
+      <div class="feature-band__body">
+        <p class="eyebrow">Terraza &amp; áreas verdes</p>
+        <h3>Espacios diseñados para el bienestar</h3>
+        <p>Desde la primera planta alta hasta la terraza, Prisma integra áreas verdes pensadas para el esparcimiento, con vista al entorno urbano de Ciudad Alta.</p>
+        <a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20PRISMA." class="btn btn--cream" target="_blank" rel="noopener">Consultar disponibilidad <svg class="icon"><use href="#i-arrow-right"></use></svg></a>
+      </div>
+      <div class="feature-band__media">
+        <img src="img/interior/sala.jpg" alt="Sala con vista, proyecto Prisma" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TIPOLOGÍAS ============ -->
+<section class="section section--cream-2" id="tipologias">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Suites &amp; Lofts</p>
+      <h2>Encuentra tu espacio ideal</h2>
+      <p>Unidades distribuidas en seis plantas altas. Haz clic en cualquier unidad para ver su ficha técnica completa.</p>
+    </div>
+
+    <div class="tabs-wrap reveal">
+      <div class="tabs">
+        <button class="tab-btn is-active" data-tab="tab-suites">Suites · <span id="countSuites">23</span></button>
+        <button class="tab-btn" data-tab="tab-lofts">Lofts · <span id="countLofts">41</span></button>
+      </div>
+    </div>
+
+    <div class="tab-panel is-active" id="tab-suites"><div class="unit-grid" id="grid-suites"></div></div>
+    <div class="tab-panel" id="tab-lofts"><div class="unit-grid" id="grid-lofts"></div></div>
+
+    <p class="tipologias-note">Áreas referenciales según planos arquitectónicos. Escríbenos para conocer disponibilidad actualizada.</p>
+  </div>
+</section>
+
+<!-- ============ LOCALES ============ -->
+<section class="section section--cafe" id="locales">
+  <div class="container">
+    <div class="head-split reveal">
+      <div>
+        <p class="eyebrow">Locales &amp; islas</p>
+        <h2>Emprende en planta baja</h2>
+        <p>Locales comerciales e islas —<span id="countLocales">2</span> espacios— con acceso directo desde la calle.</p>
+      </div>
+      <a href="#contacto" class="btn btn--glass btn--sm">Consultar <svg class="icon"><use href="#i-arrow-right"></use></svg></a>
+    </div>
+    <div class="locales-grid" id="localesGrid"></div>
+  </div>
+</section>
+
+<!-- ============ PLANTAS ============ -->
+<section class="section" id="planos">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Distribución</p>
+      <h2>Un edificio pensado en cada nivel</h2>
+      <p>Desde el subsuelo con parqueaderos y bodegas, hasta la terraza con áreas verdes.</p>
+    </div>
+    <div class="plans-grid stagger">
+      <div class="plan-card" data-ficha="img/plantas/subsuelo-2.jpg" data-title="Subsuelo -2"><div class="plan-card__img"><img src="img/plantas/subsuelo-2.jpg" alt="Subsuelo -2: parqueaderos y bodegas" loading="lazy" /></div><div class="plan-card__label"><i>N-2</i> Parqueaderos y bodegas</div></div>
+      <div class="plan-card" data-ficha="img/plantas/subsuelo-1.jpg" data-title="Subsuelo -1"><div class="plan-card__img"><img src="img/plantas/subsuelo-1.jpg" alt="Subsuelo -1: parqueaderos y bodegas" loading="lazy" /></div><div class="plan-card__label"><i>N-1</i> Parqueaderos y bodegas</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-baja.jpg" data-title="Planta Baja"><div class="plan-card__img"><img src="img/plantas/planta-baja.jpg" alt="Planta baja: locales comerciales e islas" loading="lazy" /></div><div class="plan-card__label"><i>PB</i> Locales e islas comerciales</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-1.jpg" data-title="1° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-1.jpg" alt="Primera planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N1</i> Suites, lofts y área verde</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-2.jpg" data-title="2° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-2.jpg" alt="Segunda planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N2</i> Suites y lofts</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-3.jpg" data-title="3° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-3.jpg" alt="Tercera planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N3</i> Suites y lofts</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-4.jpg" data-title="4° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-4.jpg" alt="Cuarta planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N4</i> Suites y lofts</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-5.jpg" data-title="5° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-5.jpg" alt="Quinta planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N5</i> Suites y lofts</div></div>
+      <div class="plan-card" data-ficha="img/plantas/planta-6.jpg" data-title="6° Planta Alta"><div class="plan-card__img"><img src="img/plantas/planta-6.jpg" alt="Sexta planta alta" loading="lazy" /></div><div class="plan-card__label"><i>N6</i> Suites y lofts</div></div>
+      <div class="plan-card" data-ficha="img/plantas/terraza.jpg" data-title="Planta de Terraza"><div class="plan-card__img"><img src="img/plantas/terraza.jpg" alt="Planta de terraza con áreas verdes" loading="lazy" /></div><div class="plan-card__label"><i>TER</i> Terraza y áreas verdes</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERÍA ============ -->
+<section class="section section--cafe" id="galeria">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Galería</p>
+      <h2>Un vistazo a Prisma</h2>
+      <p>Renders del proyecto: fachadas e interiores ambientados.</p>
+    </div>
+    <div class="gallery-grid stagger">
+      <figure class="wide tall arch"><img src="img/exterior/frontal.jpg" data-full="img/exterior/frontal.jpg" data-lightbox alt="Vista frontal del edificio Prisma" loading="lazy" /></figure>
+      <figure><img src="img/exterior/lateral.jpg" data-full="img/exterior/lateral.jpg" data-lightbox alt="Vista lateral del edificio" loading="lazy" /></figure>
+      <figure><img src="img/exterior/posterior.jpg" data-full="img/exterior/posterior.jpg" data-lightbox alt="Vista posterior del edificio" loading="lazy" /></figure>
+      <figure><img src="img/interior/sala.jpg" data-full="img/interior/sala.jpg" data-lightbox alt="Sala ambientada" loading="lazy" /></figure>
+      <figure><img src="img/interior/cocina.jpg" data-full="img/interior/cocina.jpg" data-lightbox alt="Cocina ambientada" loading="lazy" /></figure>
+      <figure class="tall"><img src="img/interior/loft-1.jpg" data-full="img/interior/loft-1.jpg" data-lightbox alt="Loft ambientado" loading="lazy" /></figure>
+      <figure><img src="img/interior/loft-2.jpg" data-full="img/interior/loft-2.jpg" data-lightbox alt="Loft ambientado, vista 2" loading="lazy" /></figure>
+      <figure><img src="img/interior/habitacion-1.jpg" data-full="img/interior/habitacion-1.jpg" data-lightbox alt="Habitación ambientada" loading="lazy" /></figure>
+      <figure class="wide"><img src="img/interior/habitacion-2.jpg" data-full="img/interior/habitacion-2.jpg" data-lightbox alt="Habitación ambientada, vista 2" loading="lazy" /></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACTO ============ -->
+<section class="section section--choc contact" id="contacto">
+  <div class="contact__bg"><img src="img/exterior/frontal.jpg" alt="" aria-hidden="true" /></div>
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <p class="eyebrow">Contacto</p>
+        <h2>Agenda tu visita a Prisma</h2>
+        <p>Cuéntanos qué suite o loft te interesa y te contactamos con toda la información: disponibilidad, planos y formas de pago.</p>
+        <div class="contact-details stagger">
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-whatsapp"></use></svg></span><div><strong>WhatsApp</strong><a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20PRISMA." target="_blank" rel="noopener">093 908 7030</a></div></div>
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-pin"></use></svg></span><div><strong>Ubicación</strong><span>Avenida del Parque, Ciudad Alta</span></div></div>
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-clock"></use></svg></span><div><strong>Atención</strong><span>Lunes a sábado · Visitas con cita previa</span></div></div>
+        </div>
+      </div>
+
+      <form class="contact-form reveal" id="contactForm">
+        <h3>Solicita información</h3>
+        <p>Completa el formulario y te escribimos por WhatsApp al instante.</p>
+        <div class="form-row">
+          <div class="field"><label for="name">Nombre completo *</label><input type="text" id="name" name="name" placeholder="Tu nombre" required /></div>
+          <div class="field"><label for="phone">Teléfono *</label><input type="tel" id="phone" name="phone" placeholder="09XXXXXXXX" required /></div>
+        </div>
+        <div class="field"><label for="email">Correo electrónico</label><input type="email" id="email" name="email" placeholder="tucorreo@email.com" /></div>
+        <div class="field">
+          <label for="unit">Tipología de interés</label>
+          <select id="unit" name="unit">
+            <option value="">Selecciona una opción</option>
+            <option value="Suite">Suite</option>
+            <option value="Loft">Loft (monoambiente)</option>
+            <option value="Local comercial">Local comercial</option>
+            <option value="Isla comercial">Isla comercial</option>
+            <option value="Aún no lo sé">Aún no lo sé</option>
+          </select>
+        </div>
+        <div class="field"><label for="message">Mensaje</label><textarea id="message" name="message" placeholder="Cuéntanos qué te gustaría saber..."></textarea></div>
+        <button type="submit" class="btn btn--primary btn--block">Enviar por WhatsApp</button>
+        <p class="form-status" id="formStatus"></p>
+        <p class="form-note">Al enviar aceptas ser contactado por nuestro equipo comercial.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__brand">
+      <img src="img/brand/prisma-mark-white.png" alt="Prisma" />
+      <span>© 2026 Prisma Suites &amp; Lofts. Todos los derechos reservados.</span>
+    </div>
+    <span>Avenida del Parque, Ciudad Alta</span>
+  </div>
+</footer>
+
+<!-- WhatsApp flotante (esquina inferior izquierda) -->
+<a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20PRISMA." class="whatsapp-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg class="icon"><use href="#i-whatsapp"></use></svg>
+</a>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox__box" id="lightboxBox">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Cerrar"><svg class="icon"><use href="#i-close"></use></svg></button>
+    <img src="" alt="" id="lightboxImg" />
+  </div>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" aria-label="Anterior"><svg class="icon"><use href="#i-chevron-left"></use></svg></button>
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" aria-label="Siguiente"><svg class="icon"><use href="#i-chevron-right"></use></svg></button>
+  <div class="lightbox__caption" id="lightboxCaption"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

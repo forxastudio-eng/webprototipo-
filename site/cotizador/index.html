@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotizador — GPUnlock</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/assets/brand/favicon-32.png">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/gp-theme.css">
+</head>
+<body>
+
+<div class="internal-bar">Material interno GPUnlock · no compartir este enlace</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-mark.png" alt="GPUnlock" onerror="this.style.display='none'">
+      <span class="brand-text"><strong>GPUnlock</strong><span>Cotizador interno</span></span>
+    </a>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<!-- ---------- Login ---------- -->
+<div id="login-view" class="login-shell" hidden>
+  <div class="login-card">
+    <img src="assets/logo.png" alt="GPUnlock" onerror="this.style.display='none'">
+    <h1>Iniciar sesión</h1>
+    <p class="hint">Ingresa con tu cuenta de asesor para generar proformas.</p>
+    <div id="login-status" class="status-banner" role="status" aria-live="polite"></div>
+    <form id="login-form">
+      <div class="field"><label for="l-email">Correo</label><input type="email" id="l-email" required autocomplete="username"></div>
+      <div class="field"><label for="l-password">Contraseña</label><input type="password" id="l-password" required autocomplete="current-password"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;" id="login-btn">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- Picker de proyectos ---------- -->
+<main id="picker-view" hidden>
+  <section class="hero-band">
+    <div class="wrap hero">
+      <img class="hero-logo" src="assets/logo-white.png" alt="GPUnlock" onerror="this.style.display='none'">
+      <span class="kicker">GPUnlock · Cotizador interno</span>
+      <h1>¿Para qué proyecto vas a cotizar?</h1>
+      <p>Selecciona un proyecto para ver sus unidades disponibles y generar la proforma.</p>
+    </div>
+  </section>
+  <section class="wrap">
+    <div id="project-grid" class="project-grid">
+      <div class="empty-state">Cargando proyectos…</div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script>
+async function boot() {
+  const user = await CotizadorAuth.init();
+  if (!user) { showLogin(); return; }
+  showPicker();
+}
+
+function showLogin() {
+  document.getElementById('login-view').hidden = false;
+  document.getElementById('picker-view').hidden = true;
+  document.getElementById('header-actions').innerHTML = '';
+}
+
+async function showPicker() {
+  document.getElementById('login-view').hidden = true;
+  document.getElementById('picker-view').hidden = false;
+  const user = CotizadorAuth.getUser();
+  const isAdmin = CotizadorAuth.getIsAdmin();
+  document.getElementById('header-actions').innerHTML = `
+    <span class="user-pill">${user.email}</span>
+    <a href="/admin/#/cuenta">Mi cuenta</a>
+    ${CotizadorAuth.getPuedeEntrarPanel() ? '<a href="/admin/">Panel</a>' : ''}
+    ${isAdmin ? '<a href="admin.html">Configurar</a>' : ''}
+    ${CotizadorAuth.getPuedeVerHistorial() ? '<a href="historial.html">Historial</a>' : ''}
+    <button id="logout-btn">Cerrar sesión</button>
+  `;
+  document.getElementById('logout-btn').onclick = async () => { await CotizadorAuth.logout(); location.reload(); };
+  if (!CotizadorAuth.getRol()) {
+    document.getElementById('project-grid').innerHTML = `<div class="empty-state">Tu cuenta (${user.email}) todavía no tiene un rol asignado. Pide al editor que te agregue en el panel → Usuarios y roles.</div>`;
+    return;
+  }
+  await loadProjects();
+}
+
+async function loadProjects() {
+  const grid = document.getElementById('project-grid');
+  const { data, error } = await supabaseClient
+    .from('cotizador_proyectos')
+    .select('*')
+    .eq('activo', true)
+    .order('sort_order');
+  if (error) { grid.innerHTML = `<div class="empty-state">No se pudieron cargar los proyectos: ${error.message}</div>`; return; }
+  if (!data.length) { grid.innerHTML = `<div class="empty-state">Todavía no hay proyectos cargados.</div>`; return; }
+
+  grid.innerHTML = '';
+  for (const p of data) {
+    const coverUrl = await signedMediaUrl(p.cover_url);
+    const card = document.createElement('a');
+    card.className = 'project-card';
+    card.href = `cotizador.html?proyecto=${encodeURIComponent(p.id)}`;
+    // Mientras no haya portada subida, degradado con los colores propios del
+    // proyecto (en vez de un color plano) para que cada tarjeta se distinga.
+    card.style.backgroundImage = coverUrl
+      ? `url('${coverUrl}')`
+      : `linear-gradient(150deg, ${p.color_primario}, ${p.color_acento})`;
+    card.innerHTML = `
+      <div class="scrim"></div>
+      <div class="content">
+        <span class="tag">Proyecto</span>
+        <h2>${p.nombre}</h2>
+        <p>${p.tagline || ''}</p>
+        ${p.ubicacion ? `<div class="meta"><span>${p.ubicacion}</span></div>` : ''}
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const banner = document.getElementById('login-status');
+  const btn = document.getElementById('login-btn');
+  banner.className = 'status-banner'; banner.textContent = '';
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try {
+    await CotizadorAuth.login(document.getElementById('l-email').value.trim(), document.getElementById('l-password').value);
+    await showPicker();
+  } catch (err) {
+    banner.className = 'status-banner error show';
+    banner.textContent = 'No se pudo iniciar sesión: ' + err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+boot();
+</script>
+</body>
+</html>

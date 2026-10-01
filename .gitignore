@@ -1,0 +1,6 @@
+# Secretos y archivos locales: nunca se suben
+scripts/.env
+scripts/credenciales-iniciales.csv
+scripts/node_modules/
+node_modules/
+.DS_Store

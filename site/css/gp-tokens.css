@@ -1,0 +1,45 @@
+/* ==========================================================================
+   GPUnlock · Tokens de marca (fuente única para landing, panel y cotizador)
+   Primitivos → semánticos. Tomados del logotipo: degradado azul del símbolo
+   (#F2582B → #F08A30) y wordmark geométrico negro.
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  /* primitivos */
+  --gp-orange-700:#C9421B;
+  --gp-orange-600:#F2582B;
+  --gp-orange-400:#F08A30;
+  --gp-orange-100:#FDE9E1;
+  --gp-orange-50:#FFF5F0;
+  --gp-ink-900:#161616;
+  --gp-ink-800:#262626;
+  --gp-ink-600:#4A4A4A;
+  --gp-slate-500:#6B6B6B;
+  --gp-slate-300:#B5B5B5;
+  --gp-line:#E8E4E1;
+  --gp-mist:#F6F3F1;
+  --gp-white:#FFFFFF;
+  --gp-green-600:#17845A; --gp-green-50:#E8F5EE;
+  --gp-amber-600:#B7791F; --gp-amber-50:#FDF4E3;
+  --gp-red-600:#C23A32;   --gp-red-50:#FBEBEA;
+
+  /* semánticos */
+  --color-primary:var(--gp-orange-600);
+  --color-primary-hover:var(--gp-orange-700);
+  --color-accent:var(--gp-orange-400);
+  --color-text:var(--gp-ink-900);
+  --color-text-muted:var(--gp-slate-500);
+  --color-bg:var(--gp-white);
+  --color-surface:var(--gp-mist);
+  --color-border:var(--gp-line);
+  --gradient-brand:linear-gradient(135deg, var(--gp-orange-400) 0%, var(--gp-orange-600) 100%);
+
+  --font-display:'Lexend', system-ui, sans-serif;
+  --font-body:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
+  --shadow-sm:0 1px 2px rgba(22,22,22,.05);
+  --shadow-md:0 8px 24px rgba(22,22,22,.08);
+  --shadow-lg:0 24px 48px -16px rgba(22,22,22,.22);
+}

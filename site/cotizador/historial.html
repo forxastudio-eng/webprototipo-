@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historial de proformas — GPUnlock</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/assets/brand/favicon-32.png">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/gp-theme.css">
+<style>@page { size: A4 portrait; margin: 12mm; }</style>
+</head>
+<body>
+
+<div class="internal-bar no-print">Historial de proformas · acceso restringido</div>
+<header class="site-header no-print">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-mark.png" alt="GPUnlock" onerror="this.style.display='none'">
+      <span class="brand-text"><strong>GPUnlock</strong><span>Historial de proformas</span></span>
+    </a>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<main class="wrap" style="padding-top:28px;padding-bottom:110px;">
+
+  <div id="sin-permisos" hidden></div>
+
+  <div id="historial-content" hidden>
+    <div class="card no-print">
+      <h3>Filtros</h3>
+      <div class="row2">
+        <div class="field"><label>Proyecto</label>
+          <select id="f-proyecto"><option value="">Todos los proyectos</option></select>
+        </div>
+        <div class="field"><label>Tipología / tipo de unidad</label>
+          <select id="f-tipologia"><option value="">Todas las tipologías</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Buscar (cliente o asesor)</label>
+        <input type="text" id="f-buscar" placeholder="Nombre del cliente o asesor…">
+      </div>
+      <div class="row2">
+        <div class="field"><label>Desde</label><input type="date" id="f-desde"></div>
+        <div class="field"><label>Hasta</label><input type="date" id="f-hasta"></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost btn-sm" id="f-limpiar">Limpiar filtros</button>
+        <button type="button" class="btn btn-primary btn-sm" id="f-exportar">Exportar a Excel</button>
+      </div>
+    </div>
+
+    <div class="card no-print" style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost btn-sm tab-btn active" id="tab-btn-tabla">Tabla de proformas</button>
+      <button type="button" class="btn btn-ghost btn-sm tab-btn" id="tab-btn-dashboard">Dashboard de preferencias</button>
+    </div>
+
+    <div id="vista-tabla">
+      <div class="card">
+        <h3>Proformas generadas</h3>
+        <p class="hint" id="historial-contador" style="margin-bottom:12px;"></p>
+        <div id="historial-list" class="admin-table-wrap"><div class="empty-state">Cargando…</div></div>
+      </div>
+    </div>
+
+    <div id="vista-dashboard" hidden>
+      <div id="dashboard-print-area">
+        <header class="report-head">
+          <div class="report-brand">
+            <img src="/assets/brand/gp-logo-horizontal.png" alt="GPUnlock" width="1539" height="430">
+          </div>
+          <div class="report-titles">
+            <h2 id="report-title">Dashboard de preferencias de compra</h2>
+            <p class="report-period" id="report-period">—</p>
+            <p class="report-scope" id="dash-print-filtros"></p>
+          </div>
+          <dl class="report-meta">
+            <div><dt>Proformas</dt><dd id="report-count">0</dd></div>
+            <div><dt>Generado</dt><dd id="report-generated">—</dd></div>
+          </dl>
+        </header>
+        <div class="report-toolbar no-print">
+          <div class="field report-title-field">
+            <label for="report-title-input">Título del reporte</label>
+            <input type="text" id="report-title-input" value="Dashboard de preferencias de compra" maxlength="90">
+          </div>
+          <div class="report-ranges" role="group" aria-label="Período rápido">
+            <span class="report-ranges-label">Período</span>
+            <button type="button" class="range-btn" data-range="mes">Este mes</button>
+            <button type="button" class="range-btn" data-range="30">Últimos 30 días</button>
+            <button type="button" class="range-btn" data-range="trimestre">Últimos 3 meses</button>
+            <button type="button" class="range-btn" data-range="anio">Este año</button>
+            <button type="button" class="range-btn" data-range="todo">Todo</button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="dash-exportar">Exportar a PDF</button>
+        </div>
+        <div class="dash-kpis">
+          <div class="dash-kpi"><span class="label">Proformas analizadas</span><span class="value" id="kpi-total">0</span></div>
+          <div class="dash-kpi"><span class="label">Proyecto más consultado</span><span class="value dash-kpi-text" id="kpi-proyecto-top">—</span></div>
+          <div class="dash-kpi"><span class="label">Tipo más cotizado</span><span class="value dash-kpi-text" id="kpi-tipo-top">—</span></div>
+          <div class="dash-kpi"><span class="label">Metraje promedio cotizado</span><span class="value" id="kpi-metraje">—</span></div>
+        </div>
+        <div class="dash-kpis">
+          <div class="dash-kpi dash-kpi-secondary"><span class="label">Ticket promedio</span><span class="value" id="kpi-ticket">—</span></div>
+          <div class="dash-kpi dash-kpi-secondary"><span class="label">Financiado promedio</span><span class="value" id="kpi-financiado">—</span></div>
+          <div class="dash-kpi dash-kpi-secondary"><span class="label">Cuota mensual promedio</span><span class="value" id="kpi-cuota">—</span></div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="card">
+            <h3>Distribución de cotizaciones por proyecto</h3>
+            <p class="hint" style="margin-bottom:14px;">Cómo se reparte la demanda entre los proyectos de GPUnlock.</p>
+            <div id="dash-proyecto-donut"></div>
+          </div>
+          <div class="card">
+            <h3>Tipo de inmueble más cotizado</h3>
+            <p class="hint" id="dash-tipo-resumen" style="margin-bottom:14px;">Departamentos, casas, suites, locales…</p>
+            <div id="dash-tipo-donut"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="card">
+            <h3>Dormitorios preferidos</h3>
+            <p class="hint" style="margin-bottom:14px;">Distribución más demandada.</p>
+            <div id="dash-dormitorios"></div>
+          </div>
+          <div class="card">
+            <h3>Rango de precio consultado</h3>
+            <p class="hint" style="margin-bottom:14px;">Capacidad de compra reflejada en las cotizaciones.</p>
+            <div id="dash-rangos"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="card">
+            <h3>Precio promedio por proyecto</h3>
+            <p class="hint" style="margin-bottom:14px;">Ticket de compra de los leads, por proyecto.</p>
+            <div id="dash-precio-proyecto" class="dash-bars"></div>
+          </div>
+          <div class="card">
+            <h3>Demanda por unidad</h3>
+            <p class="hint" style="margin-bottom:14px;">Qué unidades concentran el interés (top 8).</p>
+            <div id="dash-unidad" class="dash-bars"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="card">
+            <h3>Motivo de compra</h3>
+            <p class="hint" style="margin-bottom:14px;">Inversión vs. vivienda.</p>
+            <div id="dash-motivo-donut"></div>
+          </div>
+          <div class="card">
+            <h3>Forma de pago</h3>
+            <p class="hint" style="margin-bottom:14px;">Financiamiento vs. contado.</p>
+            <div id="dash-formapago-donut"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Demanda por período</h3>
+          <p class="hint" style="margin-bottom:14px;">Evolución del interés en el tiempo (proformas por mes, últimos 12 meses del rango filtrado).</p>
+          <div id="dash-periodo"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/historial-reporte.js"></script>
+<script src="js/historial.js"></script>
+</body>
+</html>

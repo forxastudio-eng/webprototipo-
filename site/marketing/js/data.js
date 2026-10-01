@@ -1,0 +1,639 @@
+// Contenido semilla / de respaldo del Dashboard GPUnlock.
+// Este objeto se usa si Supabase aún no está configurado o no responde,
+// y también es la estructura exacta que edita el Panel de Control (/admin.html).
+window.GPUNLOCK_DEFAULT_DATA = {
+  "meta": {
+    "eyebrow": "GPUnlock · Ciudad Alta",
+    "title": "Dashboard Ejecutivo de Marketing",
+    "subtitle": "Inversión, leads, ventas y cumplimiento de metas — vista consolidada para dirección",
+    "periodLabel": "Periodo de análisis",
+    "periodValue": "Agosto 2026 · Acum. enero–agosto"
+  },
+  "insights": [
+    {
+      "tag": "Rentabilidad",
+      "type": "normal",
+      "text": "Agosto fue el **mejor mes de ROI publicitario del año**: cada $1 invertido en pauta generó **$28.10** en ventas atribuidas (ROI de 27.08x)."
+    },
+    {
+      "tag": "Meta mensual",
+      "type": "normal",
+      "text": "Ventas de agosto: **$21,725** vs. meta de $15,000 → **144.8% de cumplimiento**, el segundo mejor mes del año tras mayo."
+    },
+    {
+      "tag": "Alerta",
+      "type": "risk",
+      "text": "Las **captaciones están muy por debajo del ritmo esperado**: 28.3% de la meta anual con 67% del año transcurrido. Se necesitan ~32/mes vs. un ritmo actual de ~6/mes."
+    },
+    {
+      "tag": "Equipo comercial",
+      "type": "warn",
+      "text": "**4 de 9 asesores no cerraron ninguna venta en agosto.** Ejecutivo A y Ejecutivo B concentran el 67% de los ingresos del mes."
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Inversión en marketing",
+      "value": "$506",
+      "suffix": "",
+      "valueColor": "",
+      "delta": {
+        "type": "down",
+        "text": "▼ 2.1%"
+      },
+      "ctx": "vs. julio ($517)"
+    },
+    {
+      "label": "Leads generados",
+      "value": "131",
+      "suffix": "",
+      "valueColor": "",
+      "delta": {
+        "type": "up",
+        "text": "▲ 31.0%"
+      },
+      "ctx": "vs. julio (100)"
+    },
+    {
+      "label": "Costo por lead (CPL)",
+      "value": "$3.86",
+      "suffix": "",
+      "valueColor": "",
+      "delta": {
+        "type": "up",
+        "text": "▼ 25.3%"
+      },
+      "ctx": "más eficiente que julio ($5.17)"
+    },
+    {
+      "label": "Conversión leads → venta",
+      "value": "5.34",
+      "suffix": "%",
+      "valueColor": "",
+      "delta": {
+        "type": "down",
+        "text": "▼ 1.7 pp"
+      },
+      "ctx": "vs. julio (7.00%)"
+    },
+    {
+      "label": "Ingresos generados",
+      "value": "$21,725",
+      "suffix": "",
+      "valueColor": "",
+      "delta": {
+        "type": "up",
+        "text": "▲ 27.7%"
+      },
+      "ctx": "vs. julio ($17,009)"
+    },
+    {
+      "label": "Cumplimiento meta mensual",
+      "value": "144.8",
+      "suffix": "%",
+      "valueColor": "green",
+      "delta": null,
+      "ctx": "$21,725 realizado / $15,000 meta"
+    },
+    {
+      "label": "ROI publicitario",
+      "value": "27.08",
+      "suffix": "x",
+      "valueColor": "green",
+      "delta": {
+        "type": "up",
+        "text": "▲ 105%"
+      },
+      "ctx": "vs. julio (13.2x)"
+    },
+    {
+      "label": "Captaciones del mes",
+      "value": "6",
+      "suffix": "",
+      "valueColor": "",
+      "delta": {
+        "type": "flat",
+        "text": "＝ 0%"
+      },
+      "ctx": "igual que julio"
+    }
+  ],
+  "ventasMensuales": {
+    "sectionTag": "Total YTD: $127,493",
+    "months": [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago"
+    ],
+    "data": [
+      5270,
+      12345,
+      25300,
+      11865,
+      29780,
+      4199,
+      17009,
+      21725
+    ],
+    "meta": 15000,
+    "note": "Mayo fue el mejor mes del año ($29,780). Junio fue el más débil ($4,199, 28% de la meta). Agosto retoma fuerza con $21,725 y encadena el tercer mes consecutivo por encima de la meta mensual."
+  },
+  "cumplimiento": {
+    "rows": [
+      {
+        "label": "Meta mensual (agosto) — $15,000",
+        "valueLabel": "144.8%",
+        "status": "good",
+        "barWidth": 90.5,
+        "ticks": [
+          {
+            "pos": 62.5,
+            "type": "navy"
+          }
+        ],
+        "legend": [
+          {
+            "text": "100% de la meta",
+            "emphasis": "none"
+          },
+          {
+            "text": "$21,725 realizado",
+            "emphasis": "none"
+          }
+        ]
+      },
+      {
+        "label": "Meta 2do semestre (jul–dic) — $90,000",
+        "valueLabel": "43.0%",
+        "status": "good",
+        "barWidth": 43.04,
+        "ticks": [
+          {
+            "pos": 100,
+            "type": "navy"
+          },
+          {
+            "pos": 33.33,
+            "type": "gold"
+          }
+        ],
+        "legend": [
+          {
+            "text": "100% meta",
+            "emphasis": "none"
+          },
+          {
+            "text": "ritmo esperado (2/6 meses = 33.3%)",
+            "emphasis": "none"
+          },
+          {
+            "text": "+9.7 pp sobre el ritmo",
+            "emphasis": "none"
+          }
+        ]
+      },
+      {
+        "label": "Meta anual — $180,000",
+        "valueLabel": "70.8%",
+        "status": "good",
+        "barWidth": 70.83,
+        "ticks": [
+          {
+            "pos": 100,
+            "type": "navy"
+          },
+          {
+            "pos": 66.67,
+            "type": "gold"
+          }
+        ],
+        "legend": [
+          {
+            "text": "100% meta",
+            "emphasis": "none"
+          },
+          {
+            "text": "ritmo esperado (8/12 meses = 66.7%)",
+            "emphasis": "none"
+          },
+          {
+            "text": "+4.2 pp sobre el ritmo",
+            "emphasis": "none"
+          }
+        ]
+      },
+      {
+        "label": "Meta anual de captaciones — 180 unidades",
+        "valueLabel": "28.3%",
+        "status": "bad",
+        "barWidth": 28.33,
+        "ticks": [
+          {
+            "pos": 100,
+            "type": "navy"
+          },
+          {
+            "pos": 66.67,
+            "type": "gold"
+          }
+        ],
+        "legend": [
+          {
+            "text": "100% meta",
+            "emphasis": "none"
+          },
+          {
+            "text": "ritmo esperado (66.7%)",
+            "emphasis": "none"
+          },
+          {
+            "text": "-38.3 pp bajo el ritmo",
+            "emphasis": "bad"
+          }
+        ]
+      }
+    ],
+    "note": "**Nota de ritmo:** con 51 captaciones acumuladas y 129 pendientes, se requieren ~32 captaciones/mes en lo que resta del año — más de 5 veces el ritmo actual (~6/mes). Es la meta más rezagada de las cuatro. La meta acumulada esperada para ene–ago ($120,000) sí se superó: **$127,493 realizado = 106.2% de cumplimiento acumulado.**"
+  },
+  "leads": {
+    "sectionTag": "CPL promedio YTD: $2.35",
+    "months": [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago"
+    ],
+    "leadsYtdLabel": "Total YTD: 1,474",
+    "leadsData": [
+      372,
+      196,
+      269,
+      111,
+      135,
+      160,
+      100,
+      131
+    ],
+    "cplData": [
+      0.69,
+      1.58,
+      1.65,
+      4.11,
+      3.7,
+      2.97,
+      5.17,
+      3.86
+    ],
+    "convData": [
+      0.54,
+      3.57,
+      3.35,
+      3.6,
+      2.22,
+      2.5,
+      7.0,
+      5.34
+    ],
+    "note": "Julio tuvo el CPL más alto del año ($5.17) pero también la mejor conversión (7.0%) — menos leads, mejor calidad. Agosto equilibra ambos: CPL baja a $3.86 y la conversión se mantiene sólida en 5.34%, muy por encima del promedio YTD (2.92%)."
+  },
+  "funnel": {
+    "rows": [
+      {
+        "label": "Leads",
+        "value": 131,
+        "widthPct": 100,
+        "colorKey": "navy2",
+        "connectorLabel": null
+      },
+      {
+        "label": "Citas agendadas",
+        "value": 40,
+        "widthPct": 30.5,
+        "colorKey": "teal",
+        "connectorLabel": "30.5% agenda cita"
+      },
+      {
+        "label": "Ventas cerradas",
+        "value": 7,
+        "widthPct": 18,
+        "colorKey": "gold",
+        "connectorLabel": "17.5% cierra venta"
+      }
+    ],
+    "note": "De cada 100 leads de agosto, ~30 agendan cita y ~5 terminan en venta. El mayor cuello de botella está entre **lead y cita** (69.5% se pierde antes de agendar)."
+  },
+  "roi": {
+    "sectionTag": "ROI acumulado YTD: 13.66x",
+    "months": [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago"
+    ],
+    "costo": [
+      258,
+      309,
+      445,
+      456,
+      499,
+      475,
+      517,
+      506
+    ],
+    "ingresos": [
+      0,
+      2000,
+      5820,
+      6300,
+      11415,
+      3699,
+      7344,
+      14217
+    ],
+    "roiX": [
+      0,
+      5.48,
+      12.08,
+      12.81,
+      21.9,
+      6.78,
+      13.2,
+      27.08
+    ],
+    "note": "Enero no generó ingresos atribuibles a pauta (ROI = 0). A partir de febrero el retorno crece de forma sostenida hasta el pico de agosto: **$14,217 generados con solo $506 de inversión (27.08x)**. En el acumulado del año, cada dólar invertido en publicidad ($3,465 en total) generó $14.66 en ingresos atribuidos."
+  },
+  "fuenteVentas": {
+    "sectionTag": "$119,263 con fuente identificada (93.5% del total)",
+    "rows": [
+      {
+        "canal": "Facebook (orgánico + pauta)",
+        "ingresos": 41996,
+        "pct": 35.2
+      },
+      {
+        "canal": "Cartera del asesor",
+        "ingresos": 37428,
+        "pct": 31.4
+      },
+      {
+        "canal": "Market Place",
+        "ingresos": 11930,
+        "pct": 10.0
+      },
+      {
+        "canal": "Feria de construcción",
+        "ingresos": 8400,
+        "pct": 7.0
+      },
+      {
+        "canal": "Asesor externo (co-broker)",
+        "ingresos": 5820,
+        "pct": 4.9
+      },
+      {
+        "canal": "Plusvalía",
+        "ingresos": 4890,
+        "pct": 4.1
+      },
+      {
+        "canal": "WhatsApp / publicidad directa",
+        "ingresos": 3510,
+        "pct": 2.9
+      },
+      {
+        "canal": "Formulario web",
+        "ingresos": 2649,
+        "pct": 2.2
+      },
+      {
+        "canal": "Instagram",
+        "ingresos": 2640,
+        "pct": 2.2
+      },
+      {
+        "canal": "Oficina",
+        "ingresos": 500,
+        "pct": 0.4
+      }
+    ],
+    "note": "Sumando Facebook e Instagram, el ecosistema Meta explica **37.4%** de las ventas con canal identificado — el mayor generador individual de ingresos, por encima incluso de la cartera propia de los asesores."
+  },
+  "asesores": {
+    "rows": [
+      {
+        "nombre": "Ejecutivo A",
+        "ago": 7310,
+        "captacYtd": 0,
+        "avancePct": 23.69,
+        "barColor": "gold"
+      },
+      {
+        "nombre": "Ejecutivo B",
+        "ago": 7200,
+        "captacYtd": 30,
+        "avancePct": 62.89,
+        "barColor": "gold"
+      },
+      {
+        "nombre": "Ejecutivo C",
+        "ago": 3447,
+        "captacYtd": 3,
+        "avancePct": 74.66,
+        "barColor": "navy"
+      },
+      {
+        "nombre": "Ejecutivo D",
+        "ago": 2568,
+        "captacYtd": 2,
+        "avancePct": 25.52,
+        "barColor": "navy"
+      },
+      {
+        "nombre": "Ejecutivo E",
+        "ago": 1200,
+        "captacYtd": 3,
+        "avancePct": 30.8,
+        "barColor": "navy"
+      },
+      {
+        "nombre": "Ejecutivo F",
+        "ago": 0,
+        "captacYtd": 5,
+        "avancePct": 37.43,
+        "barColor": "slate"
+      },
+      {
+        "nombre": "Ejecutivo G",
+        "ago": 0,
+        "captacYtd": 1,
+        "avancePct": 24.65,
+        "barColor": "slate"
+      },
+      {
+        "nombre": "Ejecutivo H",
+        "ago": 0,
+        "captacYtd": 3,
+        "avancePct": 7.11,
+        "barColor": "slate"
+      },
+      {
+        "nombre": "Ejecutivo I",
+        "ago": 0,
+        "captacYtd": 0,
+        "avancePct": null,
+        "barColor": "slate"
+      }
+    ],
+    "note": "Ejecutivo A lidera agosto en ventas ($7,310) pero no registra captaciones en el año — vale la pena revisar si está trabajando solo cartera de proyectos. Ejecutivo C es el más consistente en el acumulado (74.7% de meta anual) pese a un agosto modesto.",
+    "metaAnualIndividual": 42000
+  },
+  "social": {
+    "sectionTag": "24.9K seguidores totales · +33.1%",
+    "periodNote": "Fuente: Metricool · acumulado 01 ene – 31 ago 2026 (vs. periodo equivalente anterior)",
+    "platforms": [
+      {
+        "name": "Facebook",
+        "value": "9,162",
+        "delta": "▲ 17.79%",
+        "deltaType": "up"
+      },
+      {
+        "name": "Instagram",
+        "value": "4,119",
+        "delta": "▲ 21.79%",
+        "deltaType": "up"
+      },
+      {
+        "name": "TikTok",
+        "value": "11,480",
+        "delta": "▲ 54.84%",
+        "deltaType": "up"
+      },
+      {
+        "name": "YouTube",
+        "value": "161",
+        "delta": "▲ 8.05%",
+        "deltaType": "up"
+      }
+    ],
+    "overview": [
+      {
+        "name": "Impresiones",
+        "value": "1.82M",
+        "delta": "▼ 8.06%",
+        "deltaType": "down"
+      },
+      {
+        "name": "Interacciones",
+        "value": "60.25K",
+        "delta": "▼ 9.32%",
+        "deltaType": "down"
+      },
+      {
+        "name": "Publicaciones",
+        "value": "459",
+        "delta": "▲ 9.55%",
+        "deltaType": "up"
+      },
+      {
+        "name": "Inversión en pauta (Meta+Google)",
+        "value": "$2,049",
+        "delta": "de $3,465 en costo total de publicidad",
+        "deltaType": "ctx"
+      }
+    ],
+    "note1": "TikTok es la red de mayor crecimiento (+54.8% seguidores) pero perdió alcance en impresiones (-36.9%, ver detalle por red en Metricool). Facebook sigue siendo la base más grande y estable (9,162 seguidores, 75% de la audiencia en el país, 36% solo en Ciudad Alta).",
+    "inversionRows": [
+      {
+        "plataforma": "Meta Ads (Facebook/Instagram)",
+        "impresiones": "1.02M",
+        "gasto": "$1,882",
+        "var": "-3.8%",
+        "varType": "down"
+      },
+      {
+        "plataforma": "Google Ads",
+        "impresiones": "114.9K",
+        "gasto": "$167",
+        "var": "nuevo canal",
+        "varType": "good"
+      }
+    ],
+    "note2": "Meta Ads: CPM $1.85, CPC $0.03, CTR 6.67%, 67,890 clics en el periodo. Google Ads es un canal incipiente (arrancó en el año) con gasto aún marginal frente a Meta.",
+    "benchmarkRows": [
+      {
+        "name": "Competidor A",
+        "widthPct": 100,
+        "value": "2.98%",
+        "self": false
+      },
+      {
+        "name": "Competidor B",
+        "widthPct": 35,
+        "value": "1.04%",
+        "self": false
+      },
+      {
+        "name": "Competidor C",
+        "widthPct": 18,
+        "value": "0.54%",
+        "self": false
+      },
+      {
+        "name": "Competidor D",
+        "widthPct": 15,
+        "value": "0.45%",
+        "self": false
+      },
+      {
+        "name": "Competidor E",
+        "widthPct": 10,
+        "value": "0.31%",
+        "self": false
+      },
+      {
+        "name": "Competidor F",
+        "widthPct": 6,
+        "value": "0.19%",
+        "self": false
+      },
+      {
+        "name": "GPUnlock",
+        "widthPct": 5,
+        "value": "0.16%",
+        "self": true
+      }
+    ],
+    "note3": "GPUnlock crece en seguidores más rápido que casi toda la competencia local, pero su **tasa de engagement (0.16%) está entre las más bajas** del set de competidores rastreado por Metricool — señal de que el contenido gana alcance pero no genera suficiente interacción activa."
+  },
+  "footer": {
+    "fuentes": "Datos de ejemplo (hojas \"Ventas\", \"Equipo por mes\" y detalle transaccional) · Social_Media_Insights_-_agosto.pdf (Metricool, periodo 01 ene–31 ago 2026).",
+    "notas": "el ROI publicitario y los ingresos atribuidos a pauta corresponden a la tabla \"ROI Publicitario\" del archivo original. El total de captaciones YTD (51) se calculó sumando el detalle mensual del archivo, que difiere del valor consolidado original (47); se usó la cifra mensual por ser más granular. \"Fuente de ventas\" cubre el 93.5% de los ingresos del año — el resto no tiene canal registrado en el detalle transaccional. Las métricas de redes sociales son acumulados del periodo enero–agosto 2026 reportados por Metricool, comparados contra el periodo equivalente anterior.",
+    "generado": "Generado el 2 de septiembre de 2026 · Dashboard preparado para dirección de marketing, GPUnlock."
+  },
+  "theme": {
+    "primary1": "#F2582B",
+    "primary2": "#F08A30",
+    "navy": "#161616",
+    "navy2": "#2B2B2B",
+    "teal": "#6B6B6B",
+    "gold": "#C98A2C",
+    "terracotta": "#B9552F",
+    "green": "#17845A",
+    "red": "#C23A32",
+    "slate": "#8C8C8C"
+  }
+};

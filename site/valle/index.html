@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<base href="/valle/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Valle Sereno | Proyecto de lotización en Valle Alto, Ciudad Alta</title>
+<meta name="description" content="Valle Sereno: lotes desde 2.500 m² en el Valle Alto, Ciudad Alta. Laguna, mirador, senderos, agua potable con planta propia y portón de ingreso." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/logo-mark.png" type="image/png">
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ============ SPRITE DE ÍCONOS ============ -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.02c-.24.68-1.4 1.3-1.93 1.36-.5.06-1.02.24-3.42-.71-2.88-1.14-4.73-4.08-4.87-4.27-.14-.19-1.16-1.55-1.16-2.96 0-1.41.74-2.1 1-2.39.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.15.07.14.12.31.02.5-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.14-.28.28-.12.56.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.44.2.5.32.07.12.07.66-.17 1.34Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 4v16M6 14l6 6 6-6"/></symbol>
+    <symbol id="i-water" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0 M2 20c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21V7l9-4 9 4v14 M3 21h18 M7 21V10 M17 21V10 M7 10h10 M12 10v11"/></symbol>
+    <symbol id="i-landmark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 21V10l7-6 7 6v11 M9 21v-6h6v6 M12 4V1.5 M10.6 2.5h2.8"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-road" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 20 10 4h4l2 16 M11 10h2 M10.4 15h3.2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.99.36 1.96.68 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.18-1.25a2 2 0 0 1 2.11-.45c.94.32 1.91.55 2.9.68A2 2 0 0 1 22 16.92Z"/></symbol>
+    <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a href="#inicio" class="brand"><img src="img/logo-valle-white.png" alt="Valle Sereno" /></a>
+    <nav class="nav" id="nav">
+      <a href="#proyecto">Proyecto</a>
+      <a href="#exclusivo">Zonas exclusivas</a>
+      <a href="#mapa">Mapa</a>
+      <a href="#lotes">Lotes</a>
+      <a href="#galeria">Galería</a>
+      <a href="/" class="nav-more">Más proyectos</a>
+      <a href="#contacto" class="btn btn--primary btn--sm">Contáctanos</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO (VIDEO) ============ -->
+<section class="hero" id="inicio">
+  <div class="hero__bg">
+    <video autoplay muted loop playsinline poster="img/hero-poster.jpg">
+      <source src="img/hero-video.webm" type="video/webm" />
+      <source src="img/hero-video.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="hero__overlay"></div>
+  <div class="container hero__content">
+    <p class="hero__eyebrow">Valle Alto · Ciudad Alta</p>
+    <h1 class="hero__title">Valle Sereno</h1>
+    <p class="hero__tagline">Vive la naturaleza</p>
+    <p class="hero__desc">Lotes en una zona privilegiada del valle, donde podrás convivir con la naturaleza en un entorno pacífico, con vistas espectaculares y un clima perfecto.</p>
+    <div class="hero__cta">
+      <a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VALLE%20SERENO." class="btn btn--primary btn--whatsapp" target="_blank" rel="noopener">
+        <svg class="icon"><use href="#i-whatsapp"></use></svg> Escribir por WhatsApp
+      </a>
+    </div>
+    <div class="hero__stats">
+      <div><strong>5</strong><span>Lotes de muestra</span></div>
+      <div><strong>2.500 m²</strong><span>Área desde</span></div>
+      <div><strong>Valle Alto</strong><span>Ciudad Alta</span></div>
+      <div><strong>Laguna</strong><span>y mirador</span></div>
+    </div>
+  </div>
+  <a href="#proyecto" class="scroll-cue" aria-label="Bajar"><svg class="icon"><use href="#i-arrow-down"></use></svg></a>
+</section>
+
+<!-- ============ STATEMENT ============ -->
+<section class="statement">
+  <div class="container">
+    <blockquote class="reveal">Un proyecto pensado para quienes buscan <em>seguridad, exclusividad y conexión real con la naturaleza</em> — en el corazón del Valle Alto.</blockquote>
+  </div>
+</section>
+
+<!-- ============ SOBRE EL PROYECTO ============ -->
+<section class="section" id="proyecto">
+  <div class="container">
+    <div class="about">
+      <div class="about__media reveal">
+        <img src="img/aerial-hillside.jpg" alt="Vista aérea de las vías y lotes de Valle Sereno" />
+      </div>
+      <div class="about__text reveal">
+        <p class="kicker">Sobre Valle Sereno</p>
+        <h2 class="section-head" style="margin-bottom:0;">Lotes para vivir la naturaleza</h2>
+        <p style="margin-top:26px;">Valle Sereno es un proyecto de lotización ubicado en una zona privilegiada del Valle Alto, en donde podrás convivir con la naturaleza en un entorno pacífico, con vistas espectaculares, disfrutando de un clima perfecto.</p>
+        <p>Constituye la opción ideal para invertir, gracias a su proyección de crecimiento en plusvalía, respaldada por su ubicación estratégica, exclusividad y el desarrollo sostenible de la zona.</p>
+        <p>Cuenta con un estudio hidrológico–hidráulico que define la canalización óptima del agua: cunetas, canales, cruces de vía con tubería, subdrenes, atarjeas, encauzamiento de quebradas e impermeabilización de reservorios.</p>
+        <div class="about__badges">
+          <div class="badge"><strong>5</strong><span>Lotes de muestra</span></div>
+          <div class="badge"><strong>2.500 m²</strong><span>Área mínima por lote</span></div>
+          <div class="badge"><strong>800 m</strong><span>Del parque central</span></div>
+          <div class="badge"><strong>70%</strong><span>Escrituras al finalizar obras</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BENEFICIOS ============ -->
+<section class="section section--alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Beneficios</p>
+      <h2>Todo listo para construir tu hogar</h2>
+      <p>Infraestructura completa y espacios exclusivos pensados para conectar con la naturaleza.</p>
+    </div>
+    <div class="benefits-list">
+      <div class="benefit-item reveal"><span class="benefit-item__num">01</span><div><h3>Agua potable</h3><p>Con planta propia de tratamiento para el proyecto.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">02</span><div><h3>Energía eléctrica</h3><p>Red eléctrica disponible en todos los lotes.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">03</span><div><h3>Vías amplias</h3><p>Con 8 metros de ancho para un acceso cómodo y seguro.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">04</span><div><h3>Alumbrado público</h3><p>Iluminación en las vías internas del proyecto.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">05</span><div><h3>Portón de ingreso</h3><p>La seguridad es nuestra prioridad: acceso a través de un elegante portón.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">06</span><div><h3>Vistas privilegiadas</h3><p>Paisajes espectaculares del Valle Alto desde cada lote.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">07</span><div><h3>Zonas exclusivas</h3><p>Laguna y mirador que te conectan con la naturaleza.</p></div></div>
+      <div class="benefit-item reveal"><span class="benefit-item__num">08</span><div><h3>Senderos</h3><p>Extensos caminos para recorrer, hacer ejercicio y disfrutar del entorno.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ZONAS EXCLUSIVAS (showcase) ============ -->
+<section class="section" id="exclusivo">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Zonas exclusivas</p>
+      <h2>Espacios que te conectan con la naturaleza</h2>
+      <p>Cada rincón del proyecto fue pensado para ofrecerte tranquilidad, seguridad y paisajes inigualables.</p>
+    </div>
+  </div>
+  <div class="showcase">
+    <div class="showcase-item reveal">
+      <div class="showcase-media"><img src="img/render-valle1.jpg" alt="Portón de ingreso al proyecto" /></div>
+      <div class="showcase-text">
+        <span class="num">01 · Portón de ingreso</span>
+        <h3>La seguridad es nuestra prioridad</h3>
+        <p>Accede a tu hogar a través de un elegante portón de ingreso, diseñado para brindarte control y tranquilidad desde el primer momento.</p>
+      </div>
+    </div>
+    <div class="showcase-item reveal">
+      <div class="showcase-media"><img src="img/render-laguna.jpg" alt="Laguna, zona exclusiva del proyecto" /></div>
+      <div class="showcase-text">
+        <span class="num">02 · Laguna</span>
+        <h3>Un entorno sereno y natural</h3>
+        <p>Vive rodeado de espacios exclusivos que te conectan con la naturaleza. La laguna brinda un entorno sereno para desconectar.</p>
+      </div>
+    </div>
+    <div class="showcase-item reveal">
+      <div class="showcase-media"><img src="img/render-mirador.jpg" alt="Mirador con vistas al valle" /></div>
+      <div class="showcase-text">
+        <span class="num">03 · Mirador</span>
+        <h3>Vistas impresionantes del valle</h3>
+        <p>El mirador ofrece panorámicas espectaculares de los paisajes circundantes — un lugar para contemplar el Valle Alto.</p>
+      </div>
+    </div>
+    <div class="showcase-item reveal">
+      <div class="showcase-media"><img src="img/render-senderos1.jpg" alt="Senderos para recorrer dentro del proyecto" /></div>
+      <div class="showcase-text">
+        <span class="num">04 · Senderos</span>
+        <h3>Extensos senderos naturales</h3>
+        <p>Rodeados de un entorno natural único, estos caminos invitan a la relajación, el ejercicio y la conexión con la naturaleza.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ UBICACIÓN ============ -->
+<section class="section section--alt" id="ubicacion">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Ubicación privilegiada</p>
+      <h2>En el corazón del Valle Alto</h2>
+      <p>A 800 metros del parque central, con vía principal de acceso y un elegante portón de ingreso al proyecto.</p>
+    </div>
+    <div class="location">
+      <div class="location__maps reveal">
+        <div class="location-slider" id="locationSlider">
+          <img src="img/mapa-ubicacion.jpg" alt="Mapa satelital: Valle Sereno ubicado a 800m del parque central" class="is-active" />
+          <img src="img/aerial-lotes.jpg" alt="Vista aérea de los lotes y vías internas del proyecto" />
+          <img src="img/aerial-hillside.jpg" alt="Vista aérea de las vías y lotes de Valle Sereno" />
+          <img src="img/aerial-valle1.jpg" alt="Vista aérea del Valle Alto" />
+          <img src="img/aerial-valle2.jpg" alt="Vista aérea del proyecto y sus alrededores" />
+          <img src="img/aerial-valle3.jpg" alt="Vista panorámica del valle" />
+        </div>
+      </div>
+      <div class="poi-list reveal">
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-gate"></use></svg></span><div><strong>Portón de ingreso</strong><span>Acceso controlado y elegante al proyecto</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-landmark"></use></svg></span><div><strong>Parque central</strong><span>A 800 m del ingreso</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-road"></use></svg></span><div><strong>Vía principal</strong><span>Conexión directa al valle</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-pin"></use></svg></span><div><strong>Centro de Valle Alto</strong><span>Ubicado cerca al centro</span></div></div>
+        <div class="poi"><span class="poi__icon"><svg class="icon"><use href="#i-water"></use></svg></span><div><strong>Valle Alto</strong><span>Clima cálido y paisajes privilegiados</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MAPA INTERACTIVO ============ -->
+<section class="section" id="mapa">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Mapa interactivo</p>
+      <h2>Explora lote por lote</h2>
+      <p>Pasa el mouse sobre el mapa para ver el estado, área y precio de cada lote. Los disponibles muestran su información completa; los que ya no están disponibles se marcan en rojo.</p>
+    </div>
+    <div class="interactive-map reveal" id="interactiveMap">
+      <img src="img/mapa-lotes-hd.jpg" alt="Mapa detallado del proyecto Valle Sereno" />
+      <svg id="lotsSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div class="map-tooltip" id="mapTooltip"></div>
+    </div>
+    <div class="map-legend reveal">
+      <span><i class="dot-disponible"></i> Disponible</span>
+      <span><i class="dot-reservado"></i> Reservado</span>
+      <span><i class="dot-no_disponible"></i> No disponible</span>
+    </div>
+    <p class="map-hint">Mapa construido a partir del plano oficial del proyecto — pasa el cursor sobre cualquier lote.</p>
+  </div>
+</section>
+
+<!-- ============ LOTES DISPONIBLES ============ -->
+<section class="section section--alt" id="lotes">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Lotes disponibles</p>
+      <h2>Encuentra tu lote ideal</h2>
+      <p>Lotes desde 2.500 m². 70% con entrega de escrituras al finalizar la ejecución de trabajos, opción a financiamiento con varias instituciones crediticias y descuento especial por pago en efectivo.</p>
+    </div>
+
+    <div class="lotes-perks reveal">
+      <div class="lotes-perk"><strong>70%</strong><span>Con entrega de escrituras al finalizar la ejecución de trabajos</span></div>
+      <div class="lotes-perk"><strong>Financiamiento</strong><span>Opción a financiamiento con varias instituciones crediticias</span></div>
+      <div class="lotes-perk"><strong>Descuento</strong><span>Descuento especial por pago en efectivo</span></div>
+    </div>
+
+    <div class="lotes-intro reveal">
+      <p style="margin:0; color:var(--stone); font-size:0.9rem;" id="lotesCount">Cargando disponibilidad… Precios referenciales, sujetos a actualización.</p>
+      <div class="lotes-search">
+        <input type="text" id="lotSearch" placeholder="Buscar lote (ej. A43)" />
+      </div>
+    </div>
+
+    <div class="lotes-table-wrap reveal">
+      <table class="lotes-table" id="lotesTable">
+        <thead>
+          <tr><th>Lote</th><th>Área m²</th><th>Estado</th><th>Valor</th></tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <p class="lotes-note">Áreas y valores referenciales del brochure oficial. Escríbenos por WhatsApp para conocer disponibilidad actualizada y forma de pago.</p>
+
+    <div class="lotes-map-cta reveal" data-ficha="img/mapa-lotes.jpg" data-title="Mapa detallado del proyecto Valle Sereno" style="margin-top:34px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; background:var(--bg-2); border:1px solid var(--line); border-radius:var(--radius-lg); padding:28px 32px; cursor:pointer;">
+      <img src="img/mapa-lotes.jpg" alt="Mapa detallado del proyecto Valle Sereno" style="width:130px; height:90px; object-fit:cover; border-radius:6px; flex:none;" />
+      <div style="flex:1; min-width:200px;">
+        <h4 style="margin:0 0 4px; color:var(--cream); font-family:var(--ff-display); font-style:italic; font-weight:500;">Mapa detallado del proyecto</h4>
+        <p style="margin:0; color:var(--stone); font-size:0.88rem;">Descarga la versión completa del plano con la laguna, el mirador y el portón de ingreso.</p>
+      </div>
+      <span class="btn btn--outline">Ver mapa completo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERÍA ============ -->
+<section class="section" id="galeria">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="kicker">Galería</p>
+      <h2>Un vistazo a Valle Sereno</h2>
+      <p>Renders y fotografías del proyecto: portón de ingreso, laguna, mirador y senderos.</p>
+    </div>
+  </div>
+  <div class="gallery-grid reveal">
+    <figure class="wide tall"><img src="img/render-valle1.jpg" data-full="img/render-valle1.jpg" data-lightbox alt="Render del portón de ingreso al proyecto" /></figure>
+    <figure><img src="img/render-laguna.jpg" data-full="img/render-laguna.jpg" data-lightbox alt="Render de la laguna, zona exclusiva del proyecto" /></figure>
+    <figure><img src="img/render-mirador.jpg" data-full="img/render-mirador.jpg" data-lightbox alt="Render del mirador con vistas al valle" /></figure>
+    <figure><img src="img/render-senderos1.jpg" data-full="img/render-senderos1.jpg" data-lightbox alt="Senderos para recorrer dentro del proyecto" /></figure>
+    <figure><img src="img/render-senderos2.jpg" data-full="img/render-senderos2.jpg" data-lightbox alt="Personas recorriendo los senderos del proyecto" /></figure>
+    <figure class="wide"><img src="img/render-valle2.jpg" data-full="img/render-valle2.jpg" data-lightbox alt="Render del portón de ingreso, vista de noche" /></figure>
+    <figure><img src="img/render-valle3.jpg" data-full="img/render-valle3.jpg" data-lightbox alt="Camino de ingreso al proyecto" /></figure>
+    <figure><img src="img/render-zona-exclusiva.jpg" data-full="img/render-zona-exclusiva.jpg" data-lightbox alt="Zona exclusiva con vista al valle" /></figure>
+    <figure><img src="img/aerial-valle1.jpg" data-full="img/aerial-valle1.jpg" data-lightbox alt="Vista aérea del Valle Alto" /></figure>
+    <figure class="tall"><img src="img/aerial-valle2.jpg" data-full="img/aerial-valle2.jpg" data-lightbox alt="Vista aérea del proyecto y sus alrededores" /></figure>
+    <figure><img src="img/aerial-valle3.jpg" data-full="img/aerial-valle3.jpg" data-lightbox alt="Vista panorámica del valle" /></figure>
+    <figure><img src="img/buho.jpg" data-full="img/buho.jpg" data-lightbox alt="Fauna del Valle Alto — vive la naturaleza" /></figure>
+  </div>
+</section>
+
+<!-- ============ CONTACTO ============ -->
+<section class="section contact" id="contacto">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <p class="kicker">Contacto</p>
+        <h2 class="section-head" style="margin-bottom:0;">Agenda tu visita a Valle Sereno</h2>
+        <p style="margin-top:22px; color:var(--cream-dim);">Cuéntanos qué lote te interesa y te contactamos con toda la información: disponibilidad, mapa del proyecto y formas de pago.</p>
+
+        <div class="contact-details">
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-phone"></use></svg></span><div><strong>Teléfono / WhatsApp</strong><a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VALLE%20SERENO." target="_blank" rel="noopener">093 908 7030</a></div></div>
+          <div class="item"><span class="ic"><svg class="icon"><use href="#i-pin"></use></svg></span><div><strong>Ubicación</strong><span>Valle Alto, Ciudad Alta</span></div></div>
+        </div>
+      </div>
+
+      <form class="contact-form reveal" id="contactForm">
+        <h3>Solicita información</h3>
+        <p>Completa el formulario y te escribimos por WhatsApp al instante.</p>
+        <div class="form-row">
+          <div class="field"><label for="name">Nombre completo *</label><input type="text" id="name" name="name" placeholder="Tu nombre" required /></div>
+          <div class="field"><label for="phone">Teléfono *</label><input type="tel" id="phone" name="phone" placeholder="09XXXXXXXX" required /></div>
+        </div>
+        <div class="field"><label for="email">Correo electrónico</label><input type="email" id="email" name="email" placeholder="tucorreo@email.com" /></div>
+        <div class="field">
+          <label for="lote">Lote de interés</label>
+          <select id="lote" name="lote">
+            <option value="">Selecciona una opción</option>
+            <option value="Lote desde 2.500 m²">Lote desde 2.500 m²</option>
+            <option value="Lote 3.000 - 4.000 m²">Lote 3.000 - 4.000 m²</option>
+            <option value="Lote 4.000+ m²">Lote 4.000+ m²</option>
+            <option value="Aún no lo sé">Aún no lo sé</option>
+          </select>
+        </div>
+        <div class="field"><label for="message">Mensaje</label><textarea id="message" name="message" placeholder="Cuéntanos qué te gustaría saber..."></textarea></div>
+        <button type="submit" class="btn btn--primary btn--block">Enviar por WhatsApp</button>
+        <p class="form-status" id="formStatus"></p>
+        <p class="form-note">Al enviar aceptas ser contactado por nuestro equipo comercial.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__brand">
+      <img src="img/logo-valle-white.png" alt="Valle Sereno" style="height:40px;" />
+      <span>© 2026 Valle Sereno — GPUnlock. Todos los derechos reservados.</span>
+    </div>
+    <span>Valle Alto, Ciudad Alta</span>
+  </div>
+</footer>
+
+<!-- WhatsApp floating button -->
+<a href="https://wa.me/593900000000?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20del%20proyecto%20VALLE%20SERENO." class="whatsapp-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg class="icon"><use href="#i-whatsapp"></use></svg>
+</a>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox__box" id="lightboxBox">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Cerrar"><svg class="icon"><use href="#i-close"></use></svg></button>
+    <img src="" alt="" id="lightboxImg" />
+  </div>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" aria-label="Anterior"><svg class="icon"><use href="#i-chevron-left"></use></svg></button>
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" aria-label="Siguiente"><svg class="icon"><use href="#i-chevron-right"></use></svg></button>
+  <div class="lightbox__caption" id="lightboxCaption"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
