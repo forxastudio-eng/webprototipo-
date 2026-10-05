@@ -3,6 +3,7 @@
    que el sitio nunca quede vacío. */
 (function () {
   "use strict";
+  document.documentElement.classList.add("js");
 
   var CFG = window.GPUNLOCK_CONFIG || {};
   var FALLBACK = [
@@ -33,6 +34,19 @@
 
   var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 
+  /* Aparición suave al hacer scroll (se desactiva con prefers-reduced-motion y si no hay JS) */
+  var io = null;
+  function observeReveal() {
+    var els = document.querySelectorAll(".reveal:not(.is-in)");
+    if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("is-in"); }); return; }
+    if (!io) {
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); } });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    }
+    els.forEach(function (e, i) { e.style.transitionDelay = Math.min(i % 4, 3) * 70 + "ms"; io.observe(e); });
+  }
+
   function render() {
     var list = projects.filter(function (p) { return !activeFilter || p.ubicacion === activeFilter; });
     if (!list.length) {
@@ -42,12 +56,12 @@
     grid.innerHTML = list.map(function (p) {
       var ext = isExternal(p.url);
       var media = p.cover_url
-        ? '<img src="' + esc(coverSrc(p.cover_url)) + '" alt="" loading="lazy" width="800" height="600">'
+        ? '<img src="' + esc(coverSrc(p.cover_url)) + '" alt="" loading="lazy" width="800" height="620">'
         : '<div class="ph">' + esc(initials(p.name)) + "</div>";
-      var chips = [p.ubicacion ? '<span class="chip">' + esc(p.ubicacion) + "</span>" : "",
-                   p.tipo ? '<span class="chip chip-muted">' + esc(p.tipo) + "</span>" : ""].join("");
-      return '<a class="card" href="' + esc(p.url) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" +
-        '<div class="card-media">' + media + "</div>" +
+      var badge = p.ubicacion ? '<span class="card-badge">' + esc(p.ubicacion) + "</span>" : "";
+      var chips = p.tipo ? '<span class="chip">' + esc(p.tipo) + "</span>" : "";
+      return '<a class="card reveal" href="' + esc(p.url) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" +
+        '<div class="card-media">' + media + badge + "</div>" +
         '<div class="card-body">' +
           "<h3>" + esc(p.name) + "</h3>" +
           (p.tagline ? '<p class="card-tagline">' + esc(p.tagline) + "</p>" : "") +
@@ -55,6 +69,7 @@
           '<span class="card-cta">' + (ext ? "Visitar sitio" : "Ver proyecto") + ARROW + "</span>" +
         "</div></a>";
     }).join("");
+    observeReveal();
   }
 
   function renderFilters() {
@@ -85,6 +100,8 @@
 
   function done(list) {
     projects = list;
+    var stat = document.getElementById("stat-proyectos");
+    if (stat) stat.textContent = list.length;
     renderFilters();
     render();
     fillContactSelect();

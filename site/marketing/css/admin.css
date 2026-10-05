@@ -61,12 +61,12 @@ body.admin-body{background:var(--bg);}
 }
 .admin-topbar .adm-brand{display:flex;align-items:center;gap:10px;}
 .admin-topbar .adm-brand img{height:20px;width:auto;}
-.admin-topbar .adm-brand span{font-family:'Lexend',sans-serif;font-weight:600;font-size:15px;}
+.admin-topbar .adm-brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:15px;}
 .admin-topbar .adm-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .adm-status{font-size:11.5px;color:#CFC8C2;}
 .adm-status.dirty{color:#F0C983;font-weight:600;}
 .adm-btn{
-  font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:8px;
+  font-family:'Work Sans',sans-serif;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:8px;
   border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;
   transition:background .15s ease;
 }
@@ -97,7 +97,7 @@ body.admin-body{background:var(--bg);}
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:22px 24px;box-shadow:var(--shadow-sm);scroll-margin-top:80px;
 }
-.adm-section h2{font-size:17px;margin:0 0 3px;color:var(--navy);font-family:'Lexend',sans-serif;}
+.adm-section h2{font-size:17px;margin:0 0 3px;color:var(--navy);font-family:'Outfit',sans-serif;}
 .adm-section .adm-section-sub{font-size:12.3px;color:var(--muted);margin-bottom:16px;}
 
 /* ---------- Campos ---------- */

@@ -4,7 +4,7 @@
    reasigna sus variables (oliva/arena/crema) a los azules y neutros de GPUnlock
    y rediseña el dashboard del historial como un reporte exportable a PDF.
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+@import url('/css/gp-fonts.css');
 
 :root {
   --carbon: #161616;
@@ -19,12 +19,17 @@
   --text: #161616;
   --muted: #6B6B6B;
   --ok-bg: #FDE9E1;
-  --font-display: 'Lexend', system-ui, sans-serif;
-  --font-body: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Work Sans', system-ui, -apple-system, sans-serif;
   --gp-gradient: linear-gradient(135deg, #F08A30 0%, #F2582B 100%);
 }
 
-.btn-primary:hover { background: #C9421B; }
+.btn-primary { color: #161616; }
+.btn-primary:hover { background: #F5703F; color: #161616; }
+.btn:active { transform: translateY(1px); }
+a { text-underline-offset: 3px; }
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline: 2px solid #F2582B; outline-offset: 3px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 .site-header { border-bottom: 1px solid var(--border); box-shadow: 0 2px 0 0 transparent; }
 .site-header::after { content: ''; display: block; height: 3px; background: var(--gp-gradient); }
 .internal-bar { background: var(--carbon); letter-spacing: .02em; text-transform: none; font-size: 12.5px; }
@@ -128,3 +133,9 @@
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
 }
+
+/* ---------------------------------------------- contraste (WCAG AA) --- */
+.user-pill { color: #A63413; }
+.card h3 { color: var(--carbon); }
+.card h3::before { background: var(--fx-gradient, linear-gradient(135deg,#F08A30,#F2582B)); }
+.header-actions a:hover, .site-header a:hover { color: #A63413; }

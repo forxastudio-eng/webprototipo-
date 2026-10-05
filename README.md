@@ -29,8 +29,9 @@ Un solo repositorio, un solo sitio de Netlify y un solo proyecto de Supabase
 
 - Logos en `site/assets/brand/` (derivados de `logos gpu/`): `gp-logo-horizontal(.png|-white.png)`,
   `gp-logo-lockup(.png|-white.png)`, `gp-mark.png` (isotipo), favicons.
+- Tipografía: Outfit (títulos) y Work Sans (texto), auto-alojadas en `site/assets/fonts/` (`site/css/gp-fonts.css`), sin depender de Google Fonts.
 - Colores: naranja `#F2582B` → ámbar `#F08A30` (degradado), negro `#161616`, blanco.
-  Los tokens están en `site/css/gp-tokens.css`; el cotizador los toma de `site/cotizador/css/gp-theme.css`.
+  Los tokens están en `site/css/gp-tokens.css` (texto naranja sobre fondo claro: `--color-primary-text`, #C9421B, cumple contraste AA); el cotizador los toma de `site/cotizador/css/gp-theme.css`.
 
 ## Proyectos de demostración (ficticios)
 

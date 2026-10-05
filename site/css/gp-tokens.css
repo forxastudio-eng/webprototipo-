@@ -3,12 +3,13 @@
    Primitivos → semánticos. Tomados del logotipo: degradado azul del símbolo
    (#F2582B → #F08A30) y wordmark geométrico negro.
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+@import url('/css/gp-fonts.css');
 
 :root{
   /* primitivos */
   --gp-orange-700:#C9421B;
   --gp-orange-600:#F2582B;
+  --gp-orange-500:#F5703F;
   --gp-orange-400:#F08A30;
   --gp-orange-100:#FDE9E1;
   --gp-orange-50:#FFF5F0;
@@ -27,6 +28,9 @@
   /* semánticos */
   --color-primary:var(--gp-orange-600);
   --color-primary-hover:var(--gp-orange-700);
+  /* Texto naranja sobre fondo claro: #C9421B cumple contraste AA (4.9:1); #F2582B solo para fondos y elementos grandes */
+  --color-primary-text:var(--gp-orange-700);
+  --color-on-primary:var(--gp-ink-900);
   --color-accent:var(--gp-orange-400);
   --color-text:var(--gp-ink-900);
   --color-text-muted:var(--gp-slate-500);
@@ -35,11 +39,22 @@
   --color-border:var(--gp-line);
   --gradient-brand:linear-gradient(135deg, var(--gp-orange-400) 0%, var(--gp-orange-600) 100%);
 
-  --font-display:'Lexend', system-ui, sans-serif;
-  --font-body:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-display:'Outfit', system-ui, sans-serif;
+  --font-body:'Work Sans', system-ui, -apple-system, sans-serif;
 
-  --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:20px; --radius-xl:28px;
+  --ease-out:cubic-bezier(.2,.7,.2,1);
+  --dur-fast:160ms; --dur-base:240ms; --dur-slow:520ms;
+  --ring:0 0 0 3px rgba(242,88,43,.35);
   --shadow-sm:0 1px 2px rgba(22,22,22,.05);
   --shadow-md:0 8px 24px rgba(22,22,22,.08);
   --shadow-lg:0 24px 48px -16px rgba(22,22,22,.22);
+}
+
+/* ---------- Base compartida: accesibilidad y movimiento ---------- */
+html{scroll-padding-top:96px}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--gp-orange-600);outline-offset:3px;border-radius:6px}
+::selection{background:var(--gp-orange-600);color:#fff}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }

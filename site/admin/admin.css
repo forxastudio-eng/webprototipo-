@@ -7,7 +7,7 @@ html,body{margin:0}
 body{font-family:var(--font-body);font-size:15px;line-height:1.5;color:var(--color-text);background:var(--color-surface);-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:var(--font-display);margin:0;letter-spacing:-.015em;font-weight:500}
 p{margin:0}
-a{color:var(--color-primary)}
+a{color:var(--color-primary-text)}
 img{max-width:100%;display:block}
 button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
@@ -18,10 +18,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---------------------------------------------------------- botones --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1.5px solid transparent;font-weight:600;font-size:14.5px;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
 .btn:disabled{opacity:.55;cursor:not-allowed}
-.btn-primary{background:var(--color-primary);color:#fff}
-.btn-primary:hover:not(:disabled){background:var(--color-primary-hover)}
+.btn-primary{background:var(--color-primary);color:var(--color-on-primary)}
+.btn-primary:hover:not(:disabled){background:var(--gp-orange-500)}
+.btn-primary:active:not(:disabled){transform:translateY(1px)}
 .btn-ghost{background:#fff;border-color:var(--color-border);color:var(--color-text)}
-.btn-ghost:hover:not(:disabled){border-color:var(--color-primary);color:var(--color-primary)}
+.btn-ghost:hover:not(:disabled){border-color:var(--gp-ink-900);color:var(--gp-ink-900)}
 .btn-danger{background:var(--gp-red-50);color:var(--gp-red-600)}
 .btn-danger:hover:not(:disabled){background:#F6D9D7}
 .btn-sm{min-height:34px;padding:0 12px;font-size:13.5px}
@@ -30,7 +31,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .icon-btn:hover{border-color:var(--color-primary);color:var(--color-primary)}
 .icon-btn.danger:hover{border-color:var(--gp-red-600);color:var(--gp-red-600)}
 .icon-btn:disabled{opacity:.4;cursor:not-allowed}
-.link-btn{display:block;margin:12px auto 0;background:none;border:0;color:var(--color-primary);font-weight:600;cursor:pointer;text-align:center;text-decoration:none;font-size:14px}
+.link-btn{display:block;margin:12px auto 0;background:none;border:0;color:var(--color-primary-text);font-weight:600;cursor:pointer;text-align:center;text-decoration:none;font-size:14px}
 
 /* ------------------------------------------------------------ carga --- */
 .boot{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:16px;background:var(--gp-ink-900);color:#D9D3CE;z-index:100}
