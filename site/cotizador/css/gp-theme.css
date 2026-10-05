@@ -1,0 +1,141 @@
+/* ==========================================================================
+   GPUnlock · Tema de marca para el cotizador y el historial
+   Se carga DESPUÉS de styles.css. En vez de reescribir todo el CSS original,
+   reasigna sus variables (oliva/arena/crema) a los azules y neutros de GPUnlock
+   y rediseña el dashboard del historial como un reporte exportable a PDF.
+   ========================================================================== */
+@import url('/css/gp-fonts.css');
+
+:root {
+  --carbon: #161616;
+  --carbon-soft: #262626;
+  --olive: #F2582B;
+  --olive-soft: #F08A30;
+  --arena: #F08A30;
+  --arena-soft: #FDE9E1;
+  --crema: #F6F3F1;
+  --card: #FFFFFF;
+  --border: #E8E4E1;
+  --text: #161616;
+  --muted: #6B6B6B;
+  --ok-bg: #FDE9E1;
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Work Sans', system-ui, -apple-system, sans-serif;
+  --gp-gradient: linear-gradient(135deg, #F08A30 0%, #F2582B 100%);
+}
+
+.btn-primary { color: #161616; }
+.btn-primary:hover { background: #F5703F; color: #161616; }
+.btn:active { transform: translateY(1px); }
+a { text-underline-offset: 3px; }
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline: 2px solid #F2582B; outline-offset: 3px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+.site-header { border-bottom: 1px solid var(--border); box-shadow: 0 2px 0 0 transparent; }
+.site-header::after { content: ''; display: block; height: 3px; background: var(--gp-gradient); }
+.internal-bar { background: var(--carbon); letter-spacing: .02em; text-transform: none; font-size: 12.5px; }
+.brand-text span { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+.hero-band { background: radial-gradient(120% 140% at 10% 0%, rgba(240,138,48,.45), transparent 55%), linear-gradient(125deg, #161616 0%, #262626 45%, #C9421B 100%) !important; }
+.tab-btn.active { background: var(--carbon); border-color: var(--carbon); }
+.card h3::before { background: var(--gp-gradient); }
+
+/* ---------------------------------------------------------- reporte --- */
+.report-head {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "brand meta" "titles titles";
+  gap: 16px 24px; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 22px 26px; margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.report-head::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--gp-gradient); }
+.report-brand { grid-area: brand; }
+.report-titles { grid-area: titles; }
+.report-meta { grid-area: meta; }
+.report-brand img { height: 46px; width: auto; }
+.report-titles h2 { font-family: var(--font-display); font-weight: 500; font-size: clamp(20px, 2.4vw, 27px); letter-spacing: -.02em; color: var(--carbon); line-height: 1.15; }
+.report-period { margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--olive); }
+.report-scope { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+.report-meta { display: flex; gap: 22px; margin: 0; }
+.report-meta div { text-align: right; }
+.report-meta dt { font-size: 12px; color: var(--muted); font-weight: 600; }
+.report-meta dd { margin: 2px 0 0; font-family: var(--font-display); font-size: 15px; font-weight: 500; color: var(--carbon); }
+.report-meta div:first-child dd { font-size: 28px; font-weight: 600; color: var(--olive); line-height: 1.1; }
+@media (max-width: 760px) {
+  .report-head { grid-template-columns: 1fr; grid-template-areas: "brand" "titles" "meta"; gap: 14px; }
+  .report-meta { justify-content: flex-start; }
+  .report-meta div { text-align: left; }
+}
+
+.report-toolbar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 22px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px 20px; margin-bottom: 18px;
+}
+.report-title-field { flex: 1 1 260px; margin: 0; }
+.report-title-field label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.report-ranges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.report-ranges-label { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-right: 4px; }
+.range-btn {
+  min-height: 36px; padding: 0 13px; border-radius: 999px; border: 1.5px solid var(--border);
+  background: #fff; font: 600 13px var(--font-body); color: var(--text); cursor: pointer;
+}
+.range-btn:hover { border-color: var(--olive); color: var(--olive); }
+.range-btn[aria-pressed="true"] { background: var(--carbon); border-color: var(--carbon); color: #fff; }
+
+/* KPIs más limpios: número grande en Lexend, etiqueta sin mayúsculas */
+.dash-kpi { border-radius: 14px; padding: 18px 20px; }
+.dash-kpi::before { height: 3px; background: var(--gp-gradient); }
+.dash-kpi.dash-kpi-secondary::before { background: var(--carbon); }
+.dash-kpi .label { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.dash-kpi .value { font-weight: 600; font-size: 26px; letter-spacing: -.02em; }
+.dash-kpi .value.dash-kpi-text { font-size: 18px; font-weight: 500; }
+#dashboard-print-area .card { border-radius: 14px; }
+#dashboard-print-area .card h3 { color: var(--carbon); font-weight: 500; font-size: 16px; }
+.donut-center .v { font-weight: 600; }
+.donut-center .l { text-transform: none; letter-spacing: 0; font-size: 11px; }
+.dash-bar-track { background: #EFEBE8; }
+
+/* ------------------------------------------ borrar proformas (editor) --- */
+.borrar-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; margin-bottom: 12px; border-radius: 10px; background: #FBEBEA; color: #8E2A24; font-weight: 600; font-size: 13.5px; }
+.borrar-bar[hidden] { display: none; }
+.borrar-bar span { flex: 1; }
+.btn-danger-soft { background: #C23A32; color: #fff; border: 0; }
+.btn-danger-soft:hover { background: #A52F28; }
+.admin-table .col-check { width: 36px; text-align: center; }
+.admin-table .col-check input { width: 17px; height: 17px; min-height: 0; padding: 0; cursor: pointer; accent-color: var(--olive); }
+.admin-table .col-accion { width: 44px; text-align: right; }
+.btn-borrar { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; }
+.btn-borrar:hover { border-color: #C23A32; color: #C23A32; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* ------------------------------------------------------- impresión --- */
+@media print {
+  body:has(#dashboard-print-area) { background: #fff !important; font-size: 11px; }
+  body:has(#dashboard-print-area) main.wrap { padding: 0 !important; max-width: none; }
+  #vista-tabla { display: none !important; }
+  #vista-dashboard { display: block !important; }
+  .report-head { border: none; border-bottom: 1px solid #DDD8D4; border-radius: 0; padding: 4px 0 14px; margin-bottom: 14px; grid-template-columns: 1fr auto; grid-template-areas: "brand meta" "titles titles"; }
+  .report-meta div { text-align: right; }
+  .dash-bar-row { grid-template-columns: 105px 1fr 78px !important; gap: 8px; }
+  .dash-bar-label, .dash-bar-count { font-size: 10.5px !important; }
+  .report-head::before { inset: auto 0 -1px 0; height: 3px; }
+  .report-brand { grid-area: brand; }
+.report-titles { grid-area: titles; }
+.report-meta { grid-area: meta; }
+.report-brand img { height: 38px; }
+  .report-titles h2 { font-size: 21px; }
+  .report-period { font-size: 14px; }
+  .dash-kpis { grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+  .dash-kpi { padding: 10px 12px; box-shadow: none; }
+  .dash-kpi .value { font-size: 18px; }
+  .dash-kpi .value.dash-kpi-text { font-size: 13px; }
+  #dashboard-print-area .dash-grid-2 { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  #dashboard-print-area .card { padding: 12px 14px; margin-bottom: 10px; break-inside: avoid; box-shadow: none; border: 1px solid #E8E4E1; }
+  .report-head, .report-head::before, .dash-kpi, .dash-kpi::before, .dash-bar-fill, .chart-legend .dot {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+}
+
+/* ---------------------------------------------- contraste (WCAG AA) --- */
+.user-pill { color: #A63413; }
+.card h3 { color: var(--carbon); }
+.card h3::before { background: var(--fx-gradient, linear-gradient(135deg,#F08A30,#F2582B)); }
+.header-actions a:hover, .site-header a:hover { color: #A63413; }

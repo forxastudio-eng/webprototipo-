@@ -1,0 +1,5 @@
+/* GPUnlock · Base compartida por las landings: foco visible, scroll bajo header fijo, movimiento reducido. */
+html{scroll-padding-top:88px}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid #F2582B;outline-offset:3px;border-radius:6px;box-shadow:0 0 0 6px rgba(255,255,255,.65)}
+::selection{background:#F2582B;color:#fff}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

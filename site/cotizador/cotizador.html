@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="page-title">Cotizador — GPUnlock</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/assets/brand/favicon-32.png">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/gp-theme.css">
+</head>
+<body>
+
+<div class="internal-bar no-print">Material interno GPUnlock · no compartir este enlace</div>
+<header class="site-header no-print">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/logo-mark.png" alt="GPUnlock" onerror="this.style.display='none'">
+      <span class="brand-text"><strong id="brand-project-name">GPUnlock</strong><span>Cotizador interno</span></span>
+    </a>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<main class="wrap" style="padding-top:28px;padding-bottom:110px;">
+
+  <div id="form-view">
+    <div class="no-print" style="margin-bottom:16px;">
+      <a href="index.html" class="btn btn-ghost btn-sm">&larr; Cambiar de proyecto</a>
+    </div>
+
+    <div id="project-hero" class="project-hero no-print" hidden></div>
+
+    <div class="card">
+      <h3>Datos del asesor</h3>
+      <p class="hint" style="margin-bottom:12px;">Aparece en la proforma y en el pie de página. Se recuerda en este navegador para la próxima vez.</p>
+      <div class="field" style="max-width:260px;">
+        <label>Empresa</label>
+        <select id="asesor-empresa">
+          <option value="gpunlock">GPUnlock</option>
+          <option value="independiente">Independiente</option>
+        </select>
+      </div>
+      <div class="field" id="asesor-select-field">
+        <label>Asesor *</label>
+        <select id="asesor-select"><option value="">Cargando asesores…</option></select>
+        <p class="hint" style="margin-top:6px;">Al elegir tu nombre, el teléfono se rellena solo. Si no apareces en la lista, elige "Otro" y escríbelos.</p>
+      </div>
+      <div class="row2" id="asesor-manual-fields">
+        <div class="field"><label>Nombre completo *</label><input type="text" id="asesor-nombre" placeholder="Ej. Alex Rivera"></div>
+        <div class="field">
+          <label>Teléfono de contacto *</label>
+          <div class="phone-row">
+            <select id="asesor-tel-code"></select>
+            <input type="text" id="asesor-tel" placeholder="99 000 0000">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Datos del cliente</h3>
+      <div class="field"><label>Nombre completo *</label><input type="text" id="cli-nombre" placeholder="Ej. María García López"></div>
+      <div class="row2">
+        <div class="field">
+          <label>Teléfono / WhatsApp</label>
+          <div class="phone-row">
+            <select id="cli-tel-code"></select>
+            <input type="text" id="cli-tel" placeholder="99 000 0000">
+          </div>
+        </div>
+        <div class="field"><label>Correo electrónico</label><input type="email" id="cli-email" placeholder="cliente@correo.com"></div>
+      </div>
+      <div class="row2" style="margin-bottom:0;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Motivo de compra</label>
+          <select id="motivo-compra">
+            <option value="vivienda">Vivienda</option>
+            <option value="inversion">Inversión</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Forma de pago</label>
+          <select id="forma-pago">
+            <option value="financiamiento">Financiamiento</option>
+            <option value="contado">Contado</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:8px;">Con "Contado" se ocultan los campos de interés/plazo del financiamiento — el cliente ya tiene el capital y no necesita crédito bancario.</p>
+    </div>
+
+    <div class="card">
+      <h3 id="unit-section-title">Seleccionar unidad(es)</h3>
+      <p class="hint" id="unit-section-hint" style="margin-bottom:12px;"></p>
+      <div id="unit-grid" class="unit-grid"><div class="empty-state">Cargando unidades…</div></div>
+    </div>
+
+    <div class="card" id="discount-card" hidden>
+      <h3>Descuento por negociación</h3>
+      <div class="field" style="max-width:260px;margin-bottom:0;">
+        <label>Monto del descuento (USD)</label>
+        <input type="number" id="desc-monto" min="0" step="1" value="0" placeholder="0">
+      </div>
+    </div>
+
+    <div class="card" id="financing-card">
+      <h3>Plan de financiamiento</h3>
+      <div id="financing-fields"></div>
+      <div id="financing-summary" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Notas adicionales</h3>
+      <textarea id="notas" placeholder="Observaciones, condiciones especiales..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;" id="generate-btn">Generar proforma &rarr;</button>
+  </div>
+
+  <div id="proforma-view" hidden>
+    <div class="no-print" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" id="back-btn">&larr; Editar datos</button>
+      <button class="btn btn-primary" id="print-btn">Imprimir / Guardar PDF</button>
+      <button class="btn btn-primary" id="whatsapp-btn" style="background:#25d366;" hidden>Enviar por WhatsApp</button>
+    </div>
+    <div id="proforma-doc"></div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/cotizador.js"></script>
+</body>
+</html>

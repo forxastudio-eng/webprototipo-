@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es-EC">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control · GPUnlock Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="stylesheet" href="/css/gp-fonts.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="admin-body">
+
+<!-- ============== LOGIN ============== -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <span class="brand-mark"><img src="assets/gp-mark.png" alt=""></span>
+    <h1>Panel de Control</h1>
+    <p class="sub">GPUnlock Dashboard Ejecutivo · acceso restringido</p>
+
+    <div class="login-config-warning" id="login-config-warning" style="display:none;">
+      ⚠ Supabase todavía no está configurado en <code>js/config.js</code>. Puedes explorar el panel en <b>modo local</b>, pero los cambios no se guardarán en la nube hasta completar la configuración (ver README.md).
+    </div>
+
+    <div id="login-form-wrap">
+      <div class="login-error" id="login-error"></div>
+      <form id="login-form">
+        <label for="login-password">Contraseña del panel</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+        <button type="submit">Entrar al panel</button>
+      </form>
+      <button type="button" class="login-local-btn" id="btn-local-mode">Continuar en modo local (sin guardar en la nube)</button>
+    </div>
+
+    <div class="login-hint">
+      La contraseña es la del usuario creado en Supabase → Authentication → Users<br>
+      (correo interno: <code id="login-admin-email">—</code>). Ver <code>README.md</code>, Paso 2.
+    </div>
+  </div>
+</div>
+
+<!-- ============== APP ============== -->
+<div id="admin-app" style="display:none;">
+
+  <div class="admin-topbar">
+    <div class="adm-brand">
+      <img src="assets/gp-mark.png" alt="GPUnlock">
+      <span>Panel de Control · GPUnlock Dashboard</span>
+    </div>
+    <div class="adm-actions">
+      <span class="adm-status" id="adm-status">Sin cambios</span>
+      <button class="adm-btn" id="btn-export">Descargar JSON</button>
+      <button class="adm-btn" id="btn-reset">Restaurar ejemplo</button>
+      <a class="adm-btn adm-btn-ghost" href="/admin/">Panel GPUnlock</a>
+      <a class="adm-btn adm-btn-ghost" href="index.html" target="_blank" rel="noopener">Ver dashboard ↗</a>
+      <button class="adm-btn adm-btn-primary" id="btn-save">Guardar cambios</button>
+      <button class="adm-btn adm-btn-ghost" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+    <nav class="admin-nav">
+      <a href="#sec-meta">Encabezado</a>
+      <a href="#sec-insights">Insights</a>
+      <a href="#sec-kpis">KPIs</a>
+      <a href="#sec-ventas">Ventas mensuales</a>
+      <a href="#sec-cumplimiento">Cumplimiento de metas</a>
+      <a href="#sec-leads">Leads y embudo</a>
+      <a href="#sec-roi">ROI publicitario</a>
+      <a href="#sec-fuente">Fuente de ventas</a>
+      <a href="#sec-asesores">Asesores</a>
+      <a href="#sec-social">Social media</a>
+      <a href="#sec-footer">Pie de página</a>
+      <a href="#sec-theme">Colores de marca</a>
+      <a href="#sec-json">JSON avanzado</a>
+    </nav>
+
+    <div class="admin-content">
+
+      <section class="adm-section" id="sec-meta">
+        <h2>Encabezado</h2>
+        <div class="adm-section-sub">Título, subtítulo y periodo que aparecen en la parte superior del dashboard.</div>
+        <div id="adm-meta"></div>
+      </section>
+
+      <section class="adm-section" id="sec-insights">
+        <h2>Insights destacados</h2>
+        <div class="adm-section-sub">Las 4 tarjetas de hallazgos clave, arriba del todo. Usa <code>**texto**</code> para poner algo en negrita.</div>
+        <div id="adm-insights"></div>
+      </section>
+
+      <section class="adm-section" id="sec-kpis">
+        <h2>KPIs — resumen ejecutivo</h2>
+        <div class="adm-section-sub">Las tarjetas de métricas principales.</div>
+        <div id="adm-kpis"></div>
+      </section>
+
+      <section class="adm-section" id="sec-ventas">
+        <h2>Ventas mensuales</h2>
+        <div class="adm-section-sub">Gráfico de barras de ventas vs. meta mensual.</div>
+        <div id="adm-ventas-scalar"></div>
+        <div id="adm-ventas-series"></div>
+      </section>
+
+      <section class="adm-section" id="sec-cumplimiento">
+        <h2>Cumplimiento de metas de venta</h2>
+        <div class="adm-section-sub">Barras de progreso mensual, semestral, anual y de captaciones.</div>
+        <div id="adm-cumplimiento"></div>
+        <div id="adm-cumplimiento-note"></div>
+      </section>
+
+      <section class="adm-section" id="sec-leads">
+        <h2>Leads, CPL, conversión y embudo</h2>
+        <div class="adm-section-sub">Series mensuales de leads / costo por lead / conversión, y el embudo del último mes.</div>
+        <div id="adm-leads-scalar"></div>
+        <div id="adm-leads-series"></div>
+        <h3 style="margin-top:22px;font-size:14px;color:var(--navy);">Embudo</h3>
+        <div id="adm-funnel"></div>
+        <div id="adm-funnel-note"></div>
+      </section>
+
+      <section class="adm-section" id="sec-roi">
+        <h2>ROI publicitario</h2>
+        <div class="adm-section-sub">Costo de publicidad, ingresos atribuidos y ROI (x) por mes.</div>
+        <div id="adm-roi-scalar"></div>
+        <div id="adm-roi-series"></div>
+      </section>
+
+      <section class="adm-section" id="sec-fuente">
+        <h2>Fuente de ventas</h2>
+        <div class="adm-section-sub">Tabla y dona de canales de venta.</div>
+        <div id="adm-fuente-scalar"></div>
+        <div id="adm-fuente"></div>
+        <div id="adm-fuente-note"></div>
+      </section>
+
+      <section class="adm-section" id="sec-asesores">
+        <h2>Asesores</h2>
+        <div class="adm-section-sub">Ranking de ventas y avance hacia la meta anual individual.</div>
+        <div id="adm-asesores-scalar"></div>
+        <div id="adm-asesores"></div>
+        <div id="adm-asesores-note"></div>
+      </section>
+
+      <section class="adm-section" id="sec-social">
+        <h2>Social media</h2>
+        <div class="adm-section-sub">Seguidores, alcance, inversión en pauta y benchmark de competencia.</div>
+        <div id="adm-social-scalar"></div>
+        <h3 style="font-size:13.5px;color:var(--navy);margin:16px 0 6px;">Seguidores por red</h3>
+        <div id="adm-social-platforms"></div>
+        <h3 style="font-size:13.5px;color:var(--navy);margin:16px 0 6px;">Resumen (impresiones, interacciones…)</h3>
+        <div id="adm-social-overview"></div>
+        <div id="adm-social-note1"></div>
+        <h3 style="font-size:13.5px;color:var(--navy);margin:16px 0 6px;">Inversión en pauta digital</h3>
+        <div id="adm-social-inversion"></div>
+        <div id="adm-social-note2"></div>
+        <h3 style="font-size:13.5px;color:var(--navy);margin:16px 0 6px;">Benchmark de competencia</h3>
+        <div id="adm-social-benchmark"></div>
+        <div id="adm-social-note3"></div>
+      </section>
+
+      <section class="adm-section" id="sec-footer">
+        <h2>Pie de página</h2>
+        <div class="adm-section-sub">Fuentes de datos, notas metodológicas y fecha de generación.</div>
+        <div id="adm-footer"></div>
+      </section>
+
+      <section class="adm-section" id="sec-theme">
+        <h2>Colores de marca</h2>
+        <div class="adm-section-sub">Cambian en vivo el color de las tarjetas, barras y gráficos de todo el sitio.</div>
+        <div id="adm-theme"></div>
+      </section>
+
+      <section class="adm-section" id="sec-json">
+        <h2>JSON avanzado</h2>
+        <div class="adm-section-sub">Control total: edita directamente el objeto de datos completo — útil para ajustar cualquier detalle que no tenga un campo dedicado arriba. "Aplicar JSON" sobrescribe todos los formularios de esta página.</div>
+        <textarea id="adm-json-textarea" spellcheck="false"></textarea>
+        <div class="adm-json-actions">
+          <button class="adm-btn adm-btn-primary" id="btn-json-apply">Aplicar JSON</button>
+          <button class="adm-btn" id="btn-json-refresh">Actualizar vista desde el formulario</button>
+          <button class="adm-btn" id="btn-json-copy">Copiar</button>
+        </div>
+        <div class="adm-json-msg" id="adm-json-msg"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="adm-toast" id="adm-toast"></div>
+
+<script src="/js/gpunlock-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

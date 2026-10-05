@@ -1,0 +1,13 @@
+{
+  "name": "gpunlock-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Scripts de mantenimiento de la plataforma GPUnlock (se ejecutan en tu computadora, nunca en Netlify).",
+  "scripts": {
+    "usuarios": "node crear_usuarios.mjs",
+    "usuarios:crear": "node crear_usuarios.mjs --ejecutar"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

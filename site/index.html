@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPUnlock · Proyectos inmobiliarios</title>
+<meta name="description" content="Proyectos inmobiliarios de GPUnlock: suites, departamentos, locales comerciales y lotes en Ciudad Alta y Valle Alto, con cotizador interno y panel de administración.">
+<meta name="theme-color" content="#161616">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/brand/favicon-180.png">
+<link rel="stylesheet" href="/css/gp-tokens.css">
+<link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="top" id="top">
+  <div class="wrap top-row">
+    <a class="brand" href="/" aria-label="GPUnlock, inicio">
+      <img src="/assets/brand/gp-logo-horizontal.png" alt="GPUnlock" width="1539" height="430">
+    </a>
+    <nav class="top-nav" aria-label="Principal">
+      <a href="#proyectos">Proyectos</a>
+      <a href="#contacto">Contacto</a>
+      <a href="/cotizador/" class="top-nav-btn top-nav-cotizador">Cotizador</a>
+      <a href="/admin/" class="top-nav-btn">Acceso</a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenido">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Portafolio inmobiliario</p>
+        <h1 id="hero-title">Espacios para <em>vivir</em>, trabajar e invertir.</h1>
+        <p class="hero-lead">Suites, lofts, locales comerciales y lotes. Todos los proyectos de GPUnlock reunidos en un solo lugar, con disponibilidad actualizada.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#proyectos">Ver proyectos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+          </a>
+          <a class="btn btn-quiet" id="hero-whatsapp" href="https://wa.me/593900000000" target="_blank" rel="noopener">Hablar con el equipo</a>
+        </div>
+        <ul class="hero-stats" aria-label="Datos del portafolio">
+          <li><strong id="stat-proyectos">4</strong><span>proyectos</span></li>
+          <li><strong>En vivo</strong><span>disponibilidad</span></li>
+          <li><strong>PDF</strong><span>proformas al instante</span></li>
+        </ul>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-panel">
+          <img class="hero-mark" src="/assets/brand/gp-mark-white.png" alt="" width="415" height="504">
+          <div class="hero-grain"></div>
+        </div>
+        <div class="float-card float-a">
+          <span class="float-label">Estado de unidades</span>
+          <div class="pills"><span class="pill pill-ok">Disponible</span><span class="pill pill-res">Reservado</span><span class="pill pill-sold">Vendido</span></div>
+        </div>
+        <div class="float-card float-b">
+          <span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+          <div><strong>Proforma lista</strong><span>Cotiza y comparte en segundos</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="values" aria-label="Qué ofrece la plataforma">
+    <div class="wrap values-grid">
+      <article class="value reveal">
+        <span class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span>
+        <h2>Inventario al día</h2>
+        <p>Cada landing muestra el estado real de sus unidades y lotes, editable en segundos.</p>
+      </article>
+      <article class="value reveal">
+        <span class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+        <h2>Cotizador interno</h2>
+        <p>Financiamiento, entrada y cuotas calculados, con proforma y mensaje listo para WhatsApp.</p>
+      </article>
+      <article class="value reveal">
+        <span class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="M9.5 12l2 2 3.5-4"/></svg></span>
+        <h2>Panel con roles</h2>
+        <p>Editor, administrador, marketing y asesor, con permisos que aplica la base de datos.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="projects" id="proyectos" aria-labelledby="proyectos-title">
+    <div class="wrap">
+      <div class="projects-head">
+        <div class="projects-title"><p class="kicker">Portafolio</p><h2 id="proyectos-title">Proyectos</h2></div>
+        <div class="filters" id="filters" role="group" aria-label="Filtrar por ubicación"></div>
+      </div>
+      <div class="grid" id="grid" aria-live="polite">
+        <div class="state">Cargando proyectos…</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contacto" aria-labelledby="contacto-title">
+    <div class="wrap contact-grid">
+      <div>
+        <p class="kicker kicker-light">Contacto</p>
+        <h2 id="contacto-title">¿Buscas algo en particular?</h2>
+        <p>Cuéntanos qué necesitas y nuestro equipo te responde por WhatsApp con opciones y precios actualizados.</p>
+      </div>
+      <form class="contact-form" id="contact-form" novalidate>
+        <div class="field">
+          <label for="c-nombre">Nombre</label>
+          <input id="c-nombre" name="nombre" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="c-proyecto">Proyecto de interés</label>
+          <select id="c-proyecto" name="proyecto">
+            <option value="">Todavía no lo sé</option>
+          </select>
+        </div>
+        <div class="field field-wide">
+          <label for="c-mensaje">Mensaje</label>
+          <textarea id="c-mensaje" name="mensaje" rows="3" placeholder="Ej. Busco una suite para inversión, presupuesto aproximado…"></textarea>
+        </div>
+        <p class="form-error" id="c-error" role="alert"></p>
+        <button class="btn btn-primary" type="submit">Continuar en WhatsApp</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <img src="/assets/brand/gp-logo-horizontal-white.png" alt="GPUnlock" class="foot-logo" width="1539" height="430">
+    <p>© <span id="year"></span> GPUnlock Creative Studio.</p>
+    <nav class="foot-nav" aria-label="Equipo">
+      <a href="/cotizador/">Cotizador</a>
+      <a href="/admin/">Panel de administración</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/gpunlock-config.js"></script>
+<script src="/js/home.js"></script>
+</body>
+</html>
