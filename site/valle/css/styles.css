@@ -78,7 +78,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .section-head { max-width: 640px; margin-bottom: 64px; }
 .section-head h2 {
   font-family: var(--ff-display); font-weight: 500; font-style: normal;
-  font-size: clamp(2.1rem, 4vw, 3.4rem); line-height: 1.08; margin: 0 0 20px; color: var(--cream);
+  font-size: clamp(2.1rem, 4vw, 3.4rem); line-height: 1.15; margin: 0 0 20px; color: var(--cream);
 }
 .section-head p { color: var(--cream-dim); font-size: 1.08rem; line-height: 1.6; margin: 0; }
 .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
@@ -142,7 +142,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .hero__eyebrow::before { content: ""; width: 40px; height: 1px; background: var(--sage-500); }
 .hero__title {
   font-family: var(--ff-display); font-weight: 400; font-style: normal;
-  font-size: clamp(3.4rem, 9vw, 7.5rem); color: var(--cream); margin: 0; line-height: 0.98; letter-spacing: -0.01em;
+  font-size: clamp(3.4rem, 9vw, 7.5rem); color: var(--cream); margin: 0; line-height: 1.06; letter-spacing: -0.01em;
 }
 .hero__tagline {
   font-family: var(--ff-body); font-size: 1.05rem; letter-spacing: 0.05em; text-transform: uppercase;
