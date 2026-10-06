@@ -13,6 +13,8 @@
 <link rel="manifest" href="/app/manifest.webmanifest">
 <link rel="icon" type="image/png" href="/app/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png">
+<script src="/js/tema.js"></script>
+<script>GPUTema.arranque();</script>
 <link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/app/app.css">
 </head>
@@ -49,6 +51,8 @@
       <label class="fld"><span>Contraseña (mínimo 8 caracteres)</span><input type="password" id="signup-password" autocomplete="new-password" minlength="8" required></label>
       <button class="btn btn-primary btn-block" type="submit" id="signup-btn">Crear mi cuenta</button>
     </form>
+  
+    <div id="auth-pie"></div>
   </div>
 </main>
 
@@ -69,7 +73,7 @@
 <div class="app" id="app" hidden>
   <header class="top">
     <a class="brand" href="/app/" aria-label="Inicio">
-      <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+      <span class="brand-mark" id="brand-mark"><img src="/assets/brand/gp-mark.png" alt="" width="28" height="34"></span>
       <span><strong id="brand-nombre">CRM</strong></span>
     </a>
     <h1 class="top-title" id="top-title">Hoy</h1>

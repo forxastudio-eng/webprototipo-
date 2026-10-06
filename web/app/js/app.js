@@ -48,7 +48,7 @@
   /* -------------------------------------------------------------- estado */
   var S = {
     user: null, email: "", rol: null,
-    org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [],
+    org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [], marca: null, mDraft: null,
     ajSec: "equipo", intervalo: "mensual",
     ops: [], tareas: [], equipo: [],
     vista: "hoy",
@@ -153,11 +153,13 @@
 
   /* Conserva lo que la persona está escribiendo cuando la pantalla se repinta
      (por ejemplo, al llegar un lead nuevo en tiempo real). */
+  /* Casillas, ocultos, archivos (el navegador no deja asignarles valor) y colores (los guarda el borrador de marca). */
+  var SIN_SNAP = { checkbox: 1, hidden: 1, file: 1, color: 1 };
   function claveCampo(el) { return (el.form && el.form.id || "") + "|" + (el.id || el.name || ""); }
   function snap(root) {
     var s = {};
     root.querySelectorAll("input,textarea").forEach(function (el) {
-      if (el.type === "checkbox" || el.type === "hidden" || claveCampo(el).slice(-1) === "|") return;
+      if (SIN_SNAP[el.type] || claveCampo(el).slice(-1) === "|") return;
       s[claveCampo(el)] = el.value;
     });
     var d = root.querySelector("details"); s["@open"] = d ? d.open : false;
@@ -168,7 +170,7 @@
   function restore(root, s) {
     root.querySelectorAll("input,textarea").forEach(function (el) {
       var k = claveCampo(el);
-      if (el.type !== "checkbox" && el.type !== "hidden" && k in s && el.value !== s[k]) el.value = s[k];
+      if (!SIN_SNAP[el.type] && k in s && el.value !== s[k]) el.value = s[k];
     });
     var d = root.querySelector("details"); if (d && s["@open"]) d.open = true;
     if (s["@focus"]) {
@@ -246,11 +248,12 @@
   function msg(id, txt) { var n = $(id); if (n) { n.textContent = txt || ""; n.hidden = !txt; } }
   function loginMsg(id, txt) { msg(id === "login-error" ? "auth-error" : "auth-info", txt); }
 
+  var authNombre = "";   // nombre de la empresa cuando se entra por su enlace /app/?e=…
   function elegirAuth(modo) {
     var reg = modo === "signup";
     $("login-form").hidden = reg; $("signup-form").hidden = !reg;
     $("tab-login").setAttribute("aria-selected", String(!reg)); $("tab-signup").setAttribute("aria-selected", String(reg));
-    $("auth-titulo").textContent = reg ? "Crea tu cuenta" : "Entra a tu CRM";
+    $("auth-titulo").textContent = reg ? "Crea tu cuenta" : (authNombre ? "Entra a " + authNombre : "Entra a tu CRM");
     msg("auth-error", ""); msg("auth-info", "");
   }
 
@@ -265,7 +268,8 @@
       sb.from("organizaciones").select("id,nombre,clave_publica,reparto,plan_id,estado").eq("id", o).maybeSingle(),
       sb.from("datos_cobro").select("*").maybeSingle(),
       esPropietario() ? sb.from("pagos_suscripcion").select("id,plan_id,periodo,total,fecha_transferencia,factura_numero,cubre_hasta")
-        .eq("org_id", o).order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] })
+        .eq("org_id", o).order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
+      sb.from("org_marca").select("*").eq("org_id", o).maybeSingle()
     ]);
     if (r[2].error) throw r[2].error;
     S.equipo = r[0].data || [];
@@ -277,8 +281,7 @@
     if (r[5].data) S.org = Object.assign(S.org, r[5].data);
     S.cobro = r[6].data || {};
     S.pagos = r[7].data || [];
-    $("brand-nombre").textContent = S.org.nombre;
-    document.title = S.org.nombre + " · CRM";
+    aplicarMarcaEmpresa(r[8].data || null);
   }
 
   async function entrar(user) {
@@ -320,6 +323,11 @@
         recargar();
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "crm_actividades", filter: filtro }, recargar)
+      .on("postgres_changes", { event: "*", schema: "public", table: "org_marca", filter: filtro }, function (p) {
+        aplicarMarcaEmpresa(p.eventType === "DELETE" ? null : (p.new && p.new.org_id ? p.new : null));
+        toast("La marca de tu empresa se actualizó");
+        if (S.vista === "ajustes" && S.ajSec === "marca") { S.mDraft = null; render(); }
+      })
       .subscribe();
   }
 
@@ -357,6 +365,7 @@
     restore(v, ss);
     var n = v.querySelector(".board"); if (n) n.scrollLeft = x;
     if (S.vista === "metricas" && !S.metricas) cargarMetricas();
+    if (S.vista === "ajustes" && S.ajSec === "marca" && esGestor()) pintarPreviewMarca();
   }
 
   function cambiarVista(v) {
@@ -787,7 +796,11 @@
       (instalada ? "" : '<div class="card"><h3>Instalar en tu celular</h3>' + (instalarEvento ?
         '<p class="muted" style="margin:0 0 8px">Ábrelo como una app, a pantalla completa.</p><button class="btn btn-primary btn-block" data-action="instalar">Instalar la app</button>' :
         '<p class="muted" style="margin:0">' + (ios ? "En Safari toca <b>Compartir</b> y luego <b>Agregar a pantalla de inicio</b>." : "En el menú del navegador (⋮) elige <b>Instalar app</b> o <b>Agregar a pantalla de inicio</b>.") + "</p>") + "</div>") +
-      '<div class="row end"><button class="btn" data-action="cerrar-modal">Cerrar</button><button class="btn btn-primary" data-action="salir">Cerrar sesión</button></div>');
+      '<div class="card"><h3>Apariencia</h3><div class="seg" id="seg-modo" role="group" aria-label="Apariencia">' +
+        [["auto", "Automático"], ["claro", "Claro"], ["oscuro", "Oscuro"]].map(function (x) {
+          return '<button type="button" class="' + (GPUTema.modo() === x[0] ? "on" : "") + '" aria-pressed="' + (GPUTema.modo() === x[0]) + '" data-action="modo" data-m="' + x[0] + '">' + x[1] + "</button>";
+        }).join("") + '</div><p class="muted" style="margin:8px 0 0"><small>Automático sigue el modo de tu teléfono o computadora.</small></p></div>' +
+      '<div class="row end"><button class="btn" data-action="cerrar-modal">Cerrar</button><button class="btn btn-primary" data-action="salir">Cerrar sesión</button></div>' + pieGPU(S.marca));
   }
 
   /* ------------------------------------------------------ suscripción / banner */
@@ -832,12 +845,14 @@
   }
 
   function vistaAjustes() {
-    var secs = [["equipo", "Equipo"], ["proyectos", "Proyectos"], ["integracion", "Tu sitio web"], ["plan", "Plan y pagos"], ["empresa", "Empresa"]];
+    var secs = [["equipo", "Equipo"], ["proyectos", "Proyectos"]].concat(esGestor() ? [["marca", "Marca"]] : [])
+      .concat([["integracion", "Tu sitio web"], ["plan", "Plan y pagos"], ["empresa", "Empresa"]]);
     var h = '<div class="sub-tabs" role="tablist">' + secs.map(function (x) {
       return '<button role="tab" class="' + (S.ajSec === x[0] ? "on" : "") + '" data-action="aj-sec" data-s="' + x[0] + '">' + x[1] + "</button>";
     }).join("") + "</div>";
     if (S.ajSec === "equipo") return h + ajEquipo();
     if (S.ajSec === "proyectos") return h + ajProyectos();
+    if (S.ajSec === "marca" && esGestor()) return h + ajMarca();
     if (S.ajSec === "integracion") return h + ajIntegracion();
     if (S.ajSec === "plan") return h + ajPlan();
     return h + ajEmpresa();
@@ -970,6 +985,119 @@
       h += '<p class="muted" style="margin:12px 0 0"><small>¿Dudas con tu pago? <a href="https://wa.me/' + esc(c.whatsapp_cobros) + "?text=" + encodeURIComponent("Hola, consulta sobre mi pago " + sol.referencia) + '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.</small></p>';
     }
     return h + "</div>";
+  }
+
+  /* ------------------------------------------------- Marca de la empresa (logo, colores, tema) */
+  var PRESETS = ["#F2582B", "#1E4FD8", "#0F8A5F", "#7A1F3D", "#C9A227", "#161616"];
+  var EXT_IMG = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+  function urlMarca(path) { return path ? CFG.SUPABASE_URL + "/storage/v1/object/public/marcas/" + path : ""; }
+  function marcaNombre() { return (S.marca && S.marca.nombre_comercial) || S.org.nombre; }
+  function pieGPU(m) {
+    return m && m.mostrar_pie_gpunlock === false ? "" : '<p class="muted pie-gpu" style="margin:10px 0 0;text-align:center"><small>Con la tecnología de <a href="https://gpunlock.netlify.app" target="_blank" rel="noopener">GPUnlock</a></small></p>';
+  }
+  /* Aplica la marca de la empresa: colores del tema, logo y nombre en la barra, título de la pestaña. */
+  function aplicarMarcaEmpresa(m) {
+    S.marca = m || null;
+    GPUTema.aplicarMarca(S.marca, S.org && S.org.id);
+    var img = document.querySelector("#brand-mark img");
+    if (img) img.src = S.marca && S.marca.logo_path ? urlMarca(S.marca.logo_path) : "/assets/brand/gp-mark.png";
+    $("brand-nombre").textContent = marcaNombre();
+    document.title = marcaNombre() + " · CRM";
+  }
+  function iniciarDraft() {
+    var m = S.marca || {};
+    S.mDraft = { org: S.org.id, color: m.color_primario || PRESETS[0], acento: m.color_acento || "", logo: m.logo_path || null, logoOscuro: m.logo_oscuro_path || null,
+      archivoLogo: null, archivoOscuro: null, urlLogo: "", urlOscuro: "", sugeridos: [] };
+  }
+  function ajMarca() {
+    if (!S.mDraft || S.mDraft.org !== S.org.id) iniciarDraft();
+    var d = S.mDraft, m = S.marca || {}, agencia = !!(S.uso && S.uso.plan && S.uso.plan.id === "agencia");
+    function logoLinea(id, etiqueta, ayuda, url, quitar) {
+      return '<div class="fld"><span>' + etiqueta + '</span><div class="file-line">' + (url ? '<img src="' + esc(url) + '" alt="Vista previa" id="' + id + '-img">' : "") +
+        '<input type="file" id="' + id + '" accept="image/png,image/jpeg,image/webp">' + (url ? '<button type="button" class="link-btn" data-action="' + quitar + '">Quitar</button>' : "") + "</div><small class=\"muted\">" + ayuda + "</small></div>";
+    }
+    var urlLogo = d.urlLogo || urlMarca(d.logo), urlOsc = d.urlOscuro || urlMarca(d.logoOscuro);
+    var presets = PRESETS.map(function (c) {
+      return '<button type="button" style="--sw:' + c + '" data-action="marca-color" data-c="' + c + '" aria-pressed="' + (d.color.toUpperCase() === c) + '" aria-label="Color ' + c + '"></button>';
+    }).join("");
+    var sug = d.sugeridos.map(function (c) { return '<button type="button" style="--sw:' + c + '" data-action="marca-color" data-c="' + c + '" aria-pressed="' + (d.color.toUpperCase() === c) + '" aria-label="Color del logo ' + c + '"></button>'; }).join("");
+    return '<form class="card form" id="form-marca" novalidate><h3>Marca de tu empresa</h3>' +
+      '<p class="muted" style="margin:0">Sube tu logo y elige tu color: tu equipo verá la app con tu marca al instante, en modo claro y oscuro.</p>' +
+      '<label class="fld"><span>Nombre comercial</span><input name="nombre" value="' + esc(m.nombre_comercial || "") + '" maxlength="60" placeholder="' + esc(S.org.nombre) + '"></label>' +
+      '<label class="fld"><span>Dirección corta de acceso (opcional)</span><input name="subdominio" id="m-sub" value="' + esc(m.subdominio || "") + '" maxlength="40" placeholder="miinmobiliaria" autocapitalize="none" autocomplete="off">' +
+      '<small class="muted" id="m-sub-ayuda">' + (m.subdominio ? "Tu equipo y tus clientes entran por " + esc(location.origin) + "/app/?e=" + esc(m.subdominio) : "Con ella, la pantalla de entrada muestra tu logo y tus colores.") + "</small></label>" +
+      logoLinea("m-logo", "Logo (PNG, JPG o WebP, hasta 1 MB)", "Mejor con fondo transparente y horizontal.", urlLogo, "marca-logo-quitar") +
+      logoLinea("m-logo-oscuro", "Logo para fondo oscuro (opcional)", "Se usa en la pantalla de entrada cuando el equipo prefiere el modo oscuro.", urlOsc, "marca-oscuro-quitar") +
+      '<div class="fld"><span id="lbl-color">Color de tu marca</span><div class="swatches" role="group" aria-labelledby="lbl-color">' + presets +
+      '<input type="color" id="m-color" value="' + esc(d.color.toLowerCase()) + '" aria-label="Elegir otro color" style="width:44px;height:40px;padding:2px;border-radius:12px"></div>' +
+      '<div class="swatches" id="m-sug" style="margin-top:6px"' + (sug ? "" : " hidden") + '><small class="muted">Colores de tu logo:</small>' + sug + '</div>' +
+      '<small id="m-contraste" aria-live="polite" class="muted"></small></div>' +
+      '<div class="fld"><span>Color de acento (opcional)</span><div class="row"><input type="color" id="m-acento" value="' + esc((d.acento || "#F0C330").toLowerCase()) + '" aria-label="Color de acento" style="width:44px;height:40px;padding:2px;border-radius:12px">' +
+      '<button type="button" class="link-btn" data-action="marca-acento-quitar">' + (d.acento ? "Usar el automático" : "Automático (recomendado)") + '</button></div></div>' +
+      '<label class="row" style="gap:8px"><input type="checkbox" name="pie"' + (m.mostrar_pie_gpunlock === false ? "" : " checked") + (agencia ? "" : " disabled") + '> <span>Mostrar «Con la tecnología de GPUnlock»</span></label>' +
+      (agencia ? "" : '<small class="muted" style="margin-top:-6px">Quitarlo es parte del plan Agencia.</small>') +
+      '<div class="fld"><span>Así se verá</span><div class="marca-prev" id="m-prev"><div class="pv-top"><span class="brand-mark"><img id="pv-logo" src="' + esc(urlLogo || "/assets/brand/gp-mark.png") + '" alt=""></span><span id="pv-nombre">' + esc(marcaNombre()) + '</span></div>' +
+      '<div class="pv-body"><div class="row"><button type="button" class="btn btn-primary btn-sm" tabindex="-1">Llamar</button><span class="chip">Caliente</span><a href="#" tabindex="-1" data-action="nada">Ver ficha</a></div>' +
+      '<div class="banner" style="margin:0"><span>Aviso de ejemplo con tu color.</span></div></div></div></div>' +
+      '<div class="row"><button class="btn btn-primary" type="submit"' + (activa() ? "" : " disabled") + '>Guardar marca</button><button type="button" class="link-btn" data-action="marca-restablecer">Volver a los colores de GPUnlock</button></div>' +
+      (activa() ? "" : '<p class="muted" style="margin:0"><small>Con la suscripción vencida no se puede cambiar la marca.</small></p>') + "</form>";
+  }
+  /* Vista previa y aviso de contraste, calculados con el mismo motor que usa toda la app. */
+  function pintarPreviewMarca() {
+    var d = S.mDraft, pv = $("m-prev"); if (!d || !pv) return;
+    var modo = GPUTema.modoEfectivo(), p = GPUTema.paleta(d.color, d.acento || null, modo);
+    GPUTema.VARS.forEach(function (v) { pv.style.setProperty(v, p.vars[v]); });
+    var nom = document.querySelector('#form-marca [name="nombre"]'); $("pv-nombre").textContent = (nom && nom.value.trim()) || S.org.nombre;
+    var c = $("m-contraste");
+    if (c) c.textContent = "Texto " + (p.textoSobreFondo === "#FFFFFF" ? "blanco" : "negro") + " sobre tu color: " + p.contrasteBoton.toFixed(1).replace(".", ",") + ":1 (AA " + (p.contrasteBoton >= 4.5 ? "✓" : "✗") + ")." +
+      (p.ajustado ? " Ajustamos un poco el tono para que se lea bien." : "");
+    document.querySelectorAll('#form-marca [data-action="marca-color"]').forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.c.toUpperCase() === d.color.toUpperCase())); });
+  }
+  function sugerirColores(file) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      try {
+        var k = Math.min(64 / img.width, 64 / img.height, 1), w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+        var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+        var cx = cv.getContext("2d", { willReadFrequently: true }); cx.drawImage(img, 0, 0, w, h);
+        S.mDraft.sugeridos = GPUTema.coloresDeImagen(cx.getImageData(0, 0, w, h).data);
+      } catch (e) { S.mDraft.sugeridos = []; }
+      URL.revokeObjectURL(url);
+      if (S.mDraft.sugeridos.length) { S.mDraft.color = S.mDraft.sugeridos[0]; toast("Tomamos el color de tu logo. Puedes cambiarlo."); }
+      render();
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+  }
+  function elegirLogo(input, oscuro) {
+    var f = input.files && input.files[0]; if (!f) return;
+    if (!EXT_IMG[f.type]) { input.value = ""; toast("El logo debe ser PNG, JPG o WebP.", true); return; }
+    if (f.size > 1024 * 1024) { input.value = ""; toast("El logo pesa más de 1 MB. Reduce su tamaño y vuelve a subirlo.", true); return; }
+    var d = S.mDraft;
+    if (oscuro) { d.archivoOscuro = f; d.urlOscuro = URL.createObjectURL(f); render(); }
+    else { d.archivoLogo = f; d.urlLogo = URL.createObjectURL(f); sugerirColores(f); }
+  }
+  async function guardarMarca(f, btn) {
+    var d = S.mDraft, org = S.org.id, fd = Object.fromEntries(new FormData(f).entries());
+    var agencia = !!(S.uso && S.uso.plan && S.uso.plan.id === "agencia");
+    if (!/^#[0-9a-f]{6}$/i.test(d.color)) { toast("Elige un color válido.", true); return; }
+    return conBoton(btn, async function () {
+      async function subir(file, prefijo) {
+        var ruta = org + "/" + prefijo + "-" + Date.now() + "." + EXT_IMG[file.type];
+        var up = await sb.storage.from("marcas").upload(ruta, file, { contentType: file.type, upsert: false }); if (up.error) throw up.error;
+        return ruta;
+      }
+      var antes = S.marca || {}, logo = d.logo, oscuro = d.logoOscuro;
+      if (d.archivoLogo) logo = await subir(d.archivoLogo, "logo");
+      if (d.archivoOscuro) oscuro = await subir(d.archivoOscuro, "logo-oscuro");
+      var r = await sb.rpc("guardar_marca", { p_org: org, p_nombre: (fd.nombre || "").trim() || null, p_subdominio: (fd.subdominio || "").trim() || null,
+        p_color: d.color.toUpperCase(), p_acento: d.acento ? d.acento.toUpperCase() : null, p_logo: logo || null, p_logo_oscuro: oscuro || null, p_ocultar_pie: agencia && !fd.pie });
+      if (r.error) throw r.error;
+      var viejos = [antes.logo_path !== logo ? antes.logo_path : null, antes.logo_oscuro_path !== oscuro ? antes.logo_oscuro_path : null].filter(Boolean);
+      if (viejos.length) sb.storage.from("marcas").remove(viejos).then(function () {}, function () {});   // limpieza; si falla no importa
+      S.mDraft = null; aplicarMarcaEmpresa(r.data); render();
+      toast("Marca guardada. Tu equipo la verá al instante.");
+    });
   }
 
   function ajEmpresa() {
@@ -1122,7 +1250,17 @@
       if (!instalarEvento) return;
       instalarEvento.prompt(); instalarEvento.userChoice.finally(function () { instalarEvento = null; cerrarModal(); });
     },
-    "aj-sec": function (el) { S.ajSec = el.dataset.s; render(); },
+    "aj-sec": function (el) { if (el.dataset.s !== "marca") S.mDraft = null; S.ajSec = el.dataset.s; render(); },
+    "marca-color": function (el) { S.mDraft.color = el.dataset.c; var c = $("m-color"); if (c) c.value = el.dataset.c.toLowerCase(); pintarPreviewMarca(); },
+    "marca-acento-quitar": function () { S.mDraft.acento = ""; render(); },
+    "marca-logo-quitar": function () { var d = S.mDraft; d.logo = null; d.archivoLogo = null; d.urlLogo = ""; d.sugeridos = []; render(); },
+    "marca-oscuro-quitar": function () { var d = S.mDraft; d.logoOscuro = null; d.archivoOscuro = null; d.urlOscuro = ""; render(); },
+    "marca-restablecer": function () { var d = S.mDraft; d.color = PRESETS[0]; d.acento = ""; d.sugeridos = []; render(); toast("Colores de GPUnlock. Pulsa «Guardar marca» para aplicarlos."); },
+    "modo": function (el) {
+      GPUTema.fijarModo(el.dataset.m);
+      document.querySelectorAll('#seg-modo button').forEach(function (b) { b.classList.toggle("on", b.dataset.m === el.dataset.m); b.setAttribute("aria-pressed", String(b.dataset.m === el.dataset.m)); });
+      pintarPreviewMarca();
+    },
     "ir-plan": function () { S.vista = "ajustes"; S.ajSec = "plan"; render(); window.scrollTo(0, 0); },
     "intervalo": function (el) { S.intervalo = el.dataset.i; render(); },
     "copiar": function (el) {
@@ -1189,7 +1327,7 @@
         await cargarEmpresa(); render(); toast("Solicitud cancelada");
       });
     },
-    "salir": async function () { await sb.auth.signOut(); try { localStorage.removeItem("crm_org"); } catch (e) { /* nada */ } location.reload(); }
+    "salir": async function () { await sb.auth.signOut(); GPUTema.olvidarMarca(); try { localStorage.removeItem("crm_org"); } catch (e) { /* nada */ } location.reload(); }
   };
 
   document.addEventListener("click", function (e) {
@@ -1206,7 +1344,11 @@
   });
   document.addEventListener("change", function (e) {
     var t = e.target;
-    if (t.id === "f-proyecto") { S.f.proyecto = t.value; render(); }
+    if (t.id === "m-logo") { elegirLogo(t, false); }
+    else if (t.id === "m-logo-oscuro") { elegirLogo(t, true); }
+    else if (t.id === "m-color") { S.mDraft.color = t.value.toUpperCase(); pintarPreviewMarca(); }
+    else if (t.id === "m-acento") { S.mDraft.acento = t.value.toUpperCase(); pintarPreviewMarca(); }
+    else if (t.id === "f-proyecto") { S.f.proyecto = t.value; render(); }
     else if (t.id === "f-quien") { S.f.quien = t.value; render(); }
     else if (t.dataset && t.dataset.rolDe) {
       sb.rpc("cambiar_rol", { p_org: S.org.id, p_user: t.dataset.rolDe, p_rol: t.value }).then(function (r) {
@@ -1228,6 +1370,12 @@
       S.f.q = e.target.value; clearTimeout(busqueda);
       busqueda = setTimeout(render, 200);
     }
+    if (e.target.id === "m-sub") {
+      var v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      if (v !== e.target.value) e.target.value = v;
+      $("m-sub-ayuda").textContent = v ? "Tu equipo y tus clientes entran por " + location.origin + "/app/?e=" + v : "Con ella, la pantalla de entrada muestra tu logo y tus colores.";
+    }
+    if (e.target.name === "nombre" && e.target.closest("#form-marca")) pintarPreviewMarca();
     if (e.target.id === "ia-input") { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 130) + "px"; }
   });
 
@@ -1270,6 +1418,7 @@
         await cargarEmpresa(); render(); toast("Proyecto agregado");
       });
     }
+    if (f.id === "form-marca") return guardarMarca(f, btn);
     if (f.id === "form-empresa") {
       return conBoton(btn, async function () {
         var r = await sb.rpc("actualizar_organizacion", { p_org: S.org.id, p_nombre: fd.nombre, p_reparto: fd.reparto }); if (r.error) throw r.error;
@@ -1354,6 +1503,22 @@
   $("btn-menu").addEventListener("click", abrirCuenta);
   $("fab").addEventListener("click", abrirNuevo);
 
+  /* Entrada por el enlace de la empresa (/app/?e=su-direccion): su logo y sus colores antes de iniciar sesión. */
+  async function marcaDeEnlace() {
+    var e = (new URLSearchParams(location.search).get("e") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40);
+    if (!e) return;
+    try {
+      var r = await sb.rpc("marca_publica", { p_subdominio: e });
+      var m = r.data; if (!m || !m.nombre) return;
+      GPUTema.aplicarMarcaTemporal(m);
+      authNombre = m.nombre; $("auth-titulo").textContent = "Entra a " + authNombre;
+      var oscuro = GPUTema.modoEfectivo() === "dark" && m.logo_oscuro_path, logo = oscuro ? m.logo_oscuro_path : m.logo_path;
+      var marca = document.querySelector("#auth .logo-mark");
+      if (logo && marca) { var im = document.createElement("img"); im.className = "auth-logo"; im.alt = m.nombre; im.src = urlMarca(logo); marca.replaceWith(im); }
+      var pie = $("auth-pie"); if (pie) pie.innerHTML = pieGPU(m);
+    } catch (er) { /* sin marca: pantalla normal */ }
+  }
+
   /* ------------------------------------------------------------------ inicio */
   (async function () {
     estadoRed();
@@ -1368,7 +1533,7 @@
     try {
       var sess = (await sb.auth.getSession()).data.session;
       if (sess) await entrar(sess.user);
-      else { mostrar("login"); if (new URLSearchParams(location.search).has("registro")) elegirAuth("signup"); }
+      else { await marcaDeEnlace(); mostrar("login"); if (new URLSearchParams(location.search).has("registro")) elegirAuth("signup"); }
     } catch (e) { mostrar("login"); msg("auth-error", mensajeError(e)); }
   })();
 })();

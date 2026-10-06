@@ -13,7 +13,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 │   ├── consola/          consola del equipo de GPUnlock: pagos, empresas, ingresos
 │   ├── embed/lead.js     script que las inmobiliarias pegan en su web para enviar leads al CRM
 │   └── css/ js/ assets/  marca GPUnlock (tokens, fuentes, logos) y configuración pública
-├── supabase/             base de datos (01 → 04), funciones de servidor y pruebas de SQL
+├── supabase/             base de datos (01 → 05), funciones de servidor y pruebas de SQL
 ├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
 ├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
 ├── site/                 landings del demo (se publican aparte: Base directory = site)
@@ -22,7 +22,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ## Puesta en marcha
 
-1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 4 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql` y `04_cobros.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
+1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 5 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql` y `05_marca.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
 2. **Autenticación.** Authentication → Providers → Email: deja activado *Confirm email*. En *URL Configuration* pon tu dominio como Site URL y agrega `https://TU-DOMINIO/app/` y `https://TU-DOMINIO/consola/` en Redirect URLs.
 3. **Primer superadmin (tú).** Crea tu cuenta en Authentication → Add user (o regístrate en `/app/`) y luego, en el SQL Editor:
    ```sql
@@ -59,6 +59,9 @@ cd e2e && npm install && npx playwright install chromium && npm test
 ```
 
 GitHub Actions corre las dos en cada cambio (`.github/workflows/ci.yml`).
+
+## Marca de cada empresa
+El propietario o un administrador entra a **Ajustes → Marca**: sube su logo (PNG, JPG o WebP, hasta 1 MB), elige un color (o toma uno sugerido del logo) y guarda. Todo su equipo ve la app con su marca al instante, sin recargar. Cada persona puede elegir **Automático / Claro / Oscuro** en su cuenta. Si la empresa define una *dirección corta* (por ejemplo `andes`), su equipo entra por `/app/?e=andes` y ve su logo y colores desde la pantalla de inicio de sesión. `web/js/tema.js` garantiza contraste AA con cualquier color; quitar «Con la tecnología de GPUnlock» es parte del plan Agencia.
 
 ## Pendiente antes de vender
 

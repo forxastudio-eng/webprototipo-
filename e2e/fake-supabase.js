@@ -2,7 +2,7 @@
    El estado vive en window.__FX (lo prepara cada prueba): tablas, respuestas rpc, llamadas y subidas. */
 (function () {
   var FX = window.__FX || {};
-  FX.calls = []; FX.uploads = [];
+  FX.calls = []; FX.uploads = []; FX.quitados = []; FX.escuchas = [];
   var ORG = { id: "11111111-1111-1111-1111-111111111111", nombre: "Inmobiliaria Andes", clave_publica: "pk_demo", reparto: "ninguno", plan_id: "inicial", estado: "prueba" };
   var PLANES = [
     { id: "inicial", nombre: "Inicial", descripcion: "Para empezar.", precio_mensual: 19, precio_anual: 190, max_usuarios: 2, max_leads_mes: 150, ia_mes: 40, caracteristicas: ["Hasta 2 usuarios", "150 leads al mes"], destacado: false, orden: 1, activo: true },
@@ -20,7 +20,7 @@
     miembros: [{ rol: FX.rol || "propietario", nombre: "Ana", org: ORG }],
     crm_proyectos: [{ slug: "torre", nombre: "Torre Alba", activo: true }],
     planes: PLANES, organizaciones: [ORG], datos_cobro: [FX.cobro], pagos_suscripcion: FX.pagos || [],
-    crm_oportunidades: [], crm_actividades: [], invitaciones: []
+    crm_oportunidades: [], crm_actividades: [], invitaciones: [], org_marca: FX.marca ? [FX.marca] : []
   }, FX.tables || {});
   FX.rpc = Object.assign({
     crm_equipo: [{ email: "ana@x.com", nombre: "Ana", rol: "propietario" }],
@@ -46,7 +46,16 @@
     rechazar_pago: function (a) { return String(a.p_motivo || "").trim().length < 3 ? { __error: "Escribe el motivo: le llegará a la empresa" } : null; },
     registrar_pago_manual: function () { return { periodo_hasta: "2027-10-15T00:00:00Z" }; },
     consola_ajustar: function () { return null; },
-    guardar_datos_cobro: function () { return null; }
+    guardar_datos_cobro: function () { return null; },
+    /* marca de la empresa */
+    guardar_marca: function (a) {
+      if (FX.errorMarca) return { __error: FX.errorMarca };
+      FX.marca = { org_id: ORG.id, nombre_comercial: a.p_nombre, subdominio: a.p_subdominio, color_primario: a.p_color, color_acento: a.p_acento,
+        logo_path: a.p_logo, logo_oscuro_path: a.p_logo_oscuro, mostrar_pie_gpunlock: !a.p_ocultar_pie };
+      FX.tables.org_marca = [FX.marca];
+      return FX.marca;
+    },
+    marca_publica: function (a) { return (FX.publicas || {})[a.p_subdominio] || null; }
   }, FX.rpc || {});
 
   function builder(table) {
@@ -66,7 +75,10 @@
   }
   var sb = {
     auth: {
-      getSession: function () { return Promise.resolve({ data: { session: FX.sinSesion ? null : { user: FX.user } } }); },
+      getSession: function () {
+        var r = { data: { session: FX.sinSesion ? null : { user: FX.user } } };
+        return FX.demoraMs ? new Promise(function (ok) { setTimeout(function () { ok(r); }, FX.demoraMs); }) : Promise.resolve(r);
+      },
       signInWithPassword: function (c) {
         if (FX.claveMala) return Promise.resolve({ data: null, error: { message: "Invalid login credentials" } });
         FX.sinSesion = false; FX.login = c; return Promise.resolve({ data: { session: { user: FX.user } }, error: null });
@@ -82,10 +94,14 @@
       if (d && d.__error) return Promise.resolve({ data: null, error: { message: d.__error } });
       return Promise.resolve({ data: d === undefined ? null : d, error: null });
     },
-    channel: function () { var c = { on: function () { return c; }, subscribe: function () { return c; } }; return c; },
+    channel: function () {
+      var c = { on: function (_t, f, cb) { FX.escuchas.push({ tabla: f.table, cb: cb }); return c; }, subscribe: function () { return c; } };
+      return c;
+    },
     removeChannel: function () {},
     storage: { from: function (bucket) {
-      return { upload: function (path, file, opts) {
+      return { remove: function (rutas) { FX.quitados = FX.quitados.concat(rutas); return Promise.resolve({ data: [], error: null }); },
+      upload: function (path, file, opts) {
         FX.uploads.push({ bucket: bucket, path: path, type: opts && opts.contentType, size: file.size });
         return Promise.resolve({ data: { path: path }, error: null });
       }, createSignedUrl: function (path, seg) {
@@ -94,5 +110,7 @@
       } };
     } }
   };
+  /* Simula un cambio en tiempo real hecho por otro usuario: FX.emitir("org_marca", {eventType:"UPDATE", new:{…}}) */
+  FX.emitir = function (tabla, payload) { FX.escuchas.forEach(function (e) { if (e.tabla === tabla) e.cb(payload); }); };
   window.supabase = { createClient: function () { return sb; } };
 })();

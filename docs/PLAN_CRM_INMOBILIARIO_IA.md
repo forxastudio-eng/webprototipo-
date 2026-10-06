@@ -10,7 +10,8 @@ Octubre 2026 · Base: `crm-inmobiliario.zip` (CRM multiempresa con IA y app inst
 | --- | --- | --- |
 | 1 · Preparación | Parcial | Repositorio reorganizado, base traída y pruebas automáticas (CI) corriendo. **Pendiente de tu lado:** cuentas (Meta Business, Anthropic, Supabase Pro), proveedor de telefonía y dominio. |
 | 2 · Marca, origen de leads y cobros | **Hecha** | Marca GPUnlock en la app; Stripe fuera; `03_atribucion.sql` (UTM y clics de Meta/Google); `04_cobros.sql` y consola de pagos por transferencia; `lead.js` con origen de campaña; 94 comprobaciones de SQL y 61 de navegador. |
-| 3 · Marca por empresa | Siguiente | Editor de logo y colores por inmobiliaria (M13). |
+| 3 · Marca por empresa | **Hecha** | `05_marca.sql` (tabla `org_marca`, bucket público `marcas`, `guardar_marca` y `marca_publica`); motor `tema.js` (un color → paleta completa con contraste AA en claro y oscuro); modo claro / oscuro / automático; editor en Ajustes → Marca con vista previa, colores sugeridos desde el logo y aviso de contraste; cambio en vivo para todo el equipo; login con la marca por `/app/?e=<dirección>`; 140 comprobaciones de SQL y 49 + 9 de navegador. **Queda para más adelante:** manifest e ícono por empresa, dominio propio, SVG y tipografía. |
+| 4 · Inventario y cotizador | Siguiente | Ver el calendario de abajo. |
 
 ## Resumen ejecutivo
 
@@ -350,7 +351,7 @@ Cada inmobiliaria ve el CRM como si fuera suyo. Lo configura el propietario o un
 | Semana | Trabajo | Listo cuando |
 | --- | --- | --- |
 | 2 | Marca GPUnlock en la página de ventas. Quitar Stripe (`billing-*`, columnas `stripe_*`). `03_atribucion.sql` + `lead.js` con UTM y `fbclid`. `04_cobros.sql`: solicitudes de pago, comprobantes, aprobación por superadmin, recordatorios y gracia (M12). Consola de GPUnlock con la cola de pagos. CAPTCHA en registro. | Una empresa de prueba pide el plan Profesional, sube su comprobante, GPUnlock lo aprueba y la empresa ve el plan activo con su fecha de vencimiento |
-| 3 | `06_marca.sql` y M13: editor de marca en Ajustes, paleta automática desde el logo o desde un color, control de contraste, modo claro, oscuro y automático, aplicación en vivo a todo el equipo, pantalla de inicio de sesión con la marca por subdominio, manifest de la app con el nombre y el ícono de la empresa. Migrar a variables los pocos colores fijos de `app.css`. | Una empresa sube su logo, acepta la paleta sugerida y todo su equipo ve la app con su marca en menos de 1 minuto, en claro y oscuro, con contraste AA |
+| 3 | `05_marca.sql` y M13: editor de marca en Ajustes, paleta automática desde el logo o desde un color, control de contraste, modo claro, oscuro y automático, aplicación en vivo a todo el equipo, pantalla de inicio de sesión con la marca por subdominio, manifest de la app con el nombre y el ícono de la empresa. Migrar a variables los pocos colores fijos de `app.css`. | Una empresa sube su logo, acepta la paleta sugerida y todo su equipo ve la app con su marca en menos de 1 minuto, en claro y oscuro, con contraste AA |
 | 4 | `07_inventario.sql`: unidades por empresa, importación desde Excel, cambio de estado con historial, `embed/inventario.js`. Pantalla de inventario en la app. El sitio `demo/` pasa a leer de aquí. | Una empresa nueva carga su inventario desde Excel y su web muestra la disponibilidad en vivo |
 | 5 | `08_cotizador.sql`: configuración por proyecto, cotizaciones con financiamiento, PDF, ligadas a la oportunidad, compartir por WhatsApp. Web Push. Nota de voz con transcripción. | **Lanzamiento a la inmobiliaria piloto**: lead → llamada manual → proforma → reserva, todo desde el celular |
 
