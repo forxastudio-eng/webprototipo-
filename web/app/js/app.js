@@ -1,10 +1,11 @@
 /* ==========================================================================
-   CRM INMOBILIARIO — aplicación (PWA multiempresa).
+   GPUnlock CRM — aplicación (PWA multiempresa).
    La seguridad real la hace la base de datos (RLS, supabase/*.sql): cada empresa
    solo ve lo suyo y cada rol solo hace lo que le toca; aquí solo se decide qué
    mostrar. La IA (supabase/functions/crm-ia) devuelve sugerencias; nada se guarda
    sin que la persona lo confirme, salvo el resumen/calificación de la tarjeta.
-   Los pagos los procesa Stripe (billing-*): la app nunca toca datos de tarjeta.
+   Los pagos son por transferencia bancaria: la app nunca toca datos de tarjeta. El propietario
+   sube su comprobante y solo el equipo de GPUnlock (consola) activa el plan (supabase/04_cobros.sql).
    ========================================================================== */
 (function () {
   "use strict";
@@ -47,7 +48,7 @@
   /* -------------------------------------------------------------- estado */
   var S = {
     user: null, email: "", rol: null,
-    org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [],
+    org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [],
     ajSec: "equipo", intervalo: "mensual",
     ops: [], tareas: [], equipo: [],
     vista: "hoy",
@@ -117,6 +118,9 @@
     if (dif === 1) return { txt: "Mañana", vencida: false };
     return { txt: new Date(iso).toLocaleDateString("es-EC", { weekday: "short", day: "numeric", month: "short" }), vencida: false };
   }
+  function dinero2(n) { return n == null || n === "" ? "" : new Intl.NumberFormat("es-EC", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
+  function precioTxt(n) { return Number(n) % 1 === 0 ? dinero(n) : dinero2(n); }
+  function fechaLarga(iso) { return new Date(iso).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" }); }
   function dinero(n) { return n == null || n === "" ? "" : new Intl.NumberFormat("es-EC", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n); }
   function etapaTxt(id) { var e = ETAPAS.filter(function (x) { return x.id === id; })[0]; return e ? e.t : id; }
   function proyTxt(id) { return id ? (PROYECTOS[id] || id) : "Sin proyecto"; }
@@ -258,7 +262,10 @@
       sb.rpc("uso_org", { p_org: o }),
       esGestor() ? sb.from("invitaciones").select("id,email,rol,created_at").eq("org_id", o).order("created_at") : Promise.resolve({ data: [] }),
       sb.from("planes").select("*").order("orden"),
-      sb.from("organizaciones").select("id,nombre,clave_publica,reparto,plan_id,estado").eq("id", o).maybeSingle()
+      sb.from("organizaciones").select("id,nombre,clave_publica,reparto,plan_id,estado").eq("id", o).maybeSingle(),
+      sb.from("datos_cobro").select("*").maybeSingle(),
+      esPropietario() ? sb.from("pagos_suscripcion").select("id,plan_id,periodo,total,fecha_transferencia,factura_numero,cubre_hasta")
+        .eq("org_id", o).order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] })
     ]);
     if (r[2].error) throw r[2].error;
     S.equipo = r[0].data || [];
@@ -268,6 +275,8 @@
     S.invitaciones = r[3].data || [];
     S.planes = r[4].data || [];
     if (r[5].data) S.org = Object.assign(S.org, r[5].data);
+    S.cobro = r[6].data || {};
+    S.pagos = r[7].data || [];
     $("brand-nombre").textContent = S.org.nombre;
     document.title = S.org.nombre + " · CRM";
   }
@@ -293,21 +302,6 @@
     suscribir();
     var q = new URLSearchParams(location.search);
     if (q.get("nuevo") === "1" && puedeEscribir()) abrirNuevo();
-    if (q.get("pago")) volverDePago(q.get("pago"));
-  }
-
-  /* Al volver de Stripe el aviso del pago puede tardar unos segundos en llegar. */
-  async function volverDePago(r) {
-    try { history.replaceState(null, "", "/app/"); } catch (e) { /* sin historial */ }
-    if (r !== "ok") { toast("Pago cancelado. No se cobró nada."); return; }
-    S.vista = "ajustes"; S.ajSec = "plan"; render();
-    toast("¡Gracias! Estamos activando tu plan…");
-    for (var i = 0; i < 12; i++) {
-      await new Promise(function (ok) { setTimeout(ok, 2500); });
-      var u = await sb.rpc("uso_org", { p_org: S.org.id });
-      if (u.data && u.data.estado === "activa") { await cargarEmpresa(); render(); toast("Plan activado. ¡Bienvenido!"); return; }
-    }
-    toast("El pago está en proceso. Si no ves tu plan en unos minutos, escríbenos.", true);
   }
 
   function pintarIconos() {
@@ -553,6 +547,10 @@
       h += '<div class="sec"><h2>Por fuente (' + m.dias + ' días)</h2></div><div class="card"><table class="tbl"><thead><tr><th>Fuente</th><th>Leads</th><th>Ventas</th></tr></thead><tbody>' +
         m.por_fuente.map(function (f) { return "<tr><td>" + esc(FUENTES[f.fuente] || f.fuente) + "</td><td>" + f.leads + "</td><td>" + f.vendidos + "</td></tr>"; }).join("") + "</tbody></table></div>";
     }
+    if (m.por_campana && m.por_campana.length) {
+      h += '<div class="sec"><h2>Por campaña (' + m.dias + ' días)</h2></div><div class="card"><table class="tbl"><thead><tr><th>Campaña</th><th>Leads</th><th>Ventas</th></tr></thead><tbody>' +
+        m.por_campana.map(function (c) { return "<tr><td>" + esc(c.campana) + '<br><small class="muted">' + esc(FUENTES[c.fuente] || c.fuente || "") + "</small></td><td>" + c.leads + "</td><td>" + c.vendidos + "</td></tr>"; }).join("") + "</tbody></table></div>";
+    }
     if (m.por_asesor.length && S.rol !== "agente") {
       h += '<div class="sec"><h2>Por asesor</h2></div><div class="card"><table class="tbl"><thead><tr><th>Asesor</th><th>Abiertos</th><th>Ventas</th></tr></thead><tbody>' +
         m.por_asesor.map(function (a) { return "<tr><td>" + esc(nombreDe(a.email)) + "</td><td>" + a.abiertas + "</td><td>" + a.vendidos + "</td></tr>"; }).join("") + "</tbody></table></div>";
@@ -675,7 +673,7 @@
     if (a.tipo === "tarea") {
       var cu = cuando(a.vence_at);
       extra = a.hecha_at ? '<br><small>✔ Hecha ' + esc(hace(a.hecha_at)) + "</small>" :
-        '<br><label><input type="checkbox" data-action="tarea-hecha" data-id="' + esc(a.id) + '"> <small' + (cu.vencida ? ' style="color:var(--fx-red-600);font-weight:700"' : "") + ">" + esc(cu.txt) + " · marcar hecha</small></label>";
+        '<br><label><input type="checkbox" data-action="tarea-hecha" data-id="' + esc(a.id) + '"> <small' + (cu.vencida ? ' style="color:var(--c-red-600);font-weight:700"' : "") + ">" + esc(cu.txt) + " · marcar hecha</small></label>";
     }
     return '<div class="tl-item' + (sis ? " sis" : "") + '"><div class="tl-ico" aria-hidden="true">' + t[1] + '</div><div class="tl-body"><p>' +
       (a.hecha_at ? "<s>" + esc(a.contenido) + "</s>" : esc(a.contenido)) + "</p><small>" + esc(t[0]) + " · " + esc(autorDe(a.creado_por)) + " · " + esc(hace(a.created_at)) + "</small>" + extra + "</div></div>";
@@ -796,15 +794,24 @@
   function diasPrueba() { return Math.max(0, Math.ceil((ms(S.uso.prueba_hasta) - Date.now()) / 86400000)); }
   function bannerSuscripcion() {
     var u = S.uso; if (!u) return "";
-    var btnPlan = '<button class="btn btn-primary" data-action="ir-plan">' + (esPropietario() ? "Ver planes" : "Ver plan") + "</button>";
+    var revisando = u.solicitud && u.solicitud.estado === "en_revision";
+    var btnPlan = '<button class="btn btn-primary" data-action="ir-plan">' + (esPropietario() ? (revisando ? "Ver mi pago" : "Ver planes") : "Ver plan") + "</button>";
     if (u.activa && u.estado === "prueba") {
       var d = diasPrueba();
-      return '<div class="banner' + (d <= 3 ? " warn" : "") + '"><span>Prueba gratis: ' + (d === 0 ? "termina hoy" : "te quedan <b>" + d + (d === 1 ? " día" : " días") + "</b>") + ".</span>" + btnPlan + "</div>";
+      return '<div class="banner' + (d <= 3 ? " warn" : "") + '"><span>Prueba gratis: ' + (d === 0 ? "termina hoy" : "te quedan <b>" + d + (d === 1 ? " día" : " días") + "</b>") + "." + (revisando ? " Estamos revisando tu transferencia." : "") + "</span>" + btnPlan + "</div>";
+    }
+    if (u.estado === "gracia") {
+      return '<div class="banner warn"><span><b>Tu suscripción venció.</b> ' + (revisando ? "Estamos revisando tu pago. " : "") +
+        (u.gracia_hasta ? "Paga antes del " + esc(fechaLarga(u.gracia_hasta)) + " para no quedar en solo lectura." : "") + "</span>" +
+        (esPropietario() ? btnPlan : "<span>Avisa al propietario.</span>") + "</div>";
     }
     if (!u.activa) {
       var que = u.estado === "prueba" ? "Tu prueba gratis terminó" : u.estado === "cancelada" ? "Tu suscripción fue cancelada" : "Tu suscripción está vencida";
-      return '<div class="banner bad"><span><b>' + que + ".</b> La cuenta está en solo lectura; los formularios de tu web siguen guardando leads.</span>" +
+      return '<div class="banner bad"><span><b>' + que + ".</b> " + (revisando ? "Estamos revisando tu pago. " : "") + "La cuenta está en solo lectura; los formularios de tu web siguen guardando leads.</span>" +
         (esPropietario() ? btnPlan : "<span>Pídele al propietario que la renueve.</span>") + "</div>";
+    }
+    if (revisando && esPropietario()) {
+      return '<div class="banner"><span>Estamos revisando tu transferencia. Activamos tu plan apenas la confirmemos.</span>' + btnPlan + "</div>";
     }
     var tope = [["leads_mes", "max_leads_mes", "leads de este mes"], ["usuarios", "max_usuarios", "usuarios"], ["ia_mes", "ia_mes", "consultas de IA de este mes"]]
       .filter(function (x) { return u[x[0]] >= u.plan[x[1]] * 0.9 && u.plan[x[1]] > 0; })[0];
@@ -890,29 +897,79 @@
   }
 
   function ajPlan() {
-    var u = S.uso, p = u.plan, h = "";
-    var estadoTxt = u.estado === "activa" ? "Activa" : u.estado === "prueba" ? (u.activa ? "En prueba gratis" : "Prueba terminada") : u.estado === "vencida" ? "Vencida" : "Cancelada";
-    h += bannerSuscripcion();
-    h += '<div class="card"><div class="row" style="justify-content:space-between"><div><small class="muted">Plan actual</small><br><b style="font-size:1.2rem">' + esc(p.nombre) + '</b></div><span class="chip ' + (u.activa ? "green" : "red") + '">' + estadoTxt + "</span></div>" +
-      (u.estado === "prueba" && u.activa ? '<p class="muted" style="margin:6px 0 0">La prueba termina el ' + esc(new Date(u.prueba_hasta).toLocaleDateString("es", { day: "numeric", month: "long" })) + ".</p>" : "") +
-      (u.estado === "activa" && u.periodo_hasta ? '<p class="muted" style="margin:6px 0 0">Período vigente hasta el ' + esc(new Date(u.periodo_hasta).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" })) + ".</p>" : "") +
-      medidor("Usuarios", u.usuarios, p.max_usuarios) + medidor("Leads nuevos este mes", u.leads_mes, p.max_leads_mes) + medidor("Consultas de IA este mes", u.ia_mes, p.ia_mes) +
-      (u.tiene_cliente_pago && esPropietario() ? '<button class="btn btn-block" data-action="portal">Administrar suscripción y facturas</button>' : "") + "</div>";
+    var u = S.uso, p = u.plan, sol = u.solicitud, h = bannerSuscripcion();
+    var abierta = !!sol && (sol.estado === "pendiente" || sol.estado === "en_revision");
+    var estadoTxt = u.estado === "activa" ? "Activa" : u.estado === "gracia" ? "Venció: días de gracia" : u.estado === "vencida" ? "Vencida" :
+      u.estado === "cancelada" ? "Cancelada" : u.activa ? "En prueba gratis" : "Prueba terminada";
+    h += '<div class="card"><div class="row" style="justify-content:space-between"><div><small class="muted">Plan actual</small><br><b style="font-size:1.2rem">' + esc(p.nombre) + '</b></div><span class="chip ' + (u.estado === "activa" ? "green" : u.estado === "gracia" ? "amber" : u.activa ? "" : "red") + '">' + estadoTxt + "</span></div>" +
+      (u.estado === "prueba" && u.activa ? '<p class="muted" style="margin:6px 0 0">La prueba termina el ' + esc(fechaLarga(u.prueba_hasta)) + ".</p>" : "") +
+      ((u.estado === "activa" || u.estado === "gracia") && u.periodo_hasta ? '<p class="muted" style="margin:6px 0 0">' + (u.estado === "activa" ? "Período vigente hasta el " : "Venció el ") + esc(fechaLarga(u.periodo_hasta)) + ".</p>" : "") +
+      medidor("Usuarios", u.usuarios, p.max_usuarios) + medidor("Leads nuevos este mes", u.leads_mes, p.max_leads_mes) + medidor("Consultas de IA este mes", u.ia_mes, p.ia_mes) + "</div>";
+
+    if (abierta && esPropietario()) h += tarjetaPago(sol);
+    else if (abierta) h += '<div class="notice" style="margin-top:12px">Hay un pago en curso. El propietario lo está gestionando.</div>';
+    if (sol && sol.estado === "rechazada") {
+      h += '<div class="notice notice-error" id="pago-rechazado" role="alert" style="margin-top:12px"><b>No pudimos confirmar tu último pago</b> (referencia ' + esc(sol.referencia) + ").<br>" + esc(sol.motivo_rechazo || "") +
+        "<br><small>Elige un plan para intentarlo de nuevo o escríbenos.</small></div>";
+    }
+
     var anual = S.planes.some(function (x) { return x.precio_anual; });
     h += '<div class="sec"><h2>Planes</h2></div>';
     if (anual) h += '<div class="seg" style="margin-bottom:10px"><button class="' + (S.intervalo === "mensual" ? "on" : "") + '" data-action="intervalo" data-i="mensual">Mensual</button><button class="' + (S.intervalo === "anual" ? "on" : "") + '" data-action="intervalo" data-i="anual">Anual (2 meses gratis)</button></div>';
     h += '<div class="plans">' + S.planes.map(function (x) {
-      var actual = x.id === p.id && u.estado === "activa";
-      var precio = S.intervalo === "anual" && x.precio_anual ? x.precio_anual : x.precio_mensual;
-      var accion = actual ? '<span class="chip green">Tu plan actual</span>' :
-        !esPropietario() ? "" :
-        u.estado === "activa" && u.tiene_cliente_pago ? '<button class="btn btn-block" data-action="portal">Cambiar desde el portal</button>' :
-        '<button class="btn btn-primary btn-block" data-action="pagar" data-p="' + esc(x.id) + '">Elegir ' + esc(x.nombre) + "</button>";
-      return '<div class="plan' + (actual ? " actual" : "") + '"><h3>' + esc(x.nombre) + (x.destacado ? ' <span class="chip">Popular</span>' : "") + '</h3><div class="precio">' + dinero(precio) + "<small> /" + (S.intervalo === "anual" && x.precio_anual ? "año" : "mes") + "</small></div>" +
+      var actual = x.id === p.id && (u.estado === "activa" || u.estado === "gracia");
+      var anualOk = S.intervalo === "anual" && x.precio_anual;
+      var precio = anualOk ? x.precio_anual : x.precio_mensual;
+      var bloqueado = !!sol && sol.estado === "en_revision";
+      var accion = !esPropietario() ? (actual ? '<span class="chip green">Tu plan actual</span>' : "") :
+        '<button class="btn ' + (actual ? "" : "btn-primary ") + 'btn-block" data-action="pagar" data-p="' + esc(x.id) + '"' + (bloqueado ? " disabled" : "") + ">" + (actual ? "Renovar " : "Elegir ") + esc(x.nombre) + "</button>" +
+        (actual ? '<span class="chip green" style="justify-self:start">Tu plan actual</span>' : "");
+      return '<div class="plan' + (actual ? " actual" : "") + '"><h3>' + esc(x.nombre) + (x.destacado ? ' <span class="chip">Popular</span>' : "") + '</h3><div class="precio">' + precioTxt(precio) + "<small> /" + (anualOk ? "año" : "mes") + " + impuestos</small></div>" +
         '<p class="muted" style="margin:0">' + esc(x.descripcion || "") + "</p><ul>" + (x.caracteristicas || []).map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul>" + accion + "</div>";
     }).join("") + "</div>";
     if (!esPropietario()) h += '<p class="muted" style="margin-top:10px">Solo el propietario puede contratar o cambiar el plan.</p>';
+    else if (sol && sol.estado === "en_revision") h += '<p class="muted" style="margin-top:10px">Mientras revisamos tu transferencia no puedes pedir otro pago.</p>';
+
+    if (esPropietario() && S.pagos.length) {
+      h += '<div class="sec"><h2>Historial de pagos</h2></div><div class="card hist">' + S.pagos.map(function (g) {
+        var pl = S.planes.filter(function (x) { return x.id === g.plan_id; })[0];
+        return '<div class="item"><span><b>' + dinero2(g.total) + "</b> · " + esc(pl ? pl.nombre : g.plan_id) + " " + esc(g.periodo) + '<br><small class="muted">Pagado el ' + esc(fechaLarga(g.fecha_transferencia + "T12:00:00")) +
+          (g.factura_numero ? " · factura " + esc(g.factura_numero) : "") + '</small></span><span class="muted">Cubre hasta<br>' + esc(fechaLarga(g.cubre_hasta)) + "</span></div>";
+      }).join("") + "</div>";
+    }
     return h;
+  }
+
+  /* Instrucciones para pagar por transferencia: monto, referencia, cuenta y comprobante. */
+  function tarjetaPago(sol) {
+    var c = S.cobro || {}, pl = S.planes.filter(function (x) { return x.id === sol.plan_id; })[0];
+    var revision = sol.estado === "en_revision";
+    var h = '<div class="card" id="pago-en-curso" style="margin-top:12px"><div class="row" style="justify-content:space-between"><h3>Pago del plan ' + esc(pl ? pl.nombre : sol.plan_id) + " · " + esc(sol.periodo) + "</h3>" +
+      '<span class="chip ' + (revision ? "amber" : "gray") + '">' + (revision ? "En revisión" : "Falta tu transferencia") + "</span></div>" +
+      '<dl class="kv" style="margin-top:10px"><dt>Subtotal</dt><dd>' + dinero2(sol.subtotal) + "</dd><dt>Impuesto</dt><dd>" + dinero2(sol.iva) + "</dd><dt>Total a transferir</dt><dd>" + dinero2(sol.total) + "</dd></dl>" +
+      '<div class="ref-box" style="margin:12px 0"><div><small class="muted">Escribe este código en la descripción de la transferencia</small><br><b id="ref-pago">' + esc(sol.referencia) + '</b></div>' +
+      '<button class="btn btn-sm" data-action="copiar" data-t="ref-pago">' + icon("copy", "icon-sm") + " Copiar</button></div>";
+    if (c.numero_cuenta) {
+      h += '<dl class="kv"><dt>Banco</dt><dd>' + esc(c.banco) + "</dd><dt>Cuenta</dt><dd>" + esc(c.tipo_cuenta) + " <span id=\"cta-num\">" + esc(c.numero_cuenta) + "</span> " +
+        '<button class="link-btn" style="padding:0 4px" data-action="copiar" data-t="cta-num">Copiar</button></dd><dt>Titular</dt><dd>' + esc(c.titular) + "</dd>" +
+        (c.identificacion ? "<dt>RUC / cédula</dt><dd>" + esc(c.identificacion) + "</dd>" : "") + "</dl>";
+    } else {
+      h += '<div class="notice">Los datos bancarios aún no están configurados. Escríbenos para darte la cuenta.</div>';
+    }
+    if (c.instrucciones) h += '<p class="muted" style="margin:10px 0 0"><small>' + esc(c.instrucciones) + "</small></p>";
+    if (revision) {
+      h += '<p style="margin:12px 0 0">Recibimos tu comprobante' + (sol.comprobante_subido_at ? " el " + esc(fechaLarga(sol.comprobante_subido_at)) : "") + ". Lo revisamos en horario de oficina y activamos tu plan; lo verás aquí. Mientras tanto sigues trabajando normal.</p>";
+    } else {
+      h += '<ol class="pasos" style="margin-top:12px"><li>Transfiere <b>' + dinero2(sol.total) + "</b> con el código <b>" + esc(sol.referencia) + "</b>.</li><li>Sube aquí la foto o el PDF del comprobante.</li><li>Activamos tu plan al confirmar el pago.</li></ol>";
+    }
+    h += '<div class="upload" style="margin-top:12px"><label class="fld"><span>' + (revision ? "¿Subiste el archivo equivocado? Envía otro" : "Comprobante de la transferencia (foto o PDF, máx. 5 MB)") + '</span>' +
+      '<input type="file" id="comp-archivo" accept="image/jpeg,image/png,image/webp,application/pdf"></label>' +
+      '<div class="row"><button class="btn btn-primary" data-action="comp-enviar" data-id="' + esc(sol.id) + '">' + (revision ? "Reemplazar comprobante" : "Enviar comprobante") + "</button>" +
+      (!revision ? '<button class="link-btn" data-action="cancelar-solicitud" data-id="' + esc(sol.id) + '">Cancelar esta solicitud</button>' : "") + "</div></div>";
+    if (c.whatsapp_cobros) {
+      h += '<p class="muted" style="margin:12px 0 0"><small>¿Dudas con tu pago? <a href="https://wa.me/' + esc(c.whatsapp_cobros) + "?text=" + encodeURIComponent("Hola, consulta sobre mi pago " + sol.referencia) + '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.</small></p>';
+    }
+    return h + "</div>";
   }
 
   function ajEmpresa() {
@@ -1105,14 +1162,31 @@
     },
     "pagar": function (el) {
       return conBoton(el, async function () {
-        var r = await llamarFn("billing-checkout", { plan_id: el.dataset.p, intervalo: S.intervalo }, "Los pagos aún no están instalados en el servidor.");
-        window.location.href = r.url;
+        var r = await sb.rpc("solicitar_pago", { p_org: S.org.id, p_plan: el.dataset.p, p_periodo: S.intervalo }); if (r.error) throw r.error;
+        await cargarEmpresa(); render();
+        toast("Listo. Haz la transferencia y sube tu comprobante.");
+        setTimeout(function () { var n = $("pago-en-curso"); if (n) n.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
       });
     },
-    "portal": function (el) {
+    "comp-enviar": function (el) {
+      var f = $("comp-archivo") && $("comp-archivo").files[0];
+      if (!f) { toast("Elige primero la foto o el PDF del comprobante.", true); return; }
+      var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
+      if (!EXT[f.type]) { toast("El comprobante debe ser una foto (JPG, PNG o WebP) o un PDF.", true); return; }
+      if (f.size > 5 * 1024 * 1024) { toast("El archivo pesa más de 5 MB. Toma la foto con menos calidad o envía un PDF.", true); return; }
       return conBoton(el, async function () {
-        var r = await llamarFn("billing-portal", {}, "Los pagos aún no están instalados en el servidor.");
-        window.location.href = r.url;
+        var ruta = S.org.id + "/" + el.dataset.id + "-" + Date.now() + "." + EXT[f.type];
+        var up = await sb.storage.from("comprobantes").upload(ruta, f, { contentType: f.type, upsert: false }); if (up.error) throw up.error;
+        var r = await sb.rpc("subir_comprobante", { p_solicitud: el.dataset.id, p_path: ruta }); if (r.error) throw r.error;
+        await cargarEmpresa(); render();
+        toast("Comprobante enviado. Lo revisamos y activamos tu plan.");
+      });
+    },
+    "cancelar-solicitud": function (el) {
+      if (!window.confirm("¿Cancelar esta solicitud de pago? Puedes pedir otra cuando quieras.")) return;
+      return conBoton(el, async function () {
+        var r = await sb.rpc("cancelar_solicitud", { p_solicitud: el.dataset.id }); if (r.error) throw r.error;
+        await cargarEmpresa(); render(); toast("Solicitud cancelada");
       });
     },
     "salir": async function () { await sb.auth.signOut(); try { localStorage.removeItem("crm_org"); } catch (e) { /* nada */ } location.reload(); }

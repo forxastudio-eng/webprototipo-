@@ -1,11 +1,12 @@
-/* CRM INMOBILIARIO · service worker.
+/* GPUnlock CRM · service worker.
    Objetivo: que la app se instale y abra al instante, y que sin internet muestre
    la pantalla (con aviso) en vez de un error del navegador. Los datos (Supabase)
    y la IA NUNCA se guardan en caché: son de otro origen y solo se piden en línea. */
-var VERSION = "crm-inmobiliario-v1";
+var VERSION = "gpunlock-crm-v2";
 var SHELL = [
   "/app/", "/app/app.css", "/app/js/app.js", "/app/manifest.webmanifest",
-  "/css/tokens.css", "/js/config.js",
+  "/css/tokens.css", "/css/gp-tokens.css", "/js/config.js",
+  "/assets/fonts/outfit-latin-wght-normal.woff2", "/assets/fonts/work-sans-latin-wght-normal.woff2", "/assets/brand/gp-mark-white.png",
   "/app/icons/icon-192.png", "/app/icons/icon-512.png"
 ];
 

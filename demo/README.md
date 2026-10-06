@@ -1,3 +1,5 @@
+> **Sitio de demostración anterior de GPUnlock.** Esta documentación describe el demo (landings y su SQL, ahora en `demo/`). El producto está en la carpeta `web/` y su README es el de la raíz del repositorio.
+
 # GPUnlock · Plataforma unificada (prototipo)
 
 Un solo repositorio, un solo sitio de Netlify y un solo proyecto de Supabase
@@ -19,8 +21,8 @@ Un solo repositorio, un solo sitio de Netlify y un solo proyecto de Supabase
 │   ├── js/gpunlock-config.js ← URL y anon key de Supabase (un solo lugar)
 │   ├── css/  assets/      marca GPUnlock compartida (assets/brand/)
 │   ├── vertice/ prisma/ valle/ cotizador/ marketing/ admin/
-├── supabase/              SQL en orden 01 → 08 (no se publica)
-├── scripts/               creación de cuentas (se ejecuta en tu PC)
+├── supabase/              SQL en orden 01 → 08 (no se publica); ahora en demo/supabase/
+├── scripts/               creación de cuentas; ahora en demo/scripts/
 ├── logos gpu/             archivos originales de la marca
 └── netlify.toml
 ```

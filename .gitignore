@@ -4,3 +4,13 @@ scripts/credenciales-iniciales.csv
 scripts/node_modules/
 node_modules/
 .DS_Store
+
+# Producto (web/, supabase/, e2e/)
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+e2e/node_modules/
+e2e/package-lock.json
+*.log

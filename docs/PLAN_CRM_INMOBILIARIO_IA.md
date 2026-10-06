@@ -4,6 +4,14 @@ CRM inmobiliario con IA, multiempresa y por suscripción, con app móvil que reg
 
 Octubre 2026 · Base: `crm-inmobiliario.zip` (CRM multiempresa con IA y app instalable) + lo que ya existe en este repositorio (inventario, cotizador y landings de GPUnlock).
 
+## Avance
+
+| Semana | Estado | Qué quedó |
+| --- | --- | --- |
+| 1 · Preparación | Parcial | Repositorio reorganizado, base traída y pruebas automáticas (CI) corriendo. **Pendiente de tu lado:** cuentas (Meta Business, Anthropic, Supabase Pro), proveedor de telefonía y dominio. |
+| 2 · Marca, origen de leads y cobros | **Hecha** | Marca GPUnlock en la app; Stripe fuera; `03_atribucion.sql` (UTM y clics de Meta/Google); `04_cobros.sql` y consola de pagos por transferencia; `lead.js` con origen de campaña; 94 comprobaciones de SQL y 61 de navegador. |
+| 3 · Marca por empresa | Siguiente | Editor de logo y colores por inmobiliaria (M13). |
+
 ## Resumen ejecutivo
 
 **Qué se vende.** Un CRM para inmobiliarias y constructoras que se contrata en línea, por usuario y por plan. Cada inmobiliaria tiene su espacio aislado, su equipo, sus proyectos, su inventario y sus integraciones (su página de Facebook, su número de WhatsApp, sus números de teléfono).

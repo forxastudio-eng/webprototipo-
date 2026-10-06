@@ -1,42 +1,27 @@
 /* ==========================================================================
-   CRM INMOBILIARIO · Tokens de diseño (fuente única para la web y la app).
-   Cambia estos valores para poner tu propia marca.
+   GPUnlock CRM · Tokens de la app. Toma la marca de gp-tokens.css (naranja
+   #F2582B → ámbar #F08A30, negro #161616, Outfit + Work Sans) y deja los alias
+   con los nombres que usa app.css. Más adelante (marca por empresa) cada
+   inmobiliaria cambia solo --gp-orange-* y --color-on-primary en tiempo real.
    ========================================================================== */
+@import url('/css/gp-tokens.css');
+
 :root{
-  /* primitivos */
-  --c-primary-700:#0B5F59;
-  --c-primary-600:#0F766E;
-  --c-primary-400:#2DB6A8;
-  --c-primary-100:#DDF3F0;
-  --c-primary-50:#F0FAF8;
-  --c-ink-900:#0F172A;
-  --c-ink-800:#1E293B;
-  --c-ink-600:#475569;
-  --c-slate-500:#64748B;
-  --c-slate-300:#A9B4C4;
-  --c-line:#E2E8F0;
-  --c-mist:#F4F6F8;
-  --c-white:#FFFFFF;
-  --c-green-600:#15803D; --c-green-50:#E8F6EC;
-  --c-amber-600:#B45309; --c-amber-50:#FDF3E1;
-  --c-red-600:#C2362E;   --c-red-50:#FBEAE9;
-
-  /* semánticos */
-  --color-primary:var(--c-primary-600);
-  --color-primary-hover:var(--c-primary-700);
-  --color-accent:var(--c-primary-400);
-  --color-text:var(--c-ink-900);
-  --color-text-muted:var(--c-slate-500);
-  --color-bg:var(--c-white);
-  --color-surface:var(--c-mist);
-  --color-border:var(--c-line);
-  --gradient-brand:linear-gradient(135deg, var(--c-primary-400) 0%, var(--c-primary-600) 100%);
-
-  --font-display:ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --font-body:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-
-  --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
-  --shadow-sm:0 1px 2px rgba(15,23,42,.05);
-  --shadow-md:0 8px 24px rgba(15,23,42,.08);
-  --shadow-lg:0 24px 48px -16px rgba(15,23,42,.22);
+  --c-primary-700:var(--gp-orange-700);
+  --c-primary-600:var(--gp-orange-600);
+  --c-primary-400:var(--gp-orange-400);
+  --c-primary-100:var(--gp-orange-100);
+  --c-primary-50:var(--gp-orange-50);
+  --c-ink-900:var(--gp-ink-900);
+  --c-ink-800:var(--gp-ink-800);
+  --c-ink-600:var(--gp-ink-600);
+  --c-slate-500:var(--gp-slate-500);
+  --c-slate-300:var(--gp-slate-300);
+  --c-line:var(--gp-line);
+  --c-mist:var(--gp-mist);
+  --c-white:var(--gp-white);
+  --c-green-600:var(--gp-green-600); --c-green-50:var(--gp-green-50);
+  --c-amber-600:var(--gp-amber-600); --c-amber-50:var(--gp-amber-50);
+  --c-red-600:var(--gp-red-600);     --c-red-50:var(--gp-red-50);
+  --c-blue-400:#5B8DEF;   /* solo para «frío» en las calificaciones */
 }
