@@ -19,10 +19,11 @@ Octubre 2026 · Base: `crm-inmobiliario.zip` (CRM multiempresa con IA y app inst
 
 | | |
 | --- | --- |
-| Esfuerzo | 20 semanas de una persona desarrolladora, en 6 fases. En la semana 4 el producto ya se puede vender (CRM + inventario + cotizador + app instalable). |
+| Esfuerzo | 21 semanas de una persona desarrolladora, en 6 fases. En la semana 5 el producto ya se puede vender (CRM con la marca de cada empresa + inventario + cotizador + app instalable). |
 | Base técnica | Supabase (Postgres con RLS por empresa, Auth, Storage, Edge Functions, Realtime, `pg_cron`, Vault) + Netlify + JavaScript sin compilación. Solo la cáscara nativa de la app (Capacitor) se compila. |
 | Modelo de cobro | Planes por suscripción mensual o anual, **pagados por transferencia bancaria** y activados por GPUnlock desde su consola. Sin pasarela de pagos. Complementos de telefonía como paquetes prepagados. |
-| Mayor riesgo técnico | El registro automático de llamadas: iPhone no lo permite, y en Android la tienda limita el permiso. Por eso la vía principal es la telefonía en la nube (ver M5). |
+| Distribución de la app | **Sin tiendas.** Se descarga desde la web de GPUnlock (`/descargar`): Android como app nativa (APK firmado), iPhone y computadoras como app web instalable. Ver M3. |
+| Mayor riesgo técnico | El registro automático de llamadas: en Android funciona con la app descargada de la web; iPhone no deja que ninguna app lea las llamadas, así que ahí se usa la telefonía en la nube (ver M5). |
 | Mayor riesgo de negocio | Los cobros por transferencia dependen de que GPUnlock revise y apruebe los pagos a tiempo; se resuelve con recordatorios automáticos, días de gracia y una cola de pagos por aprobar en la consola (ver M12). |
 
 ## Punto de partida
@@ -53,7 +54,8 @@ Inventario y cotizador por empresa, avisos push, app nativa, llamadas, WhatsApp 
 
 ```
 web/                       producto (Netlify sitio 1: app.gpunlock…)
-  index.html               página de ventas
+  index.html               página de ventas (tu web principal)
+  descargar/               descarga de la app: APK de Android y guías para iPhone y computadora
   app/                     app (PWA) y CRM de escritorio, misma base de código
   embed/lead.js            captura de leads para las webs de los clientes
   embed/inventario.js      disponibilidad en vivo para las webs de los clientes (nuevo)
@@ -62,7 +64,7 @@ supabase/
   03_… en adelante            migraciones nuevas (ver plan semanal)
   functions/                  Edge Functions
   tests/                      pruebas de aislamiento y permisos (pgTAP)
-mobile/                    cáscara Capacitor Android e iOS + plugins nativos
+mobile/                    cáscara Capacitor solo para Android + plugin de llamadas (el APK se publica en web/descargar/)
 demo/                      landings actuales de GPUnlock como cliente de demostración (Netlify sitio 2)
 docs/                      este plan, manuales, textos legales
 e2e/                       pruebas de punta a punta (Playwright)
@@ -127,11 +129,26 @@ Lo que hace a este CRM inmobiliario. Se porta la lógica de GPUnlock a tablas co
 - Nota de voz grabada en la app → voz a texto → la acción `nota` de `crm-ia` que ya existe.
 - Vista de escritorio más ancha para administradores (tablero de embudo, listas con filtros, exportar).
 
-**Paso 2 · App nativa con Capacitor** (`mobile/`), una sola app para todas las empresas (la empresa sale del inicio de sesión):
+**Paso 2 · App nativa para Android con Capacitor** (`mobile/`), una sola app para todas las empresas (la empresa sale del inicio de sesión y su marca se aplica sola, ver M13):
 
-- Push nativo fiable (FCM y APNs), identificador de llamadas entrantes de leads, check-in con ubicación en visitas, cámara para documentos, huella o Face ID.
-- Plugin Android de registro de llamadas (M5, vía A).
-- Publicación en Google Play y App Store con la marca GPUnlock.
+- Push nativo fiable (FCM) aunque la app esté cerrada, identificador de llamadas entrantes de leads, check-in con ubicación en visitas, cámara para documentos, huella para entrar.
+- Plugin de registro de llamadas (M5, vía B).
+- La interfaz se carga desde el servidor, así que casi todas las mejoras llegan sin reinstalar. Solo los cambios del código nativo (por ejemplo el plugin de llamadas) necesitan un APK nuevo.
+
+**Distribución sin tiendas: página `/descargar` en la web de GPUnlock**
+
+La página detecta el dispositivo y muestra solo lo que sirve:
+
+| Dispositivo | Qué se instala | Cómo |
+| --- | --- | --- |
+| **Android** | App nativa (APK) con registro de llamadas | Botón *Descargar para Android*, guía con capturas para permitir «instalar apps de este origen» (se hace una sola vez) y aceptar los permisos. |
+| **iPhone y iPad** | App web instalable (PWA) | Apple no permite instalar apps fuera de la App Store, así que se instala la versión web: guía de 3 pasos *Compartir → Agregar a inicio*. Queda con ícono, pantalla completa y avisos push (iOS 16.4 o posterior). |
+| **Computadora** | App web instalable | Botón *Instalar* (Chrome y Edge) y un código QR para abrir la descarga en el celular. |
+
+- **Actualizaciones del APK:** la app consulta al abrir un archivo `version.json`; si hay una versión nueva muestra *Actualizar*, descarga el APK y Android pide confirmar la instalación. Se puede marcar una versión como obligatoria.
+- **Firma y confianza:** el APK se firma siempre con la misma clave de GPUnlock (si se pierde, los teléfonos no aceptan actualizaciones; se guarda en dos lugares seguros). La página publica la huella SHA-256 del archivo y la versión.
+- **Aviso de seguridad de Android:** Google Play Protect puede advertir al instalar una app de fuera de la tienda; la guía lo explica. Google anunció que, por etapas y por país desde 2026, los teléfonos Android certificados solo instalarán apps de desarrolladores verificados aunque no estén en la tienda: GPUnlock registra su identidad y el nombre del paquete en la consola de desarrolladores de Android (sin publicar en Google Play). Verificar el calendario para Ecuador al iniciar.
+- **Instalación por empresa:** el enlace de descarga puede incluir la empresa (`/descargar?e=miempresa`), así la app abre directamente con su logo y colores en la pantalla de inicio de sesión.
 
 ### M4 · Meta Ads
 
@@ -151,10 +168,10 @@ Dos vías, más una de respaldo:
 | Vía | Cómo funciona | iPhone | Grabación | Cómo se cobra |
 | --- | --- | --- | --- | --- |
 | **A. Telefonía en la nube** (principal) | Cada empresa activa el complemento y recibe uno o más números virtuales. *Llamar* en la app hace una llamada puente: suena el celular del asesor y luego se conecta al cliente mostrando el número de la empresa. Las entrantes se enrutan al asesor del lead. El proveedor avisa por webhook. | Sí | En servidor, con aviso de grabación automático | Paquete prepagado (número + minutos), pagado por transferencia |
-| **B. App Android con la SIM** | Plugin nativo que, al colgar, lee número, dirección y duración del registro del teléfono y lo liga al lead; si es un número nuevo pregunta «¿Crear lead?». Sube la grabación de la grabadora integrada del teléfono si existe. | No | Depende del teléfono | Incluido en planes superiores |
+| **B. App Android con la SIM** | Plugin nativo de la app descargada de la web que, al colgar, lee número, dirección y duración del registro del teléfono y lo liga al lead; si es un número nuevo pregunta «¿Crear lead?». Sube la grabación de la grabadora integrada del teléfono si existe. | No | Depende del teléfono | Incluido en todos los planes |
 | **C. Manual asistida** | `tel:` y al volver a la app, resultado en un toque y nota de voz | Sí | No | Incluido |
 
-**Recomendación:** la vía A como estándar del producto (funciona en cualquier teléfono, la cartera y el número quedan en la empresa, la grabación es fiable). La vía B como opción para equipos con Android, sujeta a la revisión de Google Play: el permiso `READ_CALL_LOG` solo se aprueba para usos declarados; si no se aprueba, se ofrece como APK de distribución directa para los clientes que lo pidan.
+**Recomendación:** como la app de Android se descarga de la web y no pasa por la revisión de Google Play, el permiso para leer el registro de llamadas (`READ_CALL_LOG`) se puede usar sin restricción de tienda. Entonces: **en Android, la vía B por defecto** (sin costo extra, con la SIM del asesor); **la vía A como complemento pagado** para equipos con iPhone y para empresas que quieren un número propio que se quede en la empresa y grabación fiable en servidor. La vía C queda siempre como respaldo.
 
 **Proveedor de telefonía:** uno con subcuentas por cliente, números de Ecuador y del resto de la región, API de llamadas puente y grabación (Twilio, Telnyx, Plivo o Zadarma; comparar cobertura y precio por minuto antes de elegir). GPUnlock revende con margen.
 
@@ -265,63 +282,109 @@ Sin pasarela de pagos. GPUnlock recibe transferencias en su cuenta bancaria y ac
 
 **Complementos de uso** (minutos de telefonía, IA de llamadas): como paquetes **prepagados** que se compran con el mismo flujo de transferencia. Al aprobarse, el saldo se acredita en `uso_mensual`; con saldo bajo se avisa, y sin saldo las llamadas pasan a la vía manual en lugar de cortarse. Así GPUnlock nunca pone dinero por adelantado para un cliente.
 
+### M13 · Marca de cada empresa (logos, colores y tema automático)
+
+Cada inmobiliaria ve el CRM como si fuera suyo. Lo configura el propietario o un administrador en **Ajustes → Marca**, sin ayuda de GPUnlock.
+
+**Qué configura**
+
+- Logo horizontal (para la barra y los PDF), logo para fondo oscuro (opcional) e ícono cuadrado (opcional; si no lo sube, se genera con sus iniciales sobre su color).
+- Color principal y, si quiere, un color de acento.
+- Nombre comercial que aparece en la app, los correos y los PDF.
+- Tipografía de títulos, de una lista corta de fuentes alojadas en el propio sitio (sin depender de servicios externos).
+- Cada usuario elige en su perfil modo **claro, oscuro o automático** (sigue al teléfono).
+
+**Lo que pasa solo**
+
+1. **Colores sacados del logo.** Al subirlo, la app lee sus colores dominantes en el mismo navegador (sin enviar la imagen a ningún servicio) y propone 3 combinaciones. Un toque y queda.
+2. **Paleta completa desde un solo color.** A partir del color principal se generan los tonos claros y oscuros, el color al pasar el mouse, el degradado, la versión para modo oscuro y el color del texto sobre los botones (blanco u oscuro, el que se lea mejor).
+3. **Contraste garantizado.** Si el color elegido no se lee bien como texto sobre blanco (contraste menor a 4,5:1, norma AA), se crea sola una variante más oscura para textos y enlaces, y se le avisa. Los colores de estado (verde, ámbar, rojo) y los de las etapas del embudo no cambian, para que siempre signifiquen lo mismo.
+4. **Vista previa en vivo** antes de guardar: barra superior, botón, tarjeta de lead y gráfico, en claro y oscuro.
+5. **Cambio al instante para todo el equipo.** Al guardar, la app de cada miembro cambia de tema sin recargar ni reinstalar (Supabase Realtime sobre `org_marca`).
+6. **Sin parpadeo al abrir.** El celular recuerda el último tema y lo aplica antes de mostrar la primera pantalla; luego lo confirma con el servidor.
+
+**Dónde aparece la marca**
+
+| Lugar | Cómo |
+| --- | --- |
+| App y CRM de escritorio | Logo, colores, color de la barra del navegador (`theme-color`) |
+| Inicio de sesión | Por subdominio (`miempresa.gpunlock…`) o por enlace (`/app/?e=miempresa`): la persona ve el logo de su empresa antes de entrar |
+| Ícono de la app web instalable | El manifest se genera por empresa (nombre, ícono y color) con una función de Netlify según el subdominio, así el ícono en el iPhone o la computadora es el de la inmobiliaria |
+| App Android (APK) | Una sola app GPUnlock que toma la marca de la empresa al iniciar sesión. El ícono en el teléfono es el de GPUnlock. **Opcional para el plan Agencia:** APK con nombre e ícono de la inmobiliaria, generado automáticamente por GitHub Actions desde la consola y publicado en su enlace de descarga |
+| Proformas, fichas de unidades y reservas en PDF | Logo, colores y datos de la empresa |
+| Correos (recordatorios, resumen diario, confirmaciones) | Logo y color; remitente con el nombre de la empresa |
+| Widgets en la web del cliente (`lead.js`, `inventario.js`) | Toman sus colores por defecto |
+| Pie «Con la tecnología de GPUnlock» | Visible en Inicial y Profesional; se puede quitar en Agencia (marca blanca completa) |
+| Dominio propio (`crm.miinmobiliaria.com`) | Opcional en Agencia: se agrega como alias del sitio en Netlify con certificado automático |
+
+**Cómo se construye**
+
+- La base ya separa colores primitivos y semánticos en `web/css/tokens.css`, y `app.css` usa variables en casi todo; los pocos colores fijos se pasan a variables. Se agrega el conjunto de variables para modo oscuro.
+- `web/js/tema.js` calcula la paleta (en el espacio de color OKLCH, para que los tonos se vean parejos), revisa el contraste y escribe las variables en `:root`. Lo usan la app, el escritorio, `/descargar`, los widgets y la plantilla de PDF.
+- Tabla `org_marca` (empresa, nombre comercial, rutas de logos e ícono, color principal y de acento, tipografía, paleta calculada, mostrar pie de GPUnlock, subdominio único, dominio propio) y función `actualizar_marca()` que solo acepta al propietario o a un administrador de esa empresa y valida los colores.
+- Bucket `marcas` en Storage: lectura pública (los logos se ven en webs y PDF), escritura solo en la carpeta de la propia empresa. PNG, JPG, WebP o SVG de hasta 1 MB; los SVG se limpian de scripts o se convierten a PNG antes de guardarlos.
+- El plan de cada empresa define qué puede personalizar (`planes.funciones`: `marca_blanca`, `dominio_propio`, `apk_propio`).
+
+**Terminado cuando:** una empresa sube su logo, acepta la paleta sugerida y en menos de 1 minuto todo su equipo ve la app, los PDF y los correos con su marca, en claro y oscuro, con contraste AA comprobado.
+
 ## Plan de desarrollo semana a semana
 
-**Forma de trabajo:** un PR por semana a `main`, probado primero en el proyecto de pruebas; demostración los viernes con una inmobiliaria piloto (puede ser la que inspiró la base) que usa el producto real desde la semana 4.
+**Forma de trabajo:** un PR por semana a `main`, probado primero en el proyecto de pruebas; demostración los viernes con una inmobiliaria piloto (puede ser la que inspiró la base) que usa el producto real desde la semana 5.
 
 ### Fase 0 · Preparación (semana 1)
 
 | Trabajo | Listo cuando |
 | --- | --- |
-| Cuentas a nombre de GPUnlock: Supabase Pro (pruebas y producción), Anthropic con límite de gasto, Meta Business (verificación) y app de Meta, Apple Developer, Google Play, cuenta bancaria de la empresa para recibir transferencias, firma electrónica y punto de emisión para facturación electrónica del SRI. Pedir el alta como proveedor tecnológico de WhatsApp. Reorganizar el repositorio (`web/`, `supabase/`, `demo/`, `docs/`). GitHub Actions con la primera prueba de aislamiento. | La base corre en el proyecto de pruebas y CI pasa en cada PR |
+| Cuentas a nombre de GPUnlock: Supabase Pro (pruebas y producción), Anthropic con límite de gasto, Meta Business (verificación) y app de Meta, Firebase (avisos push de Android), registro como desarrollador verificado de Android (sin publicar en Google Play), clave de firma del APK guardada en dos lugares seguros, cuenta bancaria de la empresa para recibir transferencias, firma electrónica y punto de emisión para facturación electrónica del SRI. Pedir el alta como proveedor tecnológico de WhatsApp. Reorganizar el repositorio (`web/`, `supabase/`, `demo/`, `docs/`). GitHub Actions con la primera prueba de aislamiento. | La base corre en el proyecto de pruebas y CI pasa en cada PR |
 
-### Fase 1 · Producto vendible (semanas 2 a 4)
-
-| Semana | Trabajo | Listo cuando |
-| --- | --- | --- |
-| 2 | Marca GPUnlock en página de ventas y app. Quitar Stripe (`billing-*`, columnas `stripe_*`). `03_atribucion.sql` + `lead.js` con UTM y `fbclid`. `04_cobros.sql`: solicitudes de pago, comprobantes, aprobación por superadmin, recordatorios y gracia (M12). `05_integraciones.sql` (`org_integraciones`, Vault, `planes.funciones`, `uso_mensual`). Consola de GPUnlock con la cola de pagos. CAPTCHA en registro. | Una empresa de prueba pide el plan Profesional, sube su comprobante, GPUnlock lo aprueba y la empresa ve el plan activo con su fecha de vencimiento |
-| 3 | `06_inventario.sql`: unidades por empresa, importación desde Excel, cambio de estado con historial, `embed/inventario.js`. Pantalla de inventario en la app. El sitio `demo/` pasa a leer de aquí. | Una empresa nueva carga su inventario desde Excel y su web muestra la disponibilidad en vivo |
-| 4 | `07_cotizador.sql`: configuración por proyecto, cotizaciones con financiamiento, PDF, ligadas a la oportunidad, compartir por WhatsApp. Web Push. Nota de voz con transcripción. | **Lanzamiento a la inmobiliaria piloto**: lead → llamada manual → proforma → reserva, todo desde el celular |
-
-### Fase 2 · Meta Ads y WhatsApp (semanas 5 a 8)
+### Fase 1 · Producto vendible (semanas 2 a 5)
 
 | Semana | Trabajo | Listo cuando |
 | --- | --- | --- |
-| 5 | Conexión con Facebook desde Ajustes, suscripción de la página, `meta-leads-webhook` multiempresa, mapeo de preguntas, recuperación nocturna. | Un lead de un formulario de Meta de la empresa piloto llega en menos de 1 minuto con su campaña |
-| 6 | `08_meta.sql`, cola de eventos y `meta-capi`; `meta-insights` diario; métricas de costo por lead, cita y venta por campaña. | Una venta en el CRM aparece como *Purchase* en Meta; el gasto de ayer está en el CRM |
-| 7 | `09_whatsapp.sql`, registro integrado de WhatsApp, `wa-webhook` y `wa-enviar` multiempresa, plantillas. | La empresa piloto conecta su número sola y los mensajes entran y salen |
-| 8 | Bandeja en app y escritorio, notas de voz transcritas, sugerir respuesta, atribución de anuncios a WhatsApp, push de mensajes. | Un asesor atiende una conversación completa desde el celular |
+| 2 | Marca GPUnlock en la página de ventas. Quitar Stripe (`billing-*`, columnas `stripe_*`). `03_atribucion.sql` + `lead.js` con UTM y `fbclid`. `04_cobros.sql`: solicitudes de pago, comprobantes, aprobación por superadmin, recordatorios y gracia (M12). Consola de GPUnlock con la cola de pagos. CAPTCHA en registro. | Una empresa de prueba pide el plan Profesional, sube su comprobante, GPUnlock lo aprueba y la empresa ve el plan activo con su fecha de vencimiento |
+| 3 | `06_marca.sql` y M13: editor de marca en Ajustes, paleta automática desde el logo o desde un color, control de contraste, modo claro, oscuro y automático, aplicación en vivo a todo el equipo, pantalla de inicio de sesión con la marca por subdominio, manifest de la app con el nombre y el ícono de la empresa. Migrar a variables los pocos colores fijos de `app.css`. | Una empresa sube su logo, acepta la paleta sugerida y todo su equipo ve la app con su marca en menos de 1 minuto, en claro y oscuro, con contraste AA |
+| 4 | `07_inventario.sql`: unidades por empresa, importación desde Excel, cambio de estado con historial, `embed/inventario.js`. Pantalla de inventario en la app. El sitio `demo/` pasa a leer de aquí. | Una empresa nueva carga su inventario desde Excel y su web muestra la disponibilidad en vivo |
+| 5 | `08_cotizador.sql`: configuración por proyecto, cotizaciones con financiamiento, PDF, ligadas a la oportunidad, compartir por WhatsApp. Web Push. Nota de voz con transcripción. | **Lanzamiento a la inmobiliaria piloto**: lead → llamada manual → proforma → reserva, todo desde el celular |
 
-### Fase 3 · App nativa y llamadas (semanas 9 a 12)
-
-| Semana | Trabajo | Listo cuando |
-| --- | --- | --- |
-| 9 | `mobile/` con Capacitor, push nativo, enlaces profundos a la ficha, huella o Face ID, distribución de prueba (TestFlight y prueba interna de Google Play). | La app recibe avisos con el teléfono bloqueado |
-| 10 | `10_llamadas.sql`. Proveedor de telefonía: subcuenta y número por empresa desde Ajustes, llamada puente, enrutamiento de entrantes, grabación, `telefonia-webhook`, conteo de minutos en `uso_mensual`. | Una llamada desde un iPhone queda registrada y grabada sin que el asesor haga nada |
-| 11 | Plugin Android de registro de llamadas, identificador de llamadas, subida de grabaciones de la grabadora integrada. Declaración del permiso en Google Play. | Una llamada por la SIM a un lead aparece en su ficha al colgar |
-| 12 | `llamada-procesar`: voz a texto, resumen y datos con Claude, tarea y etapa sugerida; reproductor y transcripción en la ficha. Publicación en las tiendas. | A los 2 minutos de colgar la ficha tiene resumen y siguiente tarea |
-
-### Fase 4 · Ventas en piloto automático (semanas 13 a 16)
+### Fase 2 · Meta Ads y WhatsApp (semanas 6 a 9)
 
 | Semana | Trabajo | Listo cuando |
 | --- | --- | --- |
-| 13 | `11_citas.sql`: agenda, check-in, recordatorios por WhatsApp. | La etapa *Cita* se mide con citas reales |
-| 14 | `12_reglas.sql`: motor de reglas y pantalla de configuración; las 6 reglas; resumen diario por correo. | Un administrador activa una regla sin ayuda y cada acción queda en la línea de tiempo |
-| 15 | Calificación automática (validada con 30 leads), recomendación de unidades, alternativa al reservarse una unidad. | Cada lead nuevo llega calificado |
-| 16 | Asistente con herramientas, leads en riesgo y coaching por lotes nocturnos. | La lista de leads en riesgo aparece cada mañana en *Hoy* |
+| 6 | `05_integraciones.sql` (`org_integraciones`, secretos en Vault, `planes.funciones`, `uso_mensual`). Conexión con Facebook desde Ajustes, suscripción de la página, `meta-leads-webhook` multiempresa, mapeo de preguntas, recuperación nocturna. | Un lead de un formulario de Meta de la empresa piloto llega en menos de 1 minuto con su campaña |
+| 7 | `09_meta.sql`, cola de eventos y `meta-capi`; `meta-insights` diario; métricas de costo por lead, cita y venta por campaña. | Una venta en el CRM aparece como *Purchase* en Meta; el gasto de ayer está en el CRM |
+| 8 | `10_whatsapp.sql`, registro integrado de WhatsApp, `wa-webhook` y `wa-enviar` multiempresa, plantillas. | La empresa piloto conecta su número sola y los mensajes entran y salen |
+| 9 | Bandeja en app y escritorio, notas de voz transcritas, sugerir respuesta, atribución de anuncios a WhatsApp, push de mensajes. | Un asesor atiende una conversación completa desde el celular |
 
-### Fase 5 · Cierre de venta, escala y lanzamiento (semanas 17 a 20)
+### Fase 3 · App nativa y llamadas (semanas 10 a 13)
 
 | Semana | Trabajo | Listo cuando |
 | --- | --- | --- |
-| 17 | `13_reservas_pagos.sql`: reserva con documentos leídos por IA, plan de pagos, recordatorios, comisiones. | Una reserva completa se registra desde la app |
-| 18 | Complementos: paquetes prepagados de minutos de telefonía y de IA de llamadas, pagados por transferencia y acreditados desde la consola; alertas de saldo bajo. Métricas de marketing completas; informe mensual con IA. | Una empresa compra un paquete de minutos por transferencia y, al aprobarse, el saldo aparece en su cuenta |
-| 19 | Importación de cartera, correo de portales, Google Ads y TikTok; asistente de inicio para empresas nuevas (proyectos → inventario → equipo → web → integraciones). | Una inmobiliaria nueva queda operando en menos de 1 hora sin ayuda |
-| 20 | `14_privacidad.sql` (exportar, suprimir, retención, auditoría), doble factor, Playwright completo, alertas, centro de ayuda, textos legales publicados. | Lanzamiento público |
+| 10 | `mobile/` con Capacitor, push nativo, enlaces profundos a la ficha, entrada con huella, APK firmado, página `/descargar` con detección de dispositivo, guías de instalación para Android, iPhone y computadora, y actualización desde la app con `version.json`. | Un asesor instala la app desde la web en su Android y en su iPhone, y recibe avisos con el teléfono bloqueado |
+| 11 | `11_llamadas.sql`. Proveedor de telefonía: subcuenta y número por empresa desde Ajustes, llamada puente, enrutamiento de entrantes, grabación, `telefonia-webhook`, conteo de minutos en `uso_mensual`. | Una llamada desde un iPhone queda registrada y grabada sin que el asesor haga nada |
+| 12 | Plugin Android de registro de llamadas, identificador de llamadas, subida de grabaciones de la grabadora integrada. Prueba en los modelos de Android más comunes entre los clientes. | Una llamada por la SIM a un lead aparece en su ficha al colgar |
+| 13 | `llamada-procesar`: voz a texto, resumen y datos con Claude, tarea y etapa sugerida; reproductor y transcripción en la ficha. Publicación del APK 1.0 en `/descargar`. | A los 2 minutos de colgar la ficha tiene resumen y siguiente tarea |
+
+### Fase 4 · Ventas en piloto automático (semanas 14 a 17)
+
+| Semana | Trabajo | Listo cuando |
+| --- | --- | --- |
+| 14 | `12_citas.sql`: agenda, check-in, recordatorios por WhatsApp. | La etapa *Cita* se mide con citas reales |
+| 15 | `13_reglas.sql`: motor de reglas y pantalla de configuración; las 6 reglas; resumen diario por correo. | Un administrador activa una regla sin ayuda y cada acción queda en la línea de tiempo |
+| 16 | Calificación automática (validada con 30 leads), recomendación de unidades, alternativa al reservarse una unidad. | Cada lead nuevo llega calificado |
+| 17 | Asistente con herramientas, leads en riesgo y coaching por lotes nocturnos. | La lista de leads en riesgo aparece cada mañana en *Hoy* |
+
+### Fase 5 · Cierre de venta, escala y lanzamiento (semanas 18 a 21)
+
+| Semana | Trabajo | Listo cuando |
+| --- | --- | --- |
+| 18 | `14_reservas_pagos.sql`: reserva con documentos leídos por IA, plan de pagos, recordatorios, comisiones. | Una reserva completa se registra desde la app |
+| 19 | Complementos: paquetes prepagados de minutos de telefonía y de IA de llamadas, pagados por transferencia y acreditados desde la consola; alertas de saldo bajo. Métricas de marketing completas; informe mensual con IA. | Una empresa compra un paquete de minutos por transferencia y, al aprobarse, el saldo aparece en su cuenta |
+| 20 | Opcionales de marca para Agencia: APK con nombre e ícono de la inmobiliaria generado desde la consola, dominio propio y marca blanca completa. Importación de cartera, correo de portales, Google Ads y TikTok; asistente de inicio para empresas nuevas (proyectos → inventario → equipo → web → integraciones). | Una inmobiliaria nueva queda operando en menos de 1 hora sin ayuda |
+| 21 | `15_privacidad.sql` (exportar, suprimir, retención, auditoría), doble factor, Playwright completo, alertas, centro de ayuda, textos legales publicados. | Lanzamiento público |
 
 ## Precios sugeridos y costos
 
-**Costos fijos de la plataforma** (crecen poco con los clientes): Supabase Pro 25 a 100 USD al mes según tamaño de la base y almacenamiento; Netlify 0 a 19; Apple Developer 99 al año; Google Play 25 una vez; correo transaccional 0 a 20.
+**Costos fijos de la plataforma** (crecen poco con los clientes): Supabase Pro 25 a 100 USD al mes según tamaño de la base y almacenamiento; Netlify 0 a 19; sin cuentas de tiendas (no se publica en Google Play ni en App Store); posible registro de desarrollador verificado de Android; correo transaccional 0 a 20.
 
 **Costo variable por asesor activo al mes** (estimado, con unas 400 llamadas al mes por asesor, la mitad contestadas):
 
@@ -347,14 +410,15 @@ Sin pasarela de pagos. GPUnlock recibe transferencias en su cuenta bancaria y ac
 | 6 | Proveedor de telefonía | Elegir en la semana 1 comparando cobertura de números en Ecuador y la región, precio por minuto, subcuentas y grabación |
 | 7 | Modelo de IA para funciones de volumen | Opus 5.5 por defecto; probar Sonnet 5.5 y Haiku 4.5 con 30 casos reales |
 | 8 | Países de lanzamiento | Ecuador primero; la normalización de teléfonos (`crm_normalizar_telefono`, hoy fija en 593) pasa a depender del país de cada empresa |
-| 9 | Inmobiliaria piloto | Una empresa real que use el producto desde la semana 4 y valide cada fase |
+| 9 | Inmobiliaria piloto | Una empresa real que use el producto desde la semana 5 y valide cada fase |
 
 ## Riesgos
 
 | Riesgo | Mitigación |
 | --- | --- |
 | Meta tarda en aprobar la app o el alta como proveedor de WhatsApp | Iniciar en la semana 1; probar en modo desarrollo con la empresa piloto como evaluadora |
-| Google Play no aprueba el permiso de registro de llamadas | La vía principal es la telefonía en la nube; APK directo para quien lo pida |
+| Instalar fuera de la tienda asusta a algunos usuarios o Android lo bloquea | Guía con capturas en `/descargar`, desarrollador verificado de Android, APK firmado con huella publicada; la app web instalable siempre funciona como alternativa |
+| Se pierde la clave de firma del APK | Copia cifrada en dos lugares; sin ella no se pueden publicar actualizaciones para las apps ya instaladas |
 | Pagos que se aprueban tarde o clientes que no pagan | Cola de pagos por aprobar con aviso al equipo de GPUnlock, recordatorios automáticos antes del vencimiento, días de gracia y luego solo lectura (nunca se borra ni se pierde un lead) |
 | Comprobantes falsos | Se activa solo después de ver el dinero en la cuenta bancaria; el comprobante subido es un apoyo, no una prueba |
 | Fuga de datos entre empresas | RLS por `org_id` en todo, pruebas automáticas de aislamiento en cada PR, secretos en Vault |
