@@ -195,7 +195,7 @@ grant execute on function public.crm_registrar_lead(text,text,text,text,text,tex
 -- El origen del lead es un dato para medir campañas: desde la app (asesores, propietario) no se edita.
 -- Sí lo escriben las funciones de alta y los servicios del servidor (service_role).
 create or replace function public.crm_atribucion_inmutable()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   if current_user in ('authenticated', 'anon') and (
        old.utm_source is distinct from new.utm_source or old.utm_medium is distinct from new.utm_medium
@@ -212,6 +212,7 @@ begin
   return new;
 end;
 $$;
+revoke execute on function public.crm_atribucion_inmutable() from public, anon, authenticated;
 drop trigger if exists crm_atribucion_inmutable on public.crm_oportunidades;
 create trigger crm_atribucion_inmutable before update on public.crm_oportunidades
   for each row execute function public.crm_atribucion_inmutable();

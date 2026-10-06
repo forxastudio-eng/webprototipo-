@@ -22,9 +22,11 @@
 --  gen_random_bytes() de pgcrypto no está en el search_path de las funciones en Supabase.)
 
 create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin new.updated_at = now(); return new; end;
 $$;
+-- Las funciones de disparador no se llaman desde la API: se quita el permiso de ejecución (los disparadores siguen funcionando).
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- planes ---
 create table if not exists public.planes (
@@ -89,7 +91,7 @@ alter table public.invitaciones enable row level security;
 
 -- --------------------------------------------------------------- utilidades ---
 create or replace function public.mi_email()
-returns text language sql stable as $$
+returns text language sql stable set search_path = public as $$
   select lower(coalesce(auth.jwt() ->> 'email', ''))
 $$;
 
@@ -335,7 +337,7 @@ on conflict (id) do nothing;
 -- Solo dígitos, con prefijo de país. 0991234567 → 593991234567 (Ecuador).
 -- Para otro país, cambia el prefijo en esta función.
 create or replace function public.crm_normalizar_telefono(p text)
-returns text language sql immutable as $$
+returns text language sql immutable set search_path = public as $$
   select case
     when d = '' then ''
     when d ~ '^593' then d
@@ -449,7 +451,7 @@ create trigger crm_oportunidades_updated_at before update on public.crm_oportuni
 
 -- Teléfono y correo siempre normalizados (también cuando se editan desde la app).
 create or replace function public.crm_contacto_antes()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.nombre := btrim(new.nombre);
   new.telefono := nullif(btrim(coalesce(new.telefono, '')), '');
@@ -464,7 +466,7 @@ create trigger crm_contacto_antes before insert or update on public.crm_contacto
   for each row execute function public.crm_contacto_antes();
 
 create or replace function public.crm_oportunidad_antes()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   if tg_op = 'UPDATE' and (new.org_id <> old.org_id or new.contacto_id <> old.contacto_id) then
     raise exception 'No se puede mover el lead a otra empresa o contacto';
@@ -516,6 +518,10 @@ $$;
 drop trigger if exists crm_actividad_antes on public.crm_actividades;
 create trigger crm_actividad_antes before insert on public.crm_actividades
   for each row execute function public.crm_actividad_antes();
+
+-- Funciones de disparador: no se llaman desde la API. Sin permiso de ejecución para nadie (los disparadores siguen funcionando).
+revoke execute on function public.crm_contacto_antes(), public.crm_oportunidad_antes(),
+  public.crm_oportunidad_despues(), public.crm_actividad_antes() from public, anon, authenticated;
 
 -- ------------------------------------------------- permisos (funciones) ---
 create or replace function public.crm_puede_ver_op(p_op uuid)
@@ -1133,7 +1139,7 @@ grant execute on function public.crm_registrar_lead(text,text,text,text,text,tex
 -- El origen del lead es un dato para medir campañas: desde la app (asesores, propietario) no se edita.
 -- Sí lo escriben las funciones de alta y los servicios del servidor (service_role).
 create or replace function public.crm_atribucion_inmutable()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   if current_user in ('authenticated', 'anon') and (
        old.utm_source is distinct from new.utm_source or old.utm_medium is distinct from new.utm_medium
@@ -1150,6 +1156,7 @@ begin
   return new;
 end;
 $$;
+revoke execute on function public.crm_atribucion_inmutable() from public, anon, authenticated;
 drop trigger if exists crm_atribucion_inmutable on public.crm_oportunidades;
 create trigger crm_atribucion_inmutable before update on public.crm_oportunidades
   for each row execute function public.crm_atribucion_inmutable();

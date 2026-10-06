@@ -16,9 +16,11 @@
 --  gen_random_bytes() de pgcrypto no está en el search_path de las funciones en Supabase.)
 
 create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin new.updated_at = now(); return new; end;
 $$;
+-- Las funciones de disparador no se llaman desde la API: se quita el permiso de ejecución (los disparadores siguen funcionando).
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- planes ---
 create table if not exists public.planes (
@@ -83,7 +85,7 @@ alter table public.invitaciones enable row level security;
 
 -- --------------------------------------------------------------- utilidades ---
 create or replace function public.mi_email()
-returns text language sql stable as $$
+returns text language sql stable set search_path = public as $$
   select lower(coalesce(auth.jwt() ->> 'email', ''))
 $$;
 
