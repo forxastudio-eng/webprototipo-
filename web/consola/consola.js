@@ -4,7 +4,8 @@
 (function () {
   "use strict";
   var CFG = window.CRM_CONFIG || {};
-  var sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  var CONFIGURADO = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(CFG.SUPABASE_URL || "") && !!CFG.SUPABASE_ANON_KEY && CFG.SUPABASE_ANON_KEY !== "TU_ANON_KEY";
+  var sb = CONFIGURADO ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
   var $ = function (id) { return document.getElementById(id); };
   var S = { vista: "pagos", resumen: null, pagos: [], pendientes: [], empresas: [], historial: [], cobro: null, planes: [] };
   var ESTADOS = { prueba: ["En prueba", "ojo"], activa: ["Activa", "ok"], gracia: ["En gracia", "ojo"], vencida: ["Vencida", "mal"], cancelada: ["Cancelada", "mal"] };
@@ -217,6 +218,14 @@
     mostrar("consola"); await cargar();
   }
   (async function () {
+    if (!CONFIGURADO) {
+      mostrar("login");
+      $("login-form").querySelectorAll("input,button").forEach(function (n) { n.disabled = true; });
+      var er = $("login-error");
+      er.textContent = "Esta consola todavía no está conectada a una base de datos. Edita web/js/config.js con la URL y la clave anon de tu proyecto de Supabase (ver el README). Las cuentas de otros sitios no sirven aquí: la consola usa su propio proyecto.";
+      er.hidden = false;
+      return;
+    }
     try {
       var s = (await sb.auth.getSession()).data.session;
       if (s) await entrar(); else mostrar("login");

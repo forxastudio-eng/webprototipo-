@@ -106,6 +106,12 @@ const FX = { sinSesion: true, pagosConsola: { en_revision: [PAGO], pendiente: [P
     assert.match(await page.textContent("#login-error"), /incorrectos/); ok("contraseña incorrecta: mensaje claro");
     await page.context().close();
 
+    /* 9b. Sin conectar a Supabase: lo dice claro, no culpa a la contraseña */
+    ({ page } = await abrirApp(browser, url, FX, { width: 1280, height: 900 }, Object.assign({ sinConfig: true }, OPC)));
+    assert.match(await page.textContent("#login-error"), /todavía no está conectada.*config\.js/s); assert.equal(await page.isDisabled("#login-btn"), true);
+    assert.doesNotMatch(await page.textContent("#login-error"), /incorrectos/); ok("sin configuración: avisa que falta conectar la base de datos, no «contraseña incorrecta»");
+    await page.context().close();
+
     /* 10. Celular */
     ({ page } = await abrirApp(browser, url, Object.assign({}, FX, { sinSesion: false }), { width: 390, height: 844 }, OPC));
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true); ok("la consola cabe en un celular");

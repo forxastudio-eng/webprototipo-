@@ -19,13 +19,14 @@ function servir() {
 
 /* Abre la app con el Supabase simulado. `fx` (JSON) sobrescribe el estado por defecto de fake-supabase.js. */
 async function abrirApp(browser, base, fx, viewport, opts) {
-  opts = Object.assign({ ruta: "/app/", esperar: "#app:not([hidden])" }, opts || {});
+  opts = Object.assign({ ruta: "/app/", esperar: "#app:not([hidden])", sinConfig: false }, opts || {});
   const ctx = await browser.newContext({ viewport: viewport || { width: 390, height: 844 }, reducedMotion: "reduce", acceptDownloads: false });
   const page = await ctx.newPage();
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   page.on("console", (m) => { if (m.type() === "error" && !/favicon|Failed to load resource/.test(m.text())) errores.push(m.text()); });
-  await page.route("**/js/config.js", (r) => r.fulfill({ contentType: "text/javascript", body: 'window.CRM_CONFIG={SUPABASE_URL:"https://fake.supabase.co",SUPABASE_ANON_KEY:"anon",APP_NAME:"GPUnlock CRM"};' }));
+  const config = opts.sinConfig ? 'window.CRM_CONFIG={SUPABASE_URL:"https://TU-PROYECTO.supabase.co",SUPABASE_ANON_KEY:"TU_ANON_KEY"};' : 'window.CRM_CONFIG={SUPABASE_URL:"https://fake.supabase.co",SUPABASE_ANON_KEY:"anon",APP_NAME:"GPUnlock CRM"};';
+  await page.route("**/js/config.js", (r) => r.fulfill({ contentType: "text/javascript", body: config }));
   await page.route("**/supabase.js", (r) => r.fulfill({ contentType: "text/javascript", body: fs.readFileSync(path.join(__dirname, "fake-supabase.js"), "utf8") }));
   await page.addInitScript((f) => { window.__FX = Object.assign({ calls: [], uploads: [] }, f); }, fx);
   await page.goto(base + opts.ruta, { waitUntil: "load" });
