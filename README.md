@@ -6,7 +6,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ```
 .
-├── web/                  producto (sitio de Netlify: Base directory = web)
+├── web/                  producto (lo publica el netlify.toml de la raíz)
 │   ├── index.html        web principal (ventas)
 │   ├── descargar/        descarga de la app (APK de Android; iPhone y computadora como app web)
 │   ├── app/              la app (PWA) de las inmobiliarias
@@ -16,7 +16,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 ├── supabase/             base de datos (01 → 04), funciones de servidor y pruebas de SQL
 ├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
 ├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
-├── site/                 landings del demo (publicadas por el netlify.toml de la raíz)
+├── site/                 landings del demo (se publican aparte: Base directory = site)
 └── docs/                 plan de producto
 ```
 
@@ -36,7 +36,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
    supabase secrets set --env-file supabase/.env --project-ref TU_REF
    supabase functions deploy crm-ia --project-ref TU_REF
    ```
-7. **Publicar.** Netlify → nuevo sitio desde este repositorio → **Base directory: `web`**.
+7. **Publicar.** Netlify → sitio conectado a este repositorio. El `netlify.toml` de la raíz ya publica la carpeta `web/`, así que no hace falta configurar nada (también funciona con *Base directory = `web`*). El demo anterior (`site/`) se publica aparte con *Base directory = `site`*.
 
 ## Cómo se cobra
 
