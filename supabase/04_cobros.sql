@@ -280,7 +280,7 @@ begin
   v_iva := round(v_subtotal * v_cfg.iva_porcentaje / 100, 2);
 
   loop
-    v_ref := 'GPU-' || upper(encode(gen_random_bytes(2), 'hex')) || '-' || lpad((floor(random() * 10000))::int::text, 4, '0');
+    v_ref := 'GPU-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 4)) || '-' || lpad((floor(random() * 10000))::int::text, 4, '0');
     exit when not exists (select 1 from public.solicitudes_pago where referencia = v_ref);
     v_intentos := v_intentos + 1;
     if v_intentos > 20 then raise exception 'No se pudo generar la referencia, intenta otra vez'; end if;

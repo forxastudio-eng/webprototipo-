@@ -12,7 +12,8 @@
 --   lector          solo lectura (dirección, marketing)
 -- ============================================================================
 
-create extension if not exists pgcrypto;
+-- (Sin extensiones: los códigos aleatorios usan gen_random_uuid(), que ya viene en Postgres.
+--  gen_random_bytes() de pgcrypto no está en el search_path de las funciones en Supabase.)
 
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
@@ -41,7 +42,7 @@ create table if not exists public.organizaciones (
   id uuid primary key default gen_random_uuid(),
   nombre text not null check (char_length(nombre) between 2 and 80),
   slug text not null unique,
-  clave_publica text not null unique default ('pk_' || encode(gen_random_bytes(18), 'hex')),
+  clave_publica text not null unique default ('pk_' || substr(replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''), 1, 36)),
   reparto text not null default 'ninguno' check (reparto in ('ninguno', 'rotativo')),
   plan_id text not null default 'inicial' references public.planes(id),
   estado text not null default 'prueba' check (estado in ('prueba', 'activa', 'gracia', 'vencida', 'cancelada')),
@@ -157,7 +158,7 @@ begin
   end if;
   v_slug := coalesce(nullif(regexp_replace(lower(translate(v_nombre,
               'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN')), '[^a-z0-9]+', '-', 'g'), ''), 'empresa');
-  v_slug := trim(both '-' from left(v_slug, 40)) || '-' || substr(encode(gen_random_bytes(4), 'hex'), 1, 6);
+  v_slug := trim(both '-' from left(v_slug, 40)) || '-' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 6);
 
   insert into public.organizaciones (nombre, slug, creado_por)
   values (v_nombre, v_slug, auth.uid()) returning id into v_org;

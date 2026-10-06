@@ -7,6 +7,12 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
 end $$;
 
+-- Como en Supabase: pgcrypto vive en el esquema «extensions», que NO está en el search_path de las
+-- funciones con `set search_path = public`. Si el SQL usa gen_random_bytes() sin calificar, falla aquí.
+create schema if not exists extensions;
+create extension if not exists pgcrypto schema extensions;
+grant usage on schema extensions to anon, authenticated, service_role;
+
 create schema if not exists auth;
 create table if not exists auth.users (id uuid primary key default gen_random_uuid(), email text unique);
 create or replace function auth.jwt() returns jsonb language sql stable as
