@@ -1,0 +1,21 @@
+{
+  "name": "CRM Inmobiliario",
+  "short_name": "CRM",
+  "description": "CRM para inmobiliarias con asistente de IA.",
+  "lang": "es",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "id": "/app/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F766E",
+  "theme_color": "#0F766E",
+  "icons": [
+    { "src": "/app/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nuevo lead", "url": "/app/?nuevo=1", "icons": [{ "src": "/app/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
