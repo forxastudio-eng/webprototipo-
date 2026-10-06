@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Consola · GPUnlock CRM</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#161616">
+<link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32">
+<link rel="stylesheet" href="/css/gp-tokens.css">
+<link rel="stylesheet" href="/consola/consola.css">
+</head>
+<body>
+<main class="centro" id="login" hidden>
+  <form class="caja" id="login-form" novalidate>
+    <img src="/assets/brand/gp-mark.png" alt="" width="40" height="49">
+    <h1>Consola de GPUnlock</h1>
+    <p class="suave">Solo para el equipo de GPUnlock.</p>
+    <div class="aviso mal" id="login-error" role="alert" hidden></div>
+    <label class="fld"><span>Correo</span><input type="email" id="login-email" autocomplete="username" required></label>
+    <label class="fld"><span>Contraseña</span><input type="password" id="login-clave" autocomplete="current-password" required></label>
+    <button class="btn primario" type="submit" id="login-btn">Entrar</button>
+  </form>
+</main>
+
+<main class="centro" id="denegado" hidden>
+  <div class="caja">
+    <h1>Sin acceso</h1>
+    <p class="suave">Esta cuenta no pertenece al equipo de GPUnlock.</p>
+    <button class="btn" data-a="salir">Cerrar sesión</button>
+  </div>
+</main>
+
+<div id="consola" hidden>
+  <header class="barra">
+    <a class="marca" href="/consola/"><img src="/assets/brand/gp-mark-white.png" alt="" width="22" height="27"><b>GPUnlock</b><span>Consola</span></a>
+    <nav id="tabs" aria-label="Secciones"></nav>
+    <button class="btn peq oscuro" data-a="salir">Salir</button>
+  </header>
+  <main class="contenido" id="vista" tabindex="-1"></main>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-titulo"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/config.js"></script>
+<script src="/consola/consola.js"></script>
+</body>
+</html>

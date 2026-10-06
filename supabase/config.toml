@@ -1,0 +1,2 @@
+# Configuración para la CLI de Supabase (supabase functions deploy ...).
+project_id = "gpunlock-crm"

@@ -1,0 +1,78 @@
+/* ==========================================================================
+   GPUnlock CRM · Tokens de marca (web principal y /descargar)
+   Primitivos → semánticos. Naranja del isotipo (#F2582B → #F08A30) y negro
+   del wordmark. El naranja #F2582B no alcanza 4.5:1 como texto sobre blanco:
+   para texto se usa --color-primary-text (#B93A15, 5.7:1) y los botones
+   naranjas llevan texto negro (#161616, 5.3:1).
+   ========================================================================== */
+@font-face{font-family:'Outfit';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/outfit-latin-ext-wght-normal.woff2') format('woff2-variations');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Outfit';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/outfit-latin-wght-normal.woff2') format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Work Sans';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/work-sans-latin-ext-wght-normal.woff2') format('woff2-variations');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Work Sans';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/work-sans-latin-wght-normal.woff2') format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  /* primitivos */
+  --gp-orange-800:#9E3010;
+  --gp-orange-700:#B93A15;
+  --gp-orange-600:#F2582B;
+  --gp-orange-500:#F5703F;
+  --gp-orange-400:#F08A30;
+  --gp-orange-200:#FBC9B4;
+  --gp-orange-100:#FDE9E1;
+  --gp-orange-50:#FFF6F1;
+  --gp-ink-950:#0E0E0E;
+  --gp-ink-900:#161616;
+  --gp-ink-800:#232323;
+  --gp-ink-700:#333333;
+  --gp-ink-600:#4A4A4A;
+  --gp-slate-500:#636363;
+  --gp-slate-400:#8A8A8A;
+  --gp-slate-300:#B5B5B5;
+  --gp-line:#ECE6E2;
+  --gp-line-strong:#DDD4CE;
+  --gp-mist:#FAF6F3;
+  --gp-white:#FFFFFF;
+  --gp-green-600:#136F4B; --gp-green-50:#E8F5EE;
+  --gp-amber-600:#9A6412; --gp-amber-50:#FDF4E3;
+  --gp-blue-600:#2457C5;  --gp-blue-50:#EAF0FC;
+  --gp-red-600:#C23A32;   --gp-red-50:#FBEBEA;
+
+  /* semánticos */
+  --color-primary:var(--gp-orange-600);
+  --color-primary-hover:#F5703F;
+  --color-primary-text:var(--gp-orange-700);
+  --color-on-primary:var(--gp-ink-900);
+  --color-accent:var(--gp-orange-400);
+  --color-text:var(--gp-ink-900);
+  --color-text-soft:var(--gp-ink-600);
+  --color-text-muted:var(--gp-slate-500);
+  --color-bg:var(--gp-white);
+  --color-surface:var(--gp-mist);
+  --color-card:var(--gp-white);
+  --color-border:var(--gp-line);
+  --color-border-strong:var(--gp-line-strong);
+  --color-dark:var(--gp-ink-900);
+  --color-on-dark:#FFFFFF;
+  --color-on-dark-muted:#BDBDBD;
+  --gradient-brand:linear-gradient(135deg, var(--gp-orange-400) 0%, var(--gp-orange-600) 100%);
+  --gradient-text:linear-gradient(100deg, var(--gp-orange-800) 0%, var(--gp-orange-700) 45%, #D94A1F 100%);
+
+  --font-display:'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-body:'Work Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-xs:6px; --radius-sm:10px; --radius-md:14px; --radius-lg:20px; --radius-xl:28px; --radius-pill:999px;
+  --ease-out:cubic-bezier(.2,.7,.2,1);
+  --ease-spring:cubic-bezier(.34,1.4,.64,1);
+  --dur-fast:160ms; --dur-base:260ms; --dur-slow:600ms;
+  --ring:0 0 0 3px rgba(242,88,43,.35);
+  --shadow-xs:0 1px 2px rgba(22,22,22,.06);
+  --shadow-sm:0 2px 6px -2px rgba(22,22,22,.08), 0 1px 2px rgba(22,22,22,.04);
+  --shadow-md:0 12px 32px -12px rgba(22,22,22,.16), 0 2px 6px rgba(22,22,22,.04);
+  --shadow-lg:0 32px 64px -24px rgba(22,22,22,.28), 0 8px 20px -8px rgba(22,22,22,.08);
+  --shadow-glow:0 18px 40px -14px rgba(242,88,43,.55);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+  --space-6:32px; --space-7:48px; --space-8:64px; --space-9:96px; --space-10:128px;
+  --container:1200px;
+  --nav-h:72px;
+}

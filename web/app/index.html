@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPUnlock CRM</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F2582B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GPUnlock">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/app/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+
+<div class="boot" id="boot" aria-live="polite">
+  <div class="logo-mark"><img src="/assets/brand/gp-mark-white.png" alt="" width="26" height="32"></div>
+  <span>Cargando…</span>
+</div>
+
+<!-- ============ Acceso y registro ============ -->
+<main class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="logo-mark"><img src="/assets/brand/gp-mark-white.png" alt="" width="26" height="32"></div>
+    <h1 id="auth-titulo">Entra a tu CRM</h1>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" role="tab" id="tab-login" aria-selected="true" data-auth="login">Entrar</button>
+      <button type="button" role="tab" id="tab-signup" aria-selected="false" data-auth="signup">Crear cuenta</button>
+    </div>
+    <div class="notice notice-error" id="auth-error" role="alert" hidden></div>
+    <div class="notice" id="auth-info" role="status" hidden></div>
+
+    <form class="form" id="login-form" novalidate>
+      <label class="fld"><span>Correo</span><input type="email" id="login-email" autocomplete="username" inputmode="email" required></label>
+      <label class="fld"><span>Contraseña</span><input type="password" id="login-password" autocomplete="current-password" required></label>
+      <button class="btn btn-primary btn-block" type="submit" id="login-btn">Entrar</button>
+      <button class="link-btn" type="button" id="forgot-btn">Olvidé mi contraseña</button>
+    </form>
+
+    <form class="form" id="signup-form" novalidate hidden>
+      <p class="muted" style="margin:0">14 días de prueba, sin tarjeta. Si te invitaron a un equipo, usa el mismo correo de la invitación.</p>
+      <label class="fld"><span>Tu nombre</span><input type="text" id="signup-nombre" autocomplete="name" maxlength="80" required></label>
+      <label class="fld"><span>Correo</span><input type="email" id="signup-email" autocomplete="username" inputmode="email" required></label>
+      <label class="fld"><span>Contraseña (mínimo 8 caracteres)</span><input type="password" id="signup-password" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn btn-primary btn-block" type="submit" id="signup-btn">Crear mi cuenta</button>
+    </form>
+  </div>
+</main>
+
+<!-- ============ Crear la empresa ============ -->
+<main class="auth" id="onboard" hidden>
+  <form class="auth-card" id="onboard-form" novalidate>
+    <div class="logo-mark"><img src="/assets/brand/gp-mark-white.png" alt="" width="26" height="32"></div>
+    <h1>Crea tu inmobiliaria</h1>
+    <p class="muted" style="margin:0">Será el espacio de trabajo de tu equipo. Podrás invitar a tus asesores después.</p>
+    <div class="notice notice-error" id="onboard-error" role="alert" hidden></div>
+    <label class="fld"><span>Nombre de la inmobiliaria</span><input type="text" id="onboard-nombre" maxlength="80" autocomplete="organization" required></label>
+    <button class="btn btn-primary btn-block" type="submit" id="onboard-btn">Empezar mi prueba gratis</button>
+    <button class="link-btn" type="button" data-action="salir">Cerrar sesión</button>
+  </form>
+</main>
+
+<!-- ============ Aplicación ============ -->
+<div class="app" id="app" hidden>
+  <header class="top">
+    <a class="brand" href="/app/" aria-label="Inicio">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+      <span><strong id="brand-nombre">CRM</strong></span>
+    </a>
+    <h1 class="top-title" id="top-title">Hoy</h1>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-refresh" aria-label="Actualizar" title="Actualizar"></button>
+      <button class="icon-btn" id="btn-menu" aria-label="Cuenta" title="Cuenta"></button>
+    </div>
+  </header>
+  <div class="offline" id="offline" hidden>Sin conexión. Los cambios no se guardarán hasta que vuelvas a conectarte.</div>
+  <main class="view" id="view" tabindex="-1"></main>
+  <nav class="tabbar" id="tabbar" aria-label="Secciones"></nav>
+  <button class="fab" id="fab" aria-label="Nuevo lead" hidden></button>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-label="Detalle del lead">
+  <div class="sheet-backdrop" data-action="cerrar-hoja"></div>
+  <div class="sheet-panel" id="sheet-panel"></div>
+</div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-action="cerrar-modal"></div>
+  <div class="modal-card" id="modal-card"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/config.js"></script>
+<script src="/app/js/app.js"></script>
+</body>
+</html>

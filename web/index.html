@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="es" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPUnlock CRM · El CRM inmobiliario con IA</title>
+<meta name="description" content="CRM para inmobiliarias y constructoras: leads de Meta y de tu web en segundos, llamadas que se registran y resumen solas con IA, inventario y cotizador, con tu logo y tus colores.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32">
+<link rel="icon" href="/assets/brand/favicon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/brand/favicon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GPUnlock CRM · El CRM inmobiliario con IA">
+<meta property="og:description" content="Cada lead, cada llamada y cada venta en un solo lugar. Con tu marca.">
+<meta property="og:image" content="/assets/brand/favicon-512.png">
+<link rel="preload" href="/assets/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/work-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/gp-tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<script>document.documentElement.classList.remove('no-js')</script>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<!-- Íconos (trazo 1.8, estilo único) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 1.7L21.5 17.5l-1.7.8L19 20l-.8-1.7-1.7-.8 1.7-.8z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M9 21.5v-4h6v4M8.5 7h.01M12 7h.01M15.5 7h.01M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 15h.01M15.5 15h.01"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1.3"/><circle cx="17.5" cy="10.5" r="1.3"/><circle cx="8.5" cy="7.5" r="1.3"/><circle cx="6.5" cy="12.5" r="1.3"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6 17.46 2 12 2z"/></symbol>
+  <symbol id="i-mobile" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L4 13.5h7.5L10.5 22 20 10.5h-7.5z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7.5 16v-4M12 16V8M16.5 16v-6"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 20z"/></symbol>
+  <symbol id="i-funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10.5" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 10.5v1a7 7 0 0 0 14 0v-1M12 18.5v3"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8"/><path d="M21 3.5v5h-5M3 20.5v-5h5"/></symbol>
+</svg>
+
+<!-- ============================================================== nav === -->
+<header class="nav" id="nav">
+  <div class="container">
+    <a class="brand" href="/" aria-label="GPUnlock CRM, inicio">
+      <img src="/assets/brand/gp-mark.png" alt="" width="28" height="34">
+      <span><span class="b-gpu">GPU</span>nlock</span><span class="b-crm">CRM</span>
+    </a>
+    <nav class="nav-links" aria-label="Principal">
+      <a href="#producto">Producto</a>
+      <a href="#llamadas">Llamadas con IA</a>
+      <a href="#meta">Meta Ads</a>
+      <a href="#marca">Tu marca</a>
+      <a href="#precios">Precios</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="/app/">Entrar</a>
+      <a class="btn btn-primary btn-sm" href="/app/?registro=1">Prueba gratis</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mobile-menu" id="menu-movil" hidden>
+  <a href="#producto">Producto</a>
+  <a href="#llamadas">Llamadas con IA</a>
+  <a href="#meta">Meta Ads</a>
+  <a href="#marca">Tu marca</a>
+  <a href="#precios">Precios</a>
+  <a href="/descargar/">Descargar la app</a>
+  <a href="/app/">Entrar</a>
+  <a class="btn btn-primary" href="/app/?registro=1">Prueba gratis 14 días</a>
+</div>
+
+<main id="contenido">
+<!-- ============================================================= hero === -->
+<section class="hero">
+  <span class="glow glow-a" aria-hidden="true"></span>
+  <span class="glow glow-b" aria-hidden="true"></span>
+  <div class="container">
+    <div class="hero-copy">
+      <a class="announce reveal" href="#llamadas"><b><svg class="icon icon-sm" aria-hidden="true"><use href="#i-spark"/></svg>Nuevo</b> Tus llamadas se resumen solas con IA</a>
+      <h1 class="reveal" style="--d:80ms">Cada lead, cada llamada y cada venta, <span class="grad-text">en un solo lugar.</span></h1>
+      <p class="hero-sub reveal" style="--d:160ms">El CRM para inmobiliarias y constructoras. Tus leads de Facebook, Instagram y tu web llegan en segundos al celular del asesor, cada llamada queda registrada con su resumen, y sabes cuánto te cuesta cada venta.</p>
+      <div class="hero-actions reveal" style="--d:240ms">
+        <a class="btn btn-primary btn-lg" href="/app/?registro=1">Prueba gratis 14 días <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost btn-lg" href="/descargar/"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg>Descargar la app</a>
+      </div>
+      <ul class="hero-trust reveal" style="--d:320ms">
+        <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Sin tarjeta de crédito</li>
+        <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Pagas por transferencia</li>
+        <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Con tu logo y tus colores</li>
+      </ul>
+    </div>
+
+    <!-- Maqueta del producto (HTML real, no una imagen) -->
+    <div class="showcase reveal" id="showcase" style="--d:200ms" role="img" aria-label="Vista del CRM: embudo de ventas por etapas en la computadora y, en el celular, el resumen automático de una llamada con la siguiente tarea.">
+      <div class="window" aria-hidden="true">
+        <div class="window-bar"><i></i><i></i><i></i><span class="url"><svg class="icon icon-sm"><use href="#i-lock"/></svg>app.gpunlock.com/embudo</span></div>
+        <div class="app">
+          <aside class="app-side">
+            <div class="app-org"><span>IA</span>Inmobiliaria Andes</div>
+            <div class="app-nav"><svg class="icon"><use href="#i-home"/></svg>Hoy<em>6</em></div>
+            <div class="app-nav on"><svg class="icon"><use href="#i-funnel"/></svg>Embudo</div>
+            <div class="app-nav"><svg class="icon"><use href="#i-chat"/></svg>Mensajes<em>3</em></div>
+            <div class="app-nav"><svg class="icon"><use href="#i-building"/></svg>Inventario</div>
+            <div class="app-nav"><svg class="icon"><use href="#i-calendar"/></svg>Agenda</div>
+            <div class="app-nav"><svg class="icon"><use href="#i-chart"/></svg>Métricas</div>
+            <div class="app-nav"><svg class="icon"><use href="#i-spark"/></svg>Asistente</div>
+          </aside>
+          <div class="app-main">
+            <div class="app-top"><h3>Embudo · Torre Alba</h3><div class="chips"><span class="chip chip-brand">48 abiertos</span><span class="chip">Este mes</span></div></div>
+            <div class="board">
+              <div class="col">
+                <div class="col-h">Nuevo <b>12</b></div>
+                <div class="card-lead is-new"><div class="row"><strong>Lucía Mora</strong><span class="avatar" style="background:#2457C5">LM</span></div><small>Suite 2 dorm. · hace 3 s</small><div class="row"><span class="chip chip-meta">Facebook</span><span class="chip chip-hot">Caliente</span></div></div>
+                <div class="card-lead"><div class="row"><strong>Andrés Vela</strong><span class="avatar">AV</span></div><small>Lote 300 m² · 12 min</small><div class="row"><span class="chip">Web</span><span class="chip chip-warm">Tibio</span></div></div>
+              </div>
+              <div class="col">
+                <div class="col-h">Contactado <b>15</b></div>
+                <div class="card-lead"><div class="row"><strong>María Pérez</strong><span class="avatar" style="background:#B93A15">MP</span></div><small>Llamada 4:12 · resumen listo</small><div class="row"><span class="chip chip-wa">WhatsApp</span><span class="chip chip-hot">Caliente</span></div></div>
+                <div class="card-lead"><div class="row"><strong>Jorge Salas</strong><span class="avatar">JS</span></div><small>Depto. 3 dorm.</small><div class="row"><span class="chip chip-meta">Instagram</span></div></div>
+              </div>
+              <div class="col">
+                <div class="col-h">Cita <b>9</b></div>
+                <div class="card-lead"><div class="row"><strong>Ana Ruiz</strong><span class="avatar" style="background:#136F4B">AR</span></div><small>Visita a obra · mañana 10:00</small><div class="row"><span class="chip">Referido</span></div></div>
+              </div>
+              <div class="col">
+                <div class="col-h">Proforma <b>7</b></div>
+                <div class="card-lead"><div class="row"><strong>Pablo Ortiz</strong><span class="avatar">PO</span></div><small>ALB-0042 · $118.500</small><div class="row"><span class="chip chip-warm">Esperando</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" aria-hidden="true">
+        <span class="ic"><svg class="icon"><use href="#i-target"/></svg></span>
+        <div><b>Nuevo lead de Facebook</b><span>Campaña «Torre Alba · Suites» · asignado a Carla</span></div>
+      </div>
+
+      <div class="phone" aria-hidden="true">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="phone-head"><small><svg class="icon icon-sm"><use href="#i-phone"/></svg>Llamada terminada · 4:12</small><strong>María Pérez</strong></div>
+          <div class="phone-body">
+            <div class="call"><span class="ic"><svg class="icon icon-sm"><use href="#i-phone"/></svg></span><div><b>Grabación lista</b><span>Transcrita en 38 s</span></div><span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            <div class="ai">
+              <div class="ai-h"><svg class="icon icon-sm"><use href="#i-spark"/></svg>Resumen de la IA</div>
+              <p>Busca suite de 2 dormitorios para vivir con su pareja. Le preocupa el plazo de entrega. Pide ver la obra este sábado.</p>
+              <dl><dt>Presupuesto</dt><dd>$110 a 125 mil</dd><dt>Pago</dt><dd>Crédito BIESS</dd><dt>Compra</dt><dd>En 3 meses</dd></dl>
+            </div>
+            <div class="next"><svg class="icon icon-sm"><use href="#i-calendar"/></svg><span><b>Siguiente:</b> visita a obra, sáb. 10:00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat"><strong>&lt; <em>5</em> s</strong><span>de que llena el formulario a que el asesor lo ve en su celular</span></div>
+      <div class="stat"><strong><em>2</em> min</strong><span>de colgar a tener la llamada resumida, con su siguiente tarea</span></div>
+      <div class="stat"><strong><em>0</em></strong><span>leads perdidos: entran aunque tu plan esté vencido</span></div>
+      <div class="stat"><strong><em>1</em> hora</strong><span>para dejar tu inmobiliaria funcionando, sin ayuda</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== producto === -->
+<section class="section section--surface" id="producto">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Todo en una sola app</span>
+      <h2>Hecho para cómo se vende un inmueble</h2>
+      <p>Tu equipo vende por WhatsApp, llamadas y visitas a obra, con leads que llegan de Meta y de tu web. GPUnlock junta todo eso en una ficha por cliente.</p>
+    </div>
+
+    <div class="bento">
+      <article class="tile tile-dark tile-w3 reveal" data-pronto>
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-phone"/></svg></span>
+        <h3>Llamadas que se escriben solas</h3>
+        <p>Cada llamada queda en la ficha del cliente con su grabación. La IA la resume, saca presupuesto y forma de pago, y te propone el siguiente paso.</p>
+        <div class="viz transcript" aria-hidden="true">
+          <div class="bubble a">¿Para cuándo piensa comprar?</div>
+          <div class="bubble c">En unos tres meses, con crédito del BIESS.</div>
+          <div class="sum"><b>Resumen</b>Interesada en 2 dormitorios · crédito BIESS · visita el sábado.</div>
+        </div>
+      </article>
+
+      <article class="tile tile-w3 reveal" style="--d:80ms" data-pronto>
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-target"/></svg></span>
+        <h3>Meta Ads, de punta a punta</h3>
+        <p>Los leads de tus formularios de Facebook e Instagram entran solos con su campaña. Y sabes cuánto te costó cada venta, no solo cada lead.</p>
+        <div class="viz bars" role="img" aria-label="Ejemplo de costo por venta por campaña: Suites 2 dormitorios 410 dólares, Lotes Valle 620 dólares, Locales 980 dólares.">
+          <div class="bar"><span>Suites 2 dorm.</span><i style="--v:.42"></i><b>$410</b></div>
+          <div class="bar"><span>Lotes Valle</span><i style="--v:.63"></i><b>$620</b></div>
+          <div class="bar"><span>Locales</span><i style="--v:1"></i><b>$980</b></div>
+          <div class="legend"><span style="--c:var(--color-primary)">Costo por venta, por campaña</span></div>
+        </div>
+      </article>
+
+      <article class="tile tile-w2 reveal">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-building"/></svg></span>
+        <h3>Inventario y cotizador</h3>
+        <p>Disponibilidad en vivo, proformas con financiamiento en PDF y reservas ligadas al cliente.</p>
+        <div class="viz" aria-hidden="true">
+          <div class="units"><i></i><i class="r"></i><i></i><i class="v"></i><i></i><i></i><i class="r"></i><i class="v"></i><i class="v"></i><i></i><i></i><i></i><i class="r"></i><i></i><i class="v"></i><i></i></div>
+          <div class="legend"><span style="--c:#CFE8DA">Disponible</span><span style="--c:#F1DDB4">Reservada</span><span style="--c:var(--gp-ink-900)">Vendida</span></div>
+        </div>
+      </article>
+
+      <article class="tile tile-w2 reveal" style="--d:80ms" data-pronto>
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-chat"/></svg></span>
+        <h3>WhatsApp dentro del CRM</h3>
+        <p>Las conversaciones quedan en la empresa, no en el celular de cada asesor. La IA sugiere respuestas con precios reales.</p>
+      </article>
+
+      <article class="tile tile-w2 reveal" style="--d:160ms">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-spark"/></svg></span>
+        <h3>Un asistente que sí ayuda</h3>
+        <p>Resume cada cliente, redacta el mensaje de seguimiento y convierte una nota de voz en tareas con fecha.</p>
+      </article>
+
+      <article class="tile tile-w3 reveal">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-zap"/></svg></span>
+        <h3>Seguimiento que no se olvida</h3>
+        <p>Lead sin atender en 15 minutos, cita de mañana, proforma sin respuesta: el CRM avisa, reparte y recuerda por ti.</p>
+        <div class="viz mini-flow" aria-hidden="true"><span class="chip chip-hot">Sin contacto 15 min</span><span class="chip">Reasignar</span><span class="chip chip-warm">Cita mañana</span><span class="chip chip-wa">Confirmar por WhatsApp</span></div>
+      </article>
+
+      <article class="tile tile-w3 reveal" style="--d:80ms">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-users"/></svg></span>
+        <h3>Tu equipo, ordenado</h3>
+        <p>Reparto automático de leads, roles de propietario, administrador y agente, y métricas por asesor y por fuente. Si alguien se va, su cartera se queda.</p>
+        <div class="viz mini-flow" aria-hidden="true"><span class="chip">Propietario</span><span class="chip">Administrador</span><span class="chip">Agente</span><span class="chip">Lector</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== llamadas === -->
+<section class="section" id="llamadas">
+  <div class="container split">
+    <div class="split-copy reveal">
+      <span class="eyebrow">Llamadas con IA</span>
+      <h2>Cuelga. La ficha ya está al día.</h2>
+      <p>Tus asesores no tienen que escribir nada después de una llamada. La app la registra, la IA la escucha y deja lo importante donde tiene que estar.</p>
+      <ul class="checks">
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>En Android, con su propio número.</b> La app registra solas las llamadas que entran y salen, y pregunta si quiere crear el lead cuando el número es nuevo.</span></li>
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>En iPhone, con el número de tu empresa.</b> Con la telefonía en la nube cada llamada se graba y registra en el servidor.</span></li>
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>Tú decides.</b> La IA propone la etapa y la tarea; el asesor confirma con un toque. Nunca escribe al cliente por su cuenta.</span></li>
+      </ul>
+    </div>
+    <ol class="steps reveal" style="--d:120ms">
+      <li class="step"><div><h3>Llama desde la ficha</h3><p>Un toque en <b>Llamar</b>. Si te llama un cliente, ves su nombre, proyecto y etapa antes de contestar.</p><div class="meta"><span class="chip"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-phone"/></svg>Identificador de llamadas</span></div></div></li>
+      <li class="step"><div><h3>La IA la transcribe y resume</h3><p>Separa lo que dijo el asesor y el cliente, y saca presupuesto, dormitorios, forma de pago, plazo y objeciones.</p><div class="meta"><span class="chip chip-brand">Resumen</span><span class="chip">Datos del cliente</span><span class="chip">Objeciones</span></div></div></li>
+      <li class="step"><div><h3>Queda la siguiente tarea</h3><p>Con fecha y hora en la agenda del asesor, y cada semana un resumen de cómo van sus llamadas.</p><div class="meta"><span class="chip chip-wa">Tarea creada</span><span class="chip">Coaching semanal</span></div></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================ meta === -->
+<section class="section section--surface" id="meta">
+  <div class="container split split-rev">
+    <div class="split-copy reveal">
+      <span class="eyebrow">Meta Ads</span>
+      <h2>Que Meta sepa qué leads compran</h2>
+      <p>Conecta tu página de Facebook en un minuto. Los leads entran con su campaña y el CRM le avisa a Meta cuáles se volvieron cita, reserva y venta, para que tus anuncios busquen más clientes como esos.</p>
+      <ul class="checks">
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>Leads de formularios al instante</b>, sin copiar ni pegar, con campaña, conjunto y anuncio.</span></li>
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>Conversiones de vuelta a Meta</b>, con los datos del cliente cifrados.</span></li>
+        <li><span class="tick"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span><b>Gasto diario por campaña</b> para ver costo por lead, por cita y por venta.</span></li>
+      </ul>
+    </div>
+    <div class="loop reveal" style="--d:120ms">
+      <div class="loop-row"><span class="ic"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span><div><b>Anuncio en Instagram</b><span>Torre Alba · Suites</span></div><em>$8,20 por lead</em></div>
+      <div class="loop-row"><span class="ic"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span><div><b>Lead en el CRM</b><span>Asignado a Carla en 3 s</span></div><em>Caliente</em></div>
+      <div class="loop-row"><span class="ic"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></span><div><b>Visita a obra</b><span>Sábado 10:00</span></div><em>Cita</em></div>
+      <div class="loop-row"><span class="ic"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg></span><div><b>Reserva firmada</b><span>Suite 704 · $121.300</span></div><em>Venta</em></div>
+      <div class="loop-back"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>La venta vuelve a Meta como conversión</div>
+      <div class="kpis" aria-label="Ejemplo de métricas de una campaña">
+        <div class="kpi"><span>Costo por lead</span><b>$8,20</b></div>
+        <div class="kpi"><span>Costo por cita</span><b>$46</b></div>
+        <div class="kpi"><span>Costo por venta</span><b>$410</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== marca === -->
+<section class="section" id="marca">
+  <div class="container split">
+    <div class="split-copy reveal">
+      <span class="eyebrow">Tu marca</span>
+      <h2>Tu CRM, con tu logo y tus colores</h2>
+      <p>Sube tu logo y el CRM toma tus colores, arma la paleta completa y revisa que todo se lea bien. Tu equipo lo ve cambiar al instante, en la app, las proformas y los correos.</p>
+      <div class="brand-demo" id="brand-demo">
+        <div class="field">
+          <label for="demo-nombre">Nombre de tu inmobiliaria</label>
+          <input id="demo-nombre" type="text" value="Inmobiliaria Andes" maxlength="32" autocomplete="organization">
+        </div>
+        <div class="field">
+          <span id="lbl-color" style="font-size:14px;font-weight:600">Color de tu marca</span>
+          <div class="swatches" role="group" aria-labelledby="lbl-color">
+            <button class="swatch" type="button" style="--c:#F2582B" data-color="#F2582B" aria-pressed="true" aria-label="Naranja"></button>
+            <button class="swatch" type="button" style="--c:#1E4FD8" data-color="#1E4FD8" aria-pressed="false" aria-label="Azul"></button>
+            <button class="swatch" type="button" style="--c:#0F8A5F" data-color="#0F8A5F" aria-pressed="false" aria-label="Verde"></button>
+            <button class="swatch" type="button" style="--c:#7A1F3D" data-color="#7A1F3D" aria-pressed="false" aria-label="Vino"></button>
+            <button class="swatch" type="button" style="--c:#C9A227" data-color="#C9A227" aria-pressed="false" aria-label="Dorado"></button>
+            <button class="swatch" type="button" style="--c:#161616" data-color="#161616" aria-pressed="false" aria-label="Negro"></button>
+            <label class="swatch swatch-custom" title="Elegir otro color"><span class="sr-only">Elegir otro color</span><input type="color" id="demo-color" value="#F2582B"></label>
+          </div>
+        </div>
+        <p class="contrast" aria-live="polite"><b id="demo-aa"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Contraste AA</b><span id="demo-aa-txt">El texto se lee bien sobre tu color.</span></p>
+      </div>
+    </div>
+    <div class="reveal" style="--d:120ms">
+      <div class="preview" id="preview" aria-label="Vista previa del CRM con la marca elegida">
+        <div class="preview-top"><span class="logo" id="demo-ini">IA</span><b id="demo-name">Inmobiliaria Andes</b><small>Hoy · 6 pendientes</small></div>
+        <div class="preview-body">
+          <div class="p-card">
+            <div class="row"><strong>María Pérez</strong><span class="chip chip-hot">Caliente</span></div>
+            <small>Suite 2 dormitorios · Torre Alba · crédito BIESS</small>
+            <div class="p-progress" aria-hidden="true"><i style="--w:58%"></i></div>
+            <div class="p-actions"><span class="p-btn main"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-phone"/></svg>Llamar</span><span class="p-btn alt"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"/></svg>Cotizar</span></div>
+          </div>
+          <div class="p-card">
+            <div class="row"><strong>Visita a obra</strong><small>Sáb. 10:00</small></div>
+            <div class="row"><small>Ana Ruiz · Lote 14</small><a class="p-link" href="#marca" tabindex="-1">Ver ficha</a></div>
+          </div>
+        </div>
+        <div class="p-tabs" aria-hidden="true">
+          <span class="on"><svg class="icon"><use href="#i-home"/></svg>Hoy</span>
+          <span><svg class="icon"><use href="#i-funnel"/></svg>Embudo</span>
+          <span><svg class="icon"><use href="#i-chat"/></svg>Mensajes</span>
+          <span><svg class="icon"><use href="#i-spark"/></svg>IA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= descarga === -->
+<section class="section section--surface" id="app">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">La app</span>
+      <h2>Descárgala desde aquí, sin tiendas</h2>
+      <p>Una sola app para todo tu equipo. Al entrar, toma la marca de tu inmobiliaria.</p>
+    </div>
+    <div class="devices">
+      <article class="device reveal">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-mobile"/></svg></span>
+        <h3>Android</h3>
+        <p>App completa, con registro automático de llamadas.</p>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Avisos con la app cerrada</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Registro de llamadas con la SIM</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Se actualiza desde la misma app</li>
+        </ul>
+        <a class="btn btn-dark" href="/descargar/#android">Descargar para Android <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+      <article class="device reveal" style="--d:80ms">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-mobile"/></svg></span>
+        <h3>iPhone</h3>
+        <p>Se instala desde Safari en 3 pasos y queda con su ícono.</p>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pantalla completa y avisos</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Notas de voz que se vuelven tareas</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Llamadas con el número de tu empresa</li>
+        </ul>
+        <a class="btn btn-ghost" href="/descargar/#iphone">Instalar en iPhone <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+      <article class="device reveal" style="--d:160ms">
+        <span class="tile-ic"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-monitor"/></svg></span>
+        <h3>Computadora</h3>
+        <p>Embudo completo, métricas y ajustes para quien dirige el equipo.</p>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Se instala desde Chrome o Edge</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Inventario, proformas y reportes</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>También funciona en el navegador</li>
+        </ul>
+        <a class="btn btn-ghost" href="/descargar/#computadora">Instalar en la computadora <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= precios === -->
+<section class="section" id="precios">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Precios</span>
+      <h2>Simple, sin pagar por cada función</h2>
+      <p>Empieza gratis 14 días con todo incluido. Cuando quieras quedarte, pagas por transferencia y activamos tu plan.</p>
+    </div>
+    <div class="billing-wrap reveal">
+      <div class="billing" role="group" aria-label="Periodo de pago">
+        <button type="button" data-periodo="mensual" aria-pressed="true">Mensual</button>
+        <button type="button" data-periodo="anual" aria-pressed="false">Anual <small>2 meses gratis</small></button>
+      </div>
+    </div>
+    <div class="plans" id="plans">
+      <article class="plan reveal" data-plan="inicial" data-mensual="19" data-anual="190">
+        <h3>Inicial</h3>
+        <p class="desc">Para asesores independientes y equipos que empiezan.</p>
+        <div><div class="price"><b>$19</b><span>/ mes</span></div><p class="price-note">&nbsp;</p></div>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Hasta 2 usuarios</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>150 leads nuevos al mes</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>App para Android, iPhone y computadora</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Captura de leads desde tu web</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>40 consultas de IA al mes</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Tu logo y tus colores</li>
+        </ul>
+        <a class="btn btn-ghost" href="/app/?registro=1&amp;plan=inicial">Empezar gratis</a>
+      </article>
+      <article class="plan plan-featured reveal" style="--d:80ms" data-plan="profesional" data-mensual="49" data-anual="490">
+        <span class="plan-badge"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-spark"/></svg>El más elegido</span>
+        <h3>Profesional</h3>
+        <p class="desc">Para inmobiliarias con equipo comercial.</p>
+        <div><div class="price"><b>$49</b><span>/ mes</span></div><p class="price-note">&nbsp;</p></div>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Hasta 8 usuarios</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>1.000 leads nuevos al mes</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Registro de llamadas en Android</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Meta Ads y WhatsApp en el CRM</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Inventario, cotizador y reparto automático</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>400 consultas de IA al mes</li>
+        </ul>
+        <a class="btn btn-primary" href="/app/?registro=1&amp;plan=profesional">Empezar gratis <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+      <article class="plan reveal" style="--d:160ms" data-plan="agencia" data-mensual="129" data-anual="1290">
+        <h3>Agencia</h3>
+        <p class="desc">Para redes, constructoras y agencias con varias sucursales.</p>
+        <div><div class="price"><b>$129</b><span>/ mes</span></div><p class="price-note">&nbsp;</p></div>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Hasta 30 usuarios</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>5.000 leads nuevos al mes</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Todo lo de Profesional</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Marca blanca y dominio propio</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>App de Android con tu nombre e ícono</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>2.000 consultas de IA al mes</li>
+        </ul>
+        <a class="btn btn-ghost" href="/app/?registro=1&amp;plan=agencia">Empezar gratis</a>
+      </article>
+    </div>
+    <p class="reveal" style="text-align:center;color:var(--color-text-muted);font-size:14px;margin-top:20px">Precios en dólares, más impuestos.</p>
+
+    <div class="addons">
+      <div class="addon reveal"><span class="tile-ic"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg></span><div><h4>Llamadas con el número de tu empresa</h4><p>Paquetes prepagados de minutos con grabación, transcripción y resumen de IA. Ideal para equipos con iPhone.</p></div></div>
+      <div class="addon reveal" style="--d:80ms"><span class="tile-ic"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg></span><div><h4>WhatsApp con tu propio número</h4><p>Lo conectas desde Ajustes. Meta te cobra directamente sus mensajes de plantilla, sin recargos nuestros.</p></div></div>
+    </div>
+
+    <div class="pay reveal" id="pago">
+      <div>
+        <span class="eyebrow">Cómo pagas</span>
+        <h3 style="margin-top:12px">Por transferencia, sin tarjeta y sin sorpresas</h3>
+        <p>No guardamos datos de tarjetas. Te avisamos antes de cada vencimiento y, si se te pasa, tienes 5 días de gracia. Aunque tu plan venza, no se borra nada y tus leads siguen entrando.</p>
+      </div>
+      <ol class="pay-steps">
+        <li><div><b>Elige tu plan en la app</b><span>Ves el monto exacto, nuestros datos bancarios y tu código de referencia.</span><span class="ref" aria-label="Código de ejemplo">GPU-7F3K-2611</span></div></li>
+        <li><div><b>Transfiere y sube el comprobante</b><span>Pon el código en la descripción. Sigues usando el CRM mientras revisamos.</span></div></li>
+        <li><div><b>Activamos tu plan</b><span>Te llega la confirmación con tu factura y la fecha de tu próximo pago.</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================= FAQ === -->
+<section class="section section--surface" id="preguntas">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2>Lo que nos preguntan antes de empezar</h2>
+    </div>
+    <div class="faq reveal">
+      <details>
+        <summary>¿Necesito tarjeta para la prueba gratis?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>No. Te registras con tu correo, creas tu inmobiliaria y usas todo durante 14 días. Si no contratas, la cuenta queda en solo lectura: no se borra nada.</div>
+      </details>
+      <details>
+        <summary>¿Cómo pago mi suscripción?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>Por transferencia bancaria. En la app eliges el plan, ves el monto y tu código de referencia, transfieres y subes el comprobante. Al confirmarlo activamos tu plan y te enviamos la factura.</div>
+      </details>
+      <details>
+        <summary>¿Qué pasa si se me pasa la fecha de pago?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>Te avisamos 7 días antes, 3 días antes y el mismo día. Después tienes 5 días de gracia. Si aún no pagas, la cuenta pasa a solo lectura, pero tus leads de la web, de Meta y de WhatsApp siguen entrando y no se pierde ninguno.</div>
+      </details>
+      <details>
+        <summary>¿Por qué la app no está en Google Play ni en la App Store?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>La descargas directamente desde nuestra web. En Android eso permite que la app registre tus llamadas sin las restricciones de la tienda. En iPhone se instala desde Safari como app web, con su ícono y sus avisos.</div>
+      </details>
+      <details>
+        <summary>¿Las llamadas se registran también en iPhone?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>Apple no deja que ninguna app lea el registro de llamadas del iPhone. Para iPhone ofrecemos llamadas con el número de tu empresa (telefonía en la nube): se registran, se graban y se resumen igual.</div>
+      </details>
+      <details>
+        <summary>¿Puedo usar mi logo y mis colores?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>Sí, en todos los planes. Subes tu logo, eliges tu color y la app arma la paleta y revisa el contraste. En el plan Agencia puedes además quitar nuestra marca, usar tu propio dominio y tener una app de Android con tu nombre.</div>
+      </details>
+      <details>
+        <summary>¿La IA les escribe a mis clientes?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>No. La IA resume, sugiere y redacta borradores, pero siempre envía una persona. Los precios y la disponibilidad que usa salen de tu inventario, nunca los inventa.</div>
+      </details>
+      <details>
+        <summary>¿Otra empresa puede ver mis datos?<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div>No. Cada inmobiliaria tiene su espacio aislado en la base de datos y cada asesor ve solo sus leads y los que no tienen dueño. Si alguien deja tu equipo, sus leads quedan en la empresa.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= CTA final === -->
+<section class="section">
+  <div class="container">
+    <div class="cta reveal">
+      <span class="pill" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#FFD2B5">14 días gratis · sin tarjeta</span>
+      <h2>Que ningún lead se pierda desde hoy</h2>
+      <p>Crea tu inmobiliaria, sube tu logo y conecta tu web en menos de una hora.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="/app/?registro=1">Crear mi cuenta <svg class="icon icon-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-on-dark btn-lg" href="#" data-ventas>Hablar con ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="/" aria-label="GPUnlock CRM, inicio"><img src="/assets/brand/gp-mark.png" alt="" width="28" height="34"><span><span class="b-gpu">GPU</span>nlock</span><span class="b-crm">CRM</span></a>
+        <p>El CRM inmobiliario con IA para vender más, sin perder un lead.</p>
+      </div>
+      <div><h4>Producto</h4><ul><li><a href="#producto">Funciones</a></li><li><a href="#llamadas">Llamadas con IA</a></li><li><a href="#meta">Meta Ads</a></li><li><a href="#precios">Precios</a></li></ul></div>
+      <div><h4>App</h4><ul><li><a href="/descargar/#android">Android</a></li><li><a href="/descargar/#iphone">iPhone</a></li><li><a href="/descargar/#computadora">Computadora</a></li><li><a href="/app/">Entrar</a></li></ul></div>
+      <div><h4>Empresa</h4><ul><li><a href="#" data-ventas>Contacto</a></li><li><a href="/terminos/">Términos del servicio</a></li><li><a href="/privacidad/">Privacidad</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© <span id="anio">2026</span> GPUnlock. Todos los derechos reservados.</span><span>Hecho en Ecuador</span></div>
+  </div>
+</footer>
+
+<script src="/js/config.js"></script>
+<script src="/js/site.js" defer></script>
+</body>
+</html>

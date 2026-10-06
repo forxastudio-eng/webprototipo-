@@ -1,104 +1,69 @@
-# GPUnlock · Plataforma unificada (prototipo)
+# GPUnlock CRM
 
-Un solo repositorio, un solo sitio de Netlify y un solo proyecto de Supabase
-(`gpunlock-plataforma`) para todo. Es un prototipo con **datos ficticios**:
-5 unidades por proyecto en el cotizador y precios inventados.
+CRM inmobiliario multiempresa con IA. Cada inmobiliaria tiene su espacio aislado, su equipo, sus leads y su plan. Se paga **por transferencia bancaria** y GPUnlock activa cada plan desde su consola. No hay pasarela de pagos.
 
-| Ruta | Qué es | Quién entra |
-|---|---|---|
-| `/` | Landing principal con todos los proyectos | Público |
-| `/vertice/` `/prisma/` `/valle/` | Landings de cada proyecto | Público |
-| `/admin/` | Panel de administración | Editor, administrador, marketing |
-| `/cotizador/` | Cotizador interno y su historial | Todo el equipo (historial: no asesores) |
-| `/marketing/` | Dashboard ejecutivo de marketing | Editor, administrador, marketing |
+Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_INMOBILIARIO_IA.md).
 
 ```
 .
-├── site/                  ← lo ÚNICO que publica Netlify
-│   ├── index.html         landing principal
-│   ├── js/gpunlock-config.js ← URL y anon key de Supabase (un solo lugar)
-│   ├── css/  assets/      marca GPUnlock compartida (assets/brand/)
-│   ├── vertice/ prisma/ valle/ cotizador/ marketing/ admin/
-├── supabase/              SQL en orden 01 → 08 (no se publica)
-├── scripts/               creación de cuentas (se ejecuta en tu PC)
-├── logos gpu/             archivos originales de la marca
-└── netlify.toml
+├── web/                  producto (sitio de Netlify: Base directory = web)
+│   ├── index.html        web principal (ventas)
+│   ├── descargar/        descarga de la app (APK de Android; iPhone y computadora como app web)
+│   ├── app/              la app (PWA) de las inmobiliarias
+│   ├── consola/          consola del equipo de GPUnlock: pagos, empresas, ingresos
+│   ├── embed/lead.js     script que las inmobiliarias pegan en su web para enviar leads al CRM
+│   └── css/ js/ assets/  marca GPUnlock (tokens, fuentes, logos) y configuración pública
+├── supabase/             base de datos (01 → 04), funciones de servidor y pruebas de SQL
+├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
+├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
+├── site/                 landings del demo (publicadas por el netlify.toml de la raíz)
+└── docs/                 plan de producto
 ```
 
-## Marca
+## Puesta en marcha
 
-- Logos en `site/assets/brand/` (derivados de `logos gpu/`): `gp-logo-horizontal(.png|-white.png)`,
-  `gp-logo-lockup(.png|-white.png)`, `gp-mark.png` (isotipo), favicons.
-- Tipografía: Outfit (títulos) y Work Sans (texto), auto-alojadas en `site/assets/fonts/` (`site/css/gp-fonts.css`), sin depender de Google Fonts.
-- Colores: naranja `#F2582B` → ámbar `#F08A30` (degradado), negro `#161616`, blanco.
-  Los tokens están en `site/css/gp-tokens.css` (texto naranja sobre fondo claro: `--color-primary-text`, #C9421B, cumple contraste AA); el cotizador los toma de `site/cotizador/css/gp-theme.css`.
+1. **Base de datos.** En Supabase → SQL Editor ejecuta, en orden, `supabase/01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql` y `04_cobros.sql` (se pueden repetir sin problema).
+2. **Autenticación.** Authentication → Providers → Email: deja activado *Confirm email*. En *URL Configuration* pon tu dominio como Site URL y agrega `https://TU-DOMINIO/app/` y `https://TU-DOMINIO/consola/` en Redirect URLs.
+3. **Primer superadmin (tú).** Crea tu cuenta en Authentication → Add user (o regístrate en `/app/`) y luego, en el SQL Editor:
+   ```sql
+   insert into public.superadmins (user_id, email)
+   select id, lower(email) from auth.users where lower(email) = 'tu-correo@dominio.com';
+   ```
+4. **Datos de cobro.** Entra a `/consola/` → *Datos de cobro*: banco, cuenta, titular, RUC, IVA y días de gracia. Los valores iniciales son de ejemplo.
+5. **Conectar la web.** Edita `web/js/config.js` con la Project URL y la clave `anon public` (Project Settings → API). Son valores públicos; nunca pongas aquí la `service_role`.
+6. **IA (opcional).** `cp supabase/.env.example supabase/.env`, completa `ANTHROPIC_API_KEY` y despliega:
+   ```bash
+   supabase secrets set --env-file supabase/.env --project-ref TU_REF
+   supabase functions deploy crm-ia --project-ref TU_REF
+   ```
+7. **Publicar.** Netlify → nuevo sitio desde este repositorio → **Base directory: `web`**.
 
-## Proyectos de demostración (ficticios)
+## Cómo se cobra
 
-| Proyecto | Ruta | Cotizador |
-|---|---|---|
-| Vértice (suites y locales) | `/vertice/` | 5 unidades |
-| Prisma Suites & Lofts | `/prisma/` | 5 unidades |
-| Valle Sereno (lotes) | `/valle/` | 5 lotes |
-| Lumen (departamentos) | portafolio | 5 unidades |
-| Colina Verde (casas) | solo cotizador | 5 unidades |
+1. La inmobiliaria prueba 14 días gratis (sin tarjeta).
+2. En *Ajustes → Plan y pagos* el propietario elige plan y periodo y la app le muestra el monto con IVA, tus datos bancarios y un código de referencia (`GPU-XXXX-0000`).
+3. Transfiere y sube el comprobante (foto o PDF, hasta 5 MB). Mientras se revisa, sigue trabajando.
+4. En `/consola/` ves la solicitud, abres el comprobante, confirmas el dinero en tu banco y pulsas **Aprobar**. Es la **única** forma de cambiar el plan, el estado o el vencimiento de una empresa (también `Registrar pago` y `Ajustar` para casos manuales). Todo queda en la auditoría.
+5. El periodo se extiende sin quitar ni regalar días: continúa desde el vencimiento si ya estaba pagada o en gracia, y empieza al terminar la prueba si pagó antes de que acabara.
+6. `cobros_actualizar_estados()` corre a diario (08:00 Ecuador, con `pg_cron`): activa → gracia → vencida, y deja listos los avisos de vencimiento en `cobros_avisos`.
+7. Vencida = solo lectura. No se borra nada y **los leads de formularios web siguen entrando**.
 
-Las fotos y renders de los proyectos son material de relleno. Cámbialas por las tuyas.
+## Pruebas
 
-## Roles
+```bash
+# SQL: permisos, aislamiento entre empresas, cobros, origen de leads (Postgres 14+; usa PGHOST/PGUSER/PGPASSWORD)
+supabase/tests/run.sh
 
-| | Editor | Administrador | Marketing | Asesor |
-|---|:-:|:-:|:-:|:-:|
-| Crear, editar, eliminar en el panel | ✓ | – | – | – |
-| Cambiar disponibilidad de unidades | ✓ | ✓ | – | – |
-| Ver todo y descargar tablas | ✓ | ✓ | ✓ | – |
-| Historial de proformas y sus dashboards | ✓ | ✓ | ✓ | – |
-| Editar dashboard de marketing | ✓ | – | ✓ | – |
-| Usar el cotizador | ✓ | ✓ | ✓ | ✓ |
-| Administrar usuarios y roles | ✓ | – | – | – |
+# Navegador: pantalla de pagos, consola y lead.js (con Supabase simulado)
+cd e2e && npm install && npx playwright install chromium && npm test
+```
 
-Los permisos los hace cumplir la base de datos (RLS), no solo la interfaz.
+GitHub Actions corre las dos en cada cambio (`.github/workflows/ci.yml`).
 
-**Cuenta actual:** una sola, la del editor `gabichopalomeque@gmail.com`. Desde
-**Panel → Usuarios y roles** se pueden asignar más roles (y crear su cuenta en
-Supabase → Authentication → Add user).
+## Pendiente antes de vender
 
-## Base de datos (Supabase `gpunlock-plataforma`)
-
-Ya está instalada (esquema, políticas, datos de demostración y la cuenta del editor).
-Para reconstruirla en otro proyecto, ejecuta en el SQL Editor, en orden:
-`01_roles.sql` → `02_landings.sql` → `03_cotizador.sql` → `04_marketing.sql` →
-`05_cambiar_estado.sql` → `06_politicas.sql` → `07_usuarios.sql` → `08_datos_demo.sql`.
-Después cambia `SUPABASE_URL` y `SUPABASE_ANON_KEY` en `site/js/gpunlock-config.js`.
-
-Pendiente en el panel de Supabase (no se puede hacer por SQL):
-
-1. **Authentication → Sign In / Providers → Email**: desactiva **Allow new users to sign up**.
-2. **Authentication → URL Configuration**: pon tu dominio como Site URL y agrega
-   `https://TU-DOMINIO/admin/` en Redirect URLs.
-3. Cambia la contraseña inicial del editor en **Panel → Mi cuenta**.
-
-## Publicar
-
-1. Netlify → **Add new site → Import from GitHub** → este repositorio. Lee `netlify.toml`
-   (carpeta publicada `site`, sin build).
-2. El número de WhatsApp y el correo de contacto son valores de ejemplo
-   (`593900000000`, `hola@gpunlock.example`): reemplázalos en `site/js/gpunlock-config.js`
-   y en los `index.html` de cada landing.
-
-## Uso diario
-
-- **Cambiar disponibilidad:** Panel → Inventario → el proyecto → selector de estado.
-- **Editar unidades, fotos y fichas (editor):** mismo lugar, botón del lápiz.
-- **Precios, planos y configuración del cotizador (editor):** Panel → Cotizador → Configurar cotizador.
-- **Dashboard del historial:** Panel → Historial y dashboard → pestaña Dashboard → Exportar a PDF
-  (elige *Guardar como PDF* y activa *Gráficos de fondo*).
-- **Dashboard de marketing:** `/marketing/`; el editor y marketing lo editan desde su panel.
-  Trae cifras de ejemplo.
-
-## Seguridad
-
-- En el sitio solo va la **anon key** (pública por diseño). La **service_role key** solo en
-  `scripts/.env`, en tu computadora (el archivo está en `.gitignore`).
-- Si alguien deja el equipo: Panel → Usuarios y roles → quitar acceso, y en Supabase →
-  Authentication → Users → eliminar su cuenta.
+- **Términos del servicio y política de privacidad** (`/terminos/`, `/privacidad/`): revisados por un abogado (LOPDP de Ecuador). La web los enlaza pero aún no existen. Incluir el uso de cookies de campaña de `lead.js` y el procesamiento por IA fuera de Ecuador.
+- **Envío de avisos de vencimiento por correo**: los avisos ya se generan en `cobros_avisos`; falta la función que los envía (proveedor de correo por decidir) y el correo al equipo cuando entra un comprobante.
+- **Factura electrónica del SRI**: hoy se emite con tu sistema actual y el número se registra al aprobar.
+- **IVA vigente**: el 15 % es un valor inicial; confírmalo con tu contador (se cambia en la consola).
+- Precios, límites y nombre de los planes (tabla `planes`).
