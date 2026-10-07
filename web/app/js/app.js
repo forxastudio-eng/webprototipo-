@@ -50,6 +50,7 @@
     user: null, email: "", rol: null,
     org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [], marca: null, mDraft: null,
     ajSec: "equipo", intervalo: "mensual",
+    unidades: null, invF: { q: "", proyecto: "", estado: "disponible", tipo: "" }, invMax: 60, imp: null,
     ops: [], tareas: [], equipo: [],
     vista: "hoy",
     f: { q: "", proyecto: "", quien: "todos" },
@@ -63,6 +64,7 @@
 
   /* ----------------------------------------------------------- utilidades */
   function $(id) { return document.getElementById(id); }
+  function norm(t) { return String(t == null ? "" : t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -85,7 +87,8 @@
     send: '<path d="m4 12 16-8-6 16-2-7z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
-    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'
+    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+    building: '<path d="M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17"/><path d="M15 9h3a1 1 0 0 1 1 1v11"/><path d="M3 21h18M9 7h2M9 11h2M9 15h2"/>'
   };
   function icon(n, cls) { return '<svg class="icon ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + (P[n] || "") + "</svg>"; }
 
@@ -323,6 +326,7 @@
         recargar();
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "crm_actividades", filter: filtro }, recargar)
+      .on("postgres_changes", { event: "*", schema: "public", table: "crm_unidades", filter: filtro }, recargarInv)
       .on("postgres_changes", { event: "*", schema: "public", table: "org_marca", filter: filtro }, function (p) {
         aplicarMarcaEmpresa(p.eventType === "DELETE" ? null : (p.new && p.new.org_id ? p.new : null));
         toast("La marca de tu empresa se actualizó");
@@ -333,11 +337,11 @@
 
   /* ---------------------------------------------------------- navegación */
   var TABS = [
-    { id: "hoy", t: "Hoy", i: "home" }, { id: "embudo", t: "Embudo", i: "funnel" },
+    { id: "hoy", t: "Hoy", i: "home" }, { id: "embudo", t: "Embudo", i: "funnel" }, { id: "inventario", t: "Inventario", i: "building" },
     { id: "ia", t: "Asistente", i: "sparkle" }, { id: "metricas", t: "Métricas", i: "chart" },
     { id: "ajustes", t: "Ajustes", i: "gear" }
   ];
-  var TITULOS = { hoy: "Hoy", embudo: "Embudo", ia: "Asistente IA", metricas: "Métricas", ajustes: "Ajustes" };
+  var TITULOS = { hoy: "Hoy", embudo: "Embudo", inventario: "Inventario", ia: "Asistente IA", metricas: "Métricas", ajustes: "Ajustes" };
 
   function conteos() {
     var abiertas = S.ops.filter(abierta);
@@ -359,12 +363,14 @@
     var banner = S.vista === "ajustes" && S.ajSec === "plan" ? "" : bannerSuscripcion();
     if (S.vista === "hoy") v.innerHTML = banner + vistaHoy(c);
     else if (S.vista === "embudo") v.innerHTML = banner + vistaEmbudo();
+    else if (S.vista === "inventario") v.innerHTML = banner + vistaInventario();
     else if (S.vista === "ia") v.innerHTML = banner + vistaIA();
     else if (S.vista === "ajustes") v.innerHTML = banner + vistaAjustes();
     else v.innerHTML = banner + vistaMetricas();
     restore(v, ss);
     var n = v.querySelector(".board"); if (n) n.scrollLeft = x;
     if (S.vista === "metricas" && !S.metricas) cargarMetricas();
+    if (S.vista === "inventario" && S.unidades === null) cargarInventario();
     if (S.vista === "ajustes" && S.ajSec === "marca" && esGestor()) pintarPreviewMarca();
   }
 
@@ -902,7 +908,7 @@
     var h = '<div class="card"><p class="muted" style="margin:0 0 8px">Tus proyectos o desarrollos. Se usan para ordenar los leads y para que la IA conozca tu oferta.</p>' +
       (S.proyectos.length ? S.proyectos.map(function (p) {
         return '<div class="person"><div><b>' + esc(p.nombre) + (p.activo ? "" : " (oculto)") + "</b><small>" + esc(p.slug) + "</small></div>" +
-          (esGestor() ? '<div class="row"><button class="btn btn-sm" data-action="proy-activo" data-s="' + esc(p.slug) + '">' + (p.activo ? "Ocultar" : "Mostrar") + '</button><button class="btn btn-sm" data-action="proy-borrar" data-s="' + esc(p.slug) + '" data-n="' + esc(p.nombre) + '">Eliminar</button></div>' : "") + "</div>";
+          (esGestor() ? '<div class="row"><button class="btn btn-sm" data-action="proy-precios" data-s="' + esc(p.slug) + '" title="Si muestras u ocultas los precios en la disponibilidad de tu web">' + (p.precios_publicos === false ? "Precios ocultos en tu web" : "Precios visibles en tu web") + '</button><button class="btn btn-sm" data-action="proy-activo" data-s="' + esc(p.slug) + '">' + (p.activo ? "Ocultar" : "Mostrar") + '</button><button class="btn btn-sm" data-action="proy-borrar" data-s="' + esc(p.slug) + '" data-n="' + esc(p.nombre) + '">Eliminar</button></div>' : "") + "</div>";
       }).join("") : '<div class="empty">Aún no tienes proyectos.</div>') + "</div>";
     if (esGestor()) h += '<div class="sec"><h2>Nuevo proyecto</h2></div><form class="card form" id="form-proyecto"><label class="fld"><span>Nombre</span><input name="nombre" required maxlength="80" placeholder="Ej. Torres del Parque"></label><button class="btn btn-primary" type="submit"' + (activa() ? "" : " disabled") + ">Agregar proyecto</button></form>";
     return h;
@@ -912,12 +918,15 @@
     var clave = S.org.clave_publica;
     var proy = S.proyectos[0] ? S.proyectos[0].slug : "mi-proyecto";
     var script = '<script src="' + location.origin + '/embed/lead.js"\n  data-url="' + CFG.SUPABASE_URL + '"\n  data-anon="' + CFG.SUPABASE_ANON_KEY + '"\n  data-clave="' + clave + '" defer><\/script>';
+    var invSnippet = '<div data-crm-inventario data-proyecto="' + proy + '"></div>\n<script src="' + location.origin + '/embed/inventario.js"\n  data-url="' + CFG.SUPABASE_URL + '"\n  data-anon="' + CFG.SUPABASE_ANON_KEY + '"\n  data-clave="' + clave + '" defer><\/script>';
     var form = '<form data-crm-captura data-crm-proyecto="' + proy + '">\n  <input name="nombre" placeholder="Tu nombre" required>\n  <input name="telefono" placeholder="Teléfono" required>\n  <input name="correo" placeholder="Correo">\n  <textarea name="mensaje"></textarea>\n  <button>Enviar</button>\n</form>';
     return '<div class="card"><h3>Captura de leads desde tu web</h3>' +
       '<p class="muted" style="margin:0 0 10px">Pega este código en tu página (antes de <code>&lt;/body&gt;</code>). Cada formulario marcado con <code>data-crm-captura</code> enviará sus datos al CRM y seguirá funcionando como siempre.</p>' +
       '<span class="code" id="snip-script">' + esc(script) + '</span><div class="row end" style="margin-top:8px"><button class="btn btn-sm" data-action="copiar" data-t="snip-script">' + icon("copy", "icon-sm") + " Copiar</button></div></div>" +
       '<div class="card" style="margin-top:12px"><h3>Ejemplo de formulario</h3><p class="muted" style="margin:0 0 10px">Usa los nombres <code>nombre</code>, <code>telefono</code>, <code>correo</code>, <code>mensaje</code> e <code>interes</code>. El proyecto va en <code>data-crm-proyecto</code>.</p>' +
       '<span class="code" id="snip-form">' + esc(form) + '</span><div class="row end" style="margin-top:8px"><button class="btn btn-sm" data-action="copiar" data-t="snip-form">' + icon("copy", "icon-sm") + " Copiar</button></div></div>" +
+      '<div class="card" style="margin-top:12px"><h3>Disponibilidad en vivo en tu web</h3><p class="muted" style="margin:0 0 10px">Muestra tus unidades con su precio y su estado actual (se actualiza solo). Pega el <code>&lt;div&gt;</code> donde quieras la lista y el script una vez, junto al de captura. Solo aparece lo que marcaste como visible; los precios se controlan por proyecto en <b>Proyectos</b>.</p>' +
+      '<span class="code" id="snip-inv">' + esc(invSnippet) + '</span><div class="row end" style="margin-top:8px"><button class="btn btn-sm" data-action="copiar" data-t="snip-inv">' + icon("copy", "icon-sm") + " Copiar</button></div></div>" +
       '<div class="card" style="margin-top:12px"><h3>Tu clave pública</h3><span class="code" id="snip-clave">' + esc(clave) + '</span><p class="muted" style="margin:8px 0 0"><small>Identifica a tu empresa al enviar leads; puede estar en tu web. No da acceso a datos.</small></p></div>';
   }
 
@@ -999,6 +1008,237 @@
       h += '<p class="muted" style="margin:12px 0 0"><small>¿Dudas con tu pago? <a href="https://wa.me/' + esc(c.whatsapp_cobros) + "?text=" + encodeURIComponent("Hola, consulta sobre mi pago " + sol.referencia) + '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.</small></p>';
     }
     return h + "</div>";
+  }
+
+  /* ------------------------------------------------------------------ Inventario */
+  var TIPOS_UNIDAD = { departamento: "Departamento", suite: "Suite", loft: "Loft", casa: "Casa", lote: "Lote", local: "Local", oficina: "Oficina", parqueo: "Parqueo", bodega: "Bodega", otro: "Otro" };
+  var ESTADOS_UNIDAD = { disponible: ["Disponible", "green"], reservada: ["Reservada", "amber"], vendida: ["Vendida", "gray"], no_disponible: ["No disponible", "red"] };
+  var VERBO_ESTADO = { disponible: "Liberar (disponible)", reservada: "Reservar", vendida: "Marcar como vendida", no_disponible: "Bloquear (no disponible)" };
+  function natural(a, b) { return String(a).localeCompare(String(b), "es", { numeric: true, sensitivity: "base" }); }
+  function ordenUnidad(a, b) { return natural(a.proyecto, b.proyecto) || natural(a.bloque || "", b.bloque || "") || natural(a.piso || "", b.piso || "") || natural(a.codigo, b.codigo); }
+  function unidadPorId(id) { return (S.unidades || []).filter(function (u) { return u.id === id; })[0]; }
+  function fmtNum(n) { return Number(n).toLocaleString("es-EC", { maximumFractionDigits: 1 }); }
+  /* Qué estados puede poner esta persona a esta unidad (el servidor lo vuelve a comprobar). */
+  function destinosUnidad(u) {
+    if (!activa() || S.rol === "lector") return [];
+    var todos = ["disponible", "reservada", "vendida", "no_disponible"].filter(function (e) { return e !== u.estado; });
+    if (esGestor()) return todos;
+    return u.estado === "disponible" || u.estado === "reservada" ? todos.filter(function (e) { return e === "disponible" || e === "reservada"; }) : [];
+  }
+  async function cargarInventario(silencioso) {
+    try {
+      var r = await sb.from("crm_unidades").select("*").eq("org_id", S.org.id).order("proyecto").order("codigo").limit(5000);
+      if (r.error) throw r.error;
+      S.unidades = (r.data || []).slice().sort(ordenUnidad);
+    } catch (e) {
+      if (!silencioso) toast(mensajeError(e), true);
+      if (S.unidades === null) S.unidades = [];
+    }
+    if (S.vista === "inventario") render();
+  }
+  var recargarInv = (function () {
+    var t; return function () { clearTimeout(t); t = setTimeout(function () { if (S.unidades !== null) cargarInventario(true); }, 500); };
+  })();
+
+  function vistaInventario() {
+    if (S.unidades === null) return '<div class="empty">Cargando inventario…</div>';
+    var gest = esGestor();
+    if (!S.proyectos.length) {
+      return '<div class="empty">Aún no tienes proyectos. ' + (gest ? "Crea el primero en <b>Ajustes → Proyectos</b> y vuelve aquí para cargar sus unidades." : "Pídele a un administrador que cree los proyectos.") + "</div>";
+    }
+    var f = S.invF, q = norm(f.q);
+    var base = S.unidades.filter(function (u) {
+      return (!f.proyecto || u.proyecto === f.proyecto) && (!f.tipo || u.tipo === f.tipo) &&
+        (!q || norm([u.codigo, u.bloque, u.piso, u.descripcion].join(" ")).indexOf(q) >= 0);
+    });
+    var n = { disponible: 0, reservada: 0, vendida: 0, no_disponible: 0 };
+    base.forEach(function (u) { n[u.estado]++; });
+    var lista = base.filter(function (u) { return !f.estado || u.estado === f.estado; });
+    var tipos = Object.keys(TIPOS_UNIDAD).filter(function (t) { return S.unidades.some(function (u) { return u.tipo === t; }); });
+
+    var h = "";
+    if (gest) {
+      h += '<div class="row" style="margin-bottom:10px"><button class="btn btn-primary btn-sm" data-action="unidad-nueva"' + (activa() ? "" : " disabled") + ">" + icon("plus", "icon-sm") + " Unidad</button>" +
+        '<button class="btn btn-sm" data-action="importar"' + (activa() ? "" : " disabled") + ">Importar Excel o CSV</button></div>";
+    }
+    if (!S.unidades.length) {
+      return h + '<div class="empty"><b>Tu inventario está vacío.</b><br>' + (gest ? "Agrega unidades una por una o impórtalas de golpe desde un Excel o CSV." : "Un administrador debe cargar las unidades.") + "</div>";
+    }
+    h += '<div class="inv-filtros"><input type="search" id="inv-q" placeholder="Buscar por código, torre o piso" value="' + esc(f.q) + '" aria-label="Buscar unidades" autocomplete="off">';
+    if (S.proyectos.length > 1) {
+      h += '<select id="inv-proyecto" aria-label="Proyecto"><option value="">Todos los proyectos</option>' +
+        S.proyectos.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (f.proyecto === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select>";
+    }
+    if (tipos.length > 1) {
+      h += '<select id="inv-tipo" aria-label="Tipo"><option value="">Todos los tipos</option>' +
+        tipos.map(function (t) { return '<option value="' + t + '"' + (f.tipo === t ? " selected" : "") + ">" + TIPOS_UNIDAD[t] + "</option>"; }).join("") + "</select>";
+    }
+    h += "</div>";
+    var segs = [["disponible", "Disponibles", n.disponible], ["reservada", "Reservadas", n.reservada], ["vendida", "Vendidas", n.vendida], ["", "Todas", base.length]];
+    h += '<div class="seg inv-seg" role="group" aria-label="Estado">' + segs.map(function (s) {
+      return '<button type="button" class="' + (f.estado === s[0] ? "on" : "") + '" aria-pressed="' + (f.estado === s[0]) + '" data-action="inv-estado" data-e="' + s[0] + '">' + s[1] + " <b>" + s[2] + "</b></button>";
+    }).join("") + "</div>";
+    if (!lista.length) return h + '<div class="empty" style="margin-top:12px">No hay unidades con esos filtros.</div>';
+    h += '<div class="inv-lista">' + lista.slice(0, S.invMax).map(function (u) {
+      var e = ESTADOS_UNIDAD[u.estado] || [u.estado, "gray"];
+      var med = [u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : "", u.dormitorios != null ? u.dormitorios + " dorm." : "", u.banos != null ? fmtNum(u.banos) + " baños" : "", u.parqueos ? u.parqueos + " parq." : ""].filter(Boolean).join(" · ");
+      var ubic = [S.proyectos.length > 1 ? proyTxt(u.proyecto) : "", TIPOS_UNIDAD[u.tipo] || "", u.bloque ? "Torre " + u.bloque : "", u.piso ? "Piso " + u.piso : ""].filter(Boolean).join(" · ");
+      return '<button type="button" class="card unidad" data-action="unidad" data-id="' + esc(u.id) + '"><span class="u-top"><b>' + esc(u.codigo) + '</b><span class="chip ' + e[1] + '">' + e[0] + "</span></span>" +
+        '<small class="muted">' + esc(ubic) + "</small>" + (med ? "<span>" + esc(med) + "</span>" : "") +
+        '<span class="u-precio">' + (u.precio != null ? precioTxt(u.precio) : '<span class="muted">Sin precio</span>') + "</span></button>";
+    }).join("") + "</div>";
+    if (lista.length > S.invMax) h += '<div class="row end" style="margin-top:10px"><button class="btn" data-action="inv-mas">Ver más (' + (lista.length - S.invMax) + " restantes)</button></div>";
+    return h;
+  }
+
+  /* Ficha de una unidad: datos, cambio de estado (con el lead) e historial. */
+  async function abrirUnidad(id) {
+    var u = unidadPorId(id); if (!u) return;
+    var e = ESTADOS_UNIDAD[u.estado] || [u.estado, "gray"], dest = destinosUnidad(u);
+    var fila = function (k, v) { return v == null || v === "" ? "" : "<dt>" + k + "</dt><dd>" + esc(v) + "</dd>"; };
+    var h = '<div class="row" style="justify-content:space-between"><h2 style="margin:0">' + esc(u.codigo) + '</h2><span class="chip ' + e[1] + '">' + e[0] + "</span></div>" +
+      '<p class="muted" style="margin:2px 0 10px">' + esc(proyTxt(u.proyecto)) + " · en este estado " + esc(hace(u.estado_at)) + "</p>" +
+      '<dl class="kv">' + fila("Tipo", TIPOS_UNIDAD[u.tipo]) + fila("Torre / bloque", u.bloque) + fila("Piso", u.piso) + fila("Área", u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : "") +
+      fila("Dormitorios", u.dormitorios) + fila("Baños", u.banos != null ? fmtNum(u.banos) : "") + fila("Parqueos", u.parqueos) + fila("Bodegas", u.bodegas) +
+      fila("Precio", u.precio != null ? dinero2(u.precio) : "Sin precio") + (esGestor() ? fila("En tu web", u.publica ? "Visible" : "Oculta") : "") + fila("Descripción", u.descripcion) + "</dl>";
+    if (dest.length) {
+      var leads = S.ops.filter(function (o) { return abierta(o) && puedeGestionar(o); })
+        .sort(function (a, b) { return (b.proyecto === u.proyecto) - (a.proyecto === u.proyecto) || natural((a.contacto || {}).nombre || "", (b.contacto || {}).nombre || ""); }).slice(0, 200);
+      h += '<div class="card" style="margin-top:12px"><h3>Cambiar estado</h3>' +
+        '<label class="fld"><span>Para el lead (opcional)</span><select id="u-lead"><option value="">Sin lead</option>' +
+        leads.map(function (o) { return '<option value="' + esc(o.id) + '">' + esc((o.contacto || {}).nombre || "Lead") + " · " + esc(etapaTxt(o.etapa)) + "</option>"; }).join("") + "</select>" +
+        '<small class="muted">Al reservar o vender para un lead, él pasa a «Reserva» o «Vendido» con el precio de la unidad.</small></label>' +
+        '<label class="fld"><span>Nota (opcional)</span><input id="u-nota" maxlength="300" placeholder="Ej. dejó $500 de señal"></label>' +
+        '<div class="row">' + dest.map(function (d) {
+          return '<button class="btn ' + (d === "reservada" || d === "vendida" ? "btn-primary " : "") + 'btn-sm" data-action="unidad-estado" data-id="' + esc(u.id) + '" data-e="' + d + '">' + VERBO_ESTADO[d] + "</button>";
+        }).join("") + "</div></div>";
+    } else if (!activa()) h += '<p class="muted" style="margin-top:10px">Con la suscripción vencida el inventario es solo de lectura.</p>';
+    else if (S.rol === "agente" && (u.estado === "vendida" || u.estado === "no_disponible")) h += '<p class="muted" style="margin-top:10px">Solo un administrador cambia una unidad vendida o bloqueada.</p>';
+    h += '<div class="sec"><h2>Historial</h2></div><div class="hist" id="unidad-hist"><div class="muted">Cargando…</div></div>';
+    h += '<div class="row end" style="margin-top:14px">' + (esGestor() && activa() ? '<button class="btn btn-sm" data-action="unidad-editar" data-id="' + esc(u.id) + '">Editar</button>' +
+      '<button class="btn btn-sm" data-action="unidad-eliminar" data-id="' + esc(u.id) + '" data-c="' + esc(u.codigo) + '">Eliminar</button>' : "") +
+      '<button class="btn" data-action="cerrar-modal">Cerrar</button></div>';
+    abrirModal(h);
+    try {
+      var r = await sb.from("crm_unidades_historial").select("*").eq("unidad_id", id).order("created_at", { ascending: false }).limit(20);
+      var cont = $("unidad-hist"); if (!cont || r.error) return;
+      cont.innerHTML = (r.data || []).map(function (x) {
+        var que = x.estado_antes == null ? "Unidad creada" : x.estado_antes !== x.estado_despues
+          ? (ESTADOS_UNIDAD[x.estado_antes] || [x.estado_antes])[0] + " → " + (ESTADOS_UNIDAD[x.estado_despues] || [x.estado_despues])[0]
+          : "Precio " + dinero2(x.precio_antes) + " → " + dinero2(x.precio_despues);
+        var lead = x.oportunidad_id && opPorId(x.oportunidad_id) ? " · lead " + ((opPorId(x.oportunidad_id).contacto || {}).nombre || "") : "";
+        return '<div class="item"><span><b>' + esc(que) + "</b>" + esc(lead) + (x.nota && x.nota !== "Unidad creada" ? '<br><small class="muted">' + esc(x.nota) + "</small>" : "") +
+          '</span><span class="muted">' + esc(nombreDe(x.por)) + "<br>" + esc(hace(x.created_at)) + "</span></div>";
+      }).join("") || '<div class="muted">Sin movimientos.</div>';
+    } catch (er) { /* sin historial: no impide usar la ficha */ }
+  }
+
+  function abrirFormUnidad(id) {
+    var u = id ? unidadPorId(id) : null, d = u || {};
+    var proys = S.proyectos.filter(function (p) { return p.activo || p.slug === d.proyecto; });
+    var sel = d.proyecto || S.invF.proyecto || (proys[0] && proys[0].slug) || "";
+    function num(k, et, extra) { return '<label class="fld"><span>' + et + '</span><input name="' + k + '" inputmode="decimal" value="' + esc(d[k] == null ? "" : String(d[k]).replace(".", ",")) + '" ' + (extra || "") + "></label>"; }
+    abrirModal('<h2>' + (u ? "Editar unidad" : "Nueva unidad") + '</h2><form class="form" id="form-unidad" data-id="' + esc(id || "") + '" novalidate>' +
+      '<div class="form2"><label class="fld"><span>Proyecto *</span><select name="proyecto">' + proys.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (p.slug === sel ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>" +
+      '<label class="fld"><span>Código *</span><input name="codigo" required maxlength="40" value="' + esc(d.codigo || "") + '" placeholder="Ej. A-101" autocomplete="off"></label></div>' +
+      '<div class="form2"><label class="fld"><span>Tipo</span><select name="tipo">' + Object.keys(TIPOS_UNIDAD).map(function (t) { return '<option value="' + t + '"' + ((d.tipo || "departamento") === t ? " selected" : "") + ">" + TIPOS_UNIDAD[t] + "</option>"; }).join("") + "</select></label>" +
+      '<label class="fld"><span>Estado</span><select name="estado">' + Object.keys(ESTADOS_UNIDAD).map(function (t) { return '<option value="' + t + '"' + ((d.estado || "disponible") === t ? " selected" : "") + ">" + ESTADOS_UNIDAD[t][0] + "</option>"; }).join("") + "</select></label></div>" +
+      '<div class="form2"><label class="fld"><span>Torre / bloque</span><input name="bloque" maxlength="40" value="' + esc(d.bloque || "") + '"></label><label class="fld"><span>Piso</span><input name="piso" maxlength="10" value="' + esc(d.piso || "") + '"></label></div>' +
+      '<div class="form2">' + num("area_m2", "Área (m²)") + num("precio", "Precio (USD)") + "</div>" +
+      '<div class="form2">' + num("dormitorios", "Dormitorios") + num("banos", "Baños") + "</div>" +
+      '<div class="form2">' + num("parqueos", "Parqueos") + num("bodegas", "Bodegas") + "</div>" +
+      '<label class="fld"><span>Descripción</span><textarea name="descripcion" maxlength="500" placeholder="Vista, acabados, orientación…">' + esc(d.descripcion || "") + "</textarea></label>" +
+      '<label class="row" style="gap:8px"><input type="checkbox" name="publica"' + (d.publica === false ? "" : " checked") + '> <span>Mostrar en la disponibilidad de mi sitio web</span></label>' +
+      '<div class="row end"><button type="button" class="btn" data-action="cerrar-modal">Cancelar</button><button class="btn btn-primary" type="submit">' + (u ? "Guardar cambios" : "Crear unidad") + "</button></div></form>");
+  }
+  async function guardarUnidad(f, btn) {
+    var fd = new FormData(f), datos = { proyecto: fd.get("proyecto"), codigo: String(fd.get("codigo") || "").trim(), tipo: fd.get("tipo"), estado: fd.get("estado"),
+      bloque: fd.get("bloque"), piso: fd.get("piso"), descripcion: fd.get("descripcion"), publica: fd.get("publica") === "on" };
+    var malo = "";
+    [["area_m2", "El área"], ["precio", "El precio"], ["dormitorios", "Los dormitorios"], ["banos", "Los baños"], ["parqueos", "Los parqueos"], ["bodegas", "Las bodegas"]].forEach(function (p) {
+      var r = GPUImportar.numero(fd.get(p[0]));
+      if (r.vacio) datos[p[0]] = null; else if (r.error || r.valor < 0) malo = malo || p[1] + " no es un número válido."; else datos[p[0]] = r.valor;
+    });
+    if (!datos.codigo) malo = "Escribe el código de la unidad.";
+    if (malo) { toast(malo, true); return; }
+    return conBoton(btn, async function () {
+      var r = await sb.rpc("guardar_unidad", { p_org: S.org.id, p_id: f.dataset.id || null, p_datos: datos }); if (r.error) throw r.error;
+      await cargarInventario(true); cerrarModal(); toast(f.dataset.id ? "Unidad actualizada" : "Unidad creada");
+    });
+  }
+  async function cambiarEstadoUnidad(btn) {
+    var id = btn.dataset.id, nuevo = btn.dataset.e, op = $("u-lead") && $("u-lead").value, nota = $("u-nota") && $("u-nota").value.trim();
+    return conBoton(btn, async function () {
+      var r = await sb.rpc("cambiar_estado_unidad", { p_unidad: id, p_estado: nuevo, p_oportunidad: op || null, p_nota: nota || null }); if (r.error) throw r.error;
+      cerrarModal(); toast("Unidad " + (ESTADOS_UNIDAD[nuevo][0]).toLowerCase() + (op ? " y lead actualizado" : ""));
+      await Promise.all([cargarInventario(true), op ? cargar(true) : Promise.resolve()]);
+    });
+  }
+
+  /* ----------------------------------------------- Importar desde Excel o CSV */
+  function abrirImportar() {
+    S.imp = { paso: 1, archivo: null, nombre: "", columnas: [], filas: [], mapa: {}, proyecto: S.invF.proyecto || (S.proyectos[0] && S.proyectos[0].slug) || "", actualizarEstado: false, error: "", enviando: false };
+    pintarImportar();
+  }
+  function conversionImp() {
+    var I = S.imp;
+    return GPUImportar.convertir(I.filas, I.mapa, { proyectos: S.proyectos, proyectoDefecto: I.mapa.proyecto >= 0 ? (I.proyecto || null) : I.proyecto });
+  }
+  function pintarImportar() {
+    var I = S.imp; if (!I) return;
+    var h = "<h2>Importar inventario</h2>";
+    if (I.paso === 1) {
+      h += '<p class="muted" style="margin:0 0 10px">Sube un Excel (.xlsx) o un CSV con una fila de títulos y una unidad por fila. El archivo se lee en tu equipo; solo se envía lo que confirmes.</p>' +
+        '<label class="fld"><span>Archivo</span><input type="file" id="imp-archivo" accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>' +
+        (I.error ? '<div class="notice notice-error" role="alert">' + esc(I.error) + "</div>" : "") +
+        '<p style="margin:10px 0 0"><button type="button" class="link-btn" data-action="imp-plantilla">Descargar plantilla de ejemplo (CSV)</button></p>' +
+        '<p class="muted" style="margin:8px 0 0"><small>Si ya existe una unidad con el mismo código en el proyecto, se actualiza (sin borrar los datos que tu archivo no trae). Máximo 2.000 filas.</small></p>' +
+        '<div class="row end" style="margin-top:12px"><button class="btn" data-action="cerrar-modal">Cancelar</button></div>';
+    } else {
+      var c = conversionImp(), I2 = I, cols = I.columnas;
+      var opciones = function (campo) {
+        return '<option value="-1">— no viene en el archivo —</option>' + cols.map(function (t, i) { return '<option value="' + i + '"' + (I2.mapa[campo] === i ? " selected" : "") + ">" + esc(t || "Columna " + (i + 1)) + "</option>"; }).join("");
+      };
+      h += '<p class="muted" style="margin:0 0 10px"><b>' + esc(I.nombre) + "</b> · " + I.filas.length + " filas. Revisa qué columna es cada dato.</p><div class=\"imp-mapa\">" +
+        GPUImportar.CAMPOS.map(function (campo) {
+          var obl = campo === "codigo" ? " *" : "";
+          return '<label class="fld"><span>' + GPUImportar.ETIQUETAS[campo] + obl + '</span><select data-imp-map="' + campo + '">' + opciones(campo) + "</select></label>";
+        }).join("") + "</div>";
+      h += '<label class="fld" style="margin-top:8px"><span>Proyecto para las filas sin proyecto</span><select id="imp-proyecto">' +
+        S.proyectos.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (I.proyecto === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>" +
+        '<label class="row" style="gap:8px;margin-top:8px"><input type="checkbox" id="imp-estado"' + (I.actualizarEstado ? " checked" : "") + '> <span>Actualizar también el estado de las unidades que ya existen</span></label>';
+      h += '<div class="card" style="margin-top:12px"><b>' + c.filas.length + " " + (c.filas.length === 1 ? "unidad lista" : "unidades listas") + "</b>" + (c.errores.length ? ' · <b class="txt-rojo">' + c.errores.length + " con errores</b>" : "") +
+        c.avisos.map(function (a) { return '<p class="muted" style="margin:6px 0 0">⚠ ' + esc(a) + "</p>"; }).join("") +
+        (c.errores.length ? '<ul class="imp-errores">' + c.errores.slice(0, 8).map(function (e) { return "<li>Fila " + e.fila + ": " + esc(e.error) + "</li>"; }).join("") +
+          (c.errores.length > 8 ? "<li>…y " + (c.errores.length - 8) + " más</li>" : "") + "</ul><p class=\"muted\" style=\"margin:6px 0 0\"><small>Las filas con error no se importan: corrígelas en tu archivo y vuelve a subirlo.</small></p>" : "") + "</div>";
+      if (I.error) h += '<div class="notice notice-error" role="alert" style="margin-top:10px">' + esc(I.error) + "</div>";
+      h += '<div class="row end" style="margin-top:12px"><button class="btn" data-action="imp-otro">Elegir otro archivo</button><button class="btn btn-primary" data-action="imp-confirmar"' + (c.filas.length && !I.enviando ? "" : " disabled") + ">Importar " + c.filas.length + "</button></div>";
+    }
+    abrirModal(h);
+  }
+  async function elegirArchivoImp(input) {
+    var f = input.files && input.files[0]; if (!f || !S.imp) return;
+    try {
+      var r = await GPUImportar.leerArchivo(f);
+      S.imp.nombre = f.name; S.imp.columnas = r.columnas; S.imp.filas = r.filas; S.imp.mapa = GPUImportar.sugerirMapa(r.columnas); S.imp.paso = 2; S.imp.error = "";
+    } catch (e) { S.imp.error = e.message || "No pudimos leer el archivo."; S.imp.paso = 1; }
+    pintarImportar();
+  }
+  async function confirmarImportar(btn) {
+    var I = S.imp, c = conversionImp(); if (!c.filas.length) return;
+    I.enviando = true; I.error = "";
+    return conBoton(btn, async function () {
+      var r = await sb.rpc("importar_unidades", { p_org: S.org.id, p_filas: c.filas, p_actualizar_estado: I.actualizarEstado });
+      I.enviando = false;
+      if (r.error) { I.error = mensajeError(r.error); pintarImportar(); return; }
+      if (!r.data.ok) { I.error = "El servidor encontró problemas: " + r.data.errores.slice(0, 3).map(function (e) { return "fila " + e.fila + " (" + e.error + ")"; }).join("; "); pintarImportar(); return; }
+      S.imp = null; cerrarModal(); await cargarInventario(true);
+      toast("Importación lista: " + r.data.creadas + " nuevas y " + r.data.actualizadas + " actualizadas");
+    });
+  }
+  function descargarTexto(nombre, texto, tipo) {
+    var url = URL.createObjectURL(new Blob([texto], { type: tipo })), a = document.createElement("a");
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
   }
 
   /* ------------------------------------------------- Marca de la empresa (logo, colores, tema) */
@@ -1265,6 +1505,30 @@
       instalarEvento.prompt(); instalarEvento.userChoice.finally(function () { instalarEvento = null; cerrarModal(); });
     },
     "aj-sec": function (el) { if (el.dataset.s !== "marca") S.mDraft = null; S.ajSec = el.dataset.s; render(); },
+    "inv-estado": function (el) { S.invF.estado = el.dataset.e; S.invMax = 60; render(); },
+    "inv-mas": function () { S.invMax += 60; render(); },
+    unidad: function (el) { abrirUnidad(el.dataset.id); },
+    "unidad-nueva": function () { abrirFormUnidad(null); },
+    "unidad-editar": function (el) { abrirFormUnidad(el.dataset.id); },
+    "unidad-eliminar": function (el) {
+      if (!window.confirm("¿Eliminar la unidad «" + el.dataset.c + "»? Se borra también su historial.")) return;
+      return conBoton(el, async function () {
+        var r = await sb.rpc("eliminar_unidad", { p_unidad: el.dataset.id }); if (r.error) throw r.error;
+        cerrarModal(); await cargarInventario(true); toast("Unidad eliminada");
+      });
+    },
+    "unidad-estado": function (el) { return cambiarEstadoUnidad(el); },
+    importar: function () { abrirImportar(); },
+    "imp-otro": function () { if (S.imp) { S.imp.paso = 1; S.imp.error = ""; pintarImportar(); } },
+    "imp-plantilla": function () { descargarTexto("plantilla-inventario.csv", GPUImportar.plantillaCSV((S.proyectos[0] || {}).slug), "text/csv;charset=utf-8"); },
+    "imp-confirmar": function (el) { return confirmarImportar(el); },
+    "proy-precios": function (el) {
+      var p = S.proyectos.filter(function (x) { return x.slug === el.dataset.s; })[0], nuevo = p.precios_publicos === false;
+      return conBoton(el, async function () {
+        var r = await sb.from("crm_proyectos").update({ precios_publicos: nuevo }).eq("org_id", S.org.id).eq("slug", el.dataset.s); if (r.error) throw r.error;
+        await cargarEmpresa(); render(); toast(nuevo ? "Los precios se muestran en tu web" : "Los precios ya no se muestran en tu web");
+      });
+    },
     "marca-color": function (el) { S.mDraft.color = el.dataset.c; var c = $("m-color"); if (c) c.value = el.dataset.c.toLowerCase(); pintarPreviewMarca(); },
     "marca-acento-quitar": function () { S.mDraft.acento = ""; render(); },
     "marca-logo-quitar": function () { var d = S.mDraft; d.logo = null; d.archivoLogo = null; d.urlLogo = ""; d.sugeridos = []; render(); },
@@ -1308,7 +1572,8 @@
     "proy-borrar": function (el) {
       if (!window.confirm("¿Eliminar el proyecto «" + el.dataset.n + "»? Los leads que ya lo tienen conservarán su nombre interno.")) return;
       return conBoton(el, async function () {
-        var r = await sb.from("crm_proyectos").delete().eq("org_id", S.org.id).eq("slug", el.dataset.s); if (r.error) throw r.error;
+        var r = await sb.from("crm_proyectos").delete().eq("org_id", S.org.id).eq("slug", el.dataset.s);
+        if (r.error) throw (r.error.code === "23503" || /foreign key/i.test(r.error.message || "") ? new Error("Este proyecto tiene unidades en el inventario. Elimínalas primero o, si ya no lo usas, ocúltalo.") : r.error);
         await cargarEmpresa(); render(); toast("Proyecto eliminado");
       });
     },
@@ -1358,7 +1623,13 @@
   });
   document.addEventListener("change", function (e) {
     var t = e.target;
-    if (t.id === "m-logo") { elegirLogo(t, false); }
+    if (t.id === "inv-proyecto") { S.invF.proyecto = t.value; S.invMax = 60; render(); }
+    else if (t.id === "inv-tipo") { S.invF.tipo = t.value; S.invMax = 60; render(); }
+    else if (t.id === "imp-archivo") { elegirArchivoImp(t); }
+    else if (t.id === "imp-proyecto" && S.imp) { S.imp.proyecto = t.value; pintarImportar(); }
+    else if (t.id === "imp-estado" && S.imp) { S.imp.actualizarEstado = t.checked; }
+    else if (t.dataset && t.dataset.impMap !== undefined && S.imp) { S.imp.mapa[t.dataset.impMap] = Number(t.value); pintarImportar(); }
+    else if (t.id === "m-logo") { elegirLogo(t, false); }
     else if (t.id === "m-logo-oscuro") { elegirLogo(t, true); }
     else if (t.id === "m-color") { S.mDraft.color = t.value.toUpperCase(); pintarPreviewMarca(); }
     else if (t.id === "m-acento") { S.mDraft.acento = t.value.toUpperCase(); pintarPreviewMarca(); }
@@ -1380,6 +1651,10 @@
   });
   var busqueda;
   document.addEventListener("input", function (e) {
+    if (e.target.id === "inv-q") {
+      S.invF.q = e.target.value; S.invMax = 60; clearTimeout(busqueda);
+      busqueda = setTimeout(render, 200);
+    }
     if (e.target.id === "f-q") {
       S.f.q = e.target.value; clearTimeout(busqueda);
       busqueda = setTimeout(render, 200);
@@ -1433,6 +1708,7 @@
       });
     }
     if (f.id === "form-marca") return guardarMarca(f, btn);
+    if (f.id === "form-unidad") return guardarUnidad(f, btn);
     if (f.id === "form-empresa") {
       return conBoton(btn, async function () {
         var r = await sb.rpc("actualizar_organizacion", { p_org: S.org.id, p_nombre: fd.nombre, p_reparto: fd.reparto }); if (r.error) throw r.error;

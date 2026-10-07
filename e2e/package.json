@@ -2,6 +2,6 @@
   "name": "gpunlock-e2e",
   "private": true,
   "description": "Pruebas de punta a punta de la web y la app (Playwright, con Supabase simulado).",
-  "scripts": { "test": "node pagos.test.cjs && node consola.test.cjs && node lead.test.cjs && node config.test.cjs && node tema.test.cjs && node marca.test.cjs && node plan.test.cjs && node legal.test.cjs && node --experimental-strip-types avisos.test.mjs" },
+  "scripts": { "test": "node pagos.test.cjs && node consola.test.cjs && node lead.test.cjs && node config.test.cjs && node tema.test.cjs && node marca.test.cjs && node plan.test.cjs && node legal.test.cjs && node inventario.test.cjs && node inventario-web.test.cjs && node --experimental-strip-types avisos.test.mjs && node importar.test.mjs" },
   "devDependencies": { "playwright": "^1.56.1" }
 }

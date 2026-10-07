@@ -11,9 +11,9 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 │   ├── descargar/        descarga de la app (APK de Android; iPhone y computadora como app web)
 │   ├── app/              la app (PWA) de las inmobiliarias
 │   ├── consola/          consola del equipo de GPUnlock: pagos, empresas, ingresos
-│   ├── embed/lead.js     script que las inmobiliarias pegan en su web para enviar leads al CRM
+│   ├── embed/            lead.js (captura de leads) e inventario.js (disponibilidad en vivo) para la web de cada inmobiliaria
 │   └── css/ js/ assets/  marca GPUnlock (tokens, fuentes, logos) y configuración pública
-├── supabase/             base de datos (01 → 06), funciones de servidor y pruebas de SQL
+├── supabase/             base de datos (01 → 07), funciones de servidor y pruebas de SQL
 ├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
 ├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
 ├── site/                 landings del demo (se publican aparte: Base directory = site)
@@ -22,7 +22,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ## Puesta en marcha
 
-1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 6 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql` y `06_avisos.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
+1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 7 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql`, `06_avisos.sql` y `07_inventario.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
 2. **Autenticación.** Authentication → Providers → Email: deja activado *Confirm email*. En *URL Configuration* pon tu dominio como Site URL y agrega `https://TU-DOMINIO/app/` y `https://TU-DOMINIO/consola/` en Redirect URLs.
 3. **Primer superadmin (tú).** Crea tu cuenta en Authentication → Add user (o regístrate en `/app/`) y luego, en el SQL Editor:
    ```sql
@@ -63,6 +63,11 @@ cd e2e && npm install && npx playwright install chromium && npm test
 ```
 
 GitHub Actions corre las dos en cada cambio (`.github/workflows/ci.yml`).
+
+## Inventario
+Pestaña **Inventario** de la app: todo el equipo ve las unidades (departamentos, casas, lotes, locales…) con precio y estado. Propietario y administrador crean, editan, eliminan e **importan desde Excel (.xlsx) o CSV** (el archivo se lee en el navegador; se reconocen los títulos habituales, se muestra una vista previa con los errores por fila y solo se envían las filas válidas). Los agentes reservan o liberan; vender o bloquear es de un administrador. Reservar o vender para un lead lo mueve a *Reserva* o *Vendido* con el precio de la unidad, y todo cambio queda en el historial (quién, cuándo, para qué lead).
+
+Para mostrar la disponibilidad en la web de la inmobiliaria: **Ajustes → Tu sitio web** da un `<div data-crm-inventario>` y el script `embed/inventario.js`. Solo sale lo marcado como visible (y los precios solo si el proyecto lo permite, en **Ajustes → Proyectos**). El cotizador y las proformas vienen en la siguiente etapa.
 
 ## Marca de cada empresa
 El propietario o un administrador entra a **Ajustes → Marca**: sube su logo (PNG, JPG o WebP, hasta 1 MB), elige un color (o toma uno sugerido del logo) y guarda. Todo su equipo ve la app con su marca al instante, sin recargar. Cada persona puede elegir **Automático / Claro / Oscuro** en su cuenta. Si la empresa define una *dirección corta* (por ejemplo `andes`), su equipo entra por `/app/?e=andes` y ve su logo y colores desde la pantalla de inicio de sesión. `web/js/tema.js` garantiza contraste AA con cualquier color; quitar «Con la tecnología de GPUnlock» es parte del plan Agencia.

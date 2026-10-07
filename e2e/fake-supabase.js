@@ -2,7 +2,7 @@
    El estado vive en window.__FX (lo prepara cada prueba): tablas, respuestas rpc, llamadas y subidas. */
 (function () {
   var FX = window.__FX || {};
-  FX.calls = []; FX.uploads = []; FX.quitados = []; FX.escuchas = [];
+  FX.calls = []; FX.uploads = []; FX.escrituras = []; FX.quitados = []; FX.escuchas = [];
   var ORG = { id: "11111111-1111-1111-1111-111111111111", nombre: "Inmobiliaria Andes", clave_publica: "pk_demo", reparto: "ninguno", plan_id: "inicial", estado: "prueba" };
   var PLANES = [
     { id: "inicial", nombre: "Inicial", descripcion: "Para empezar.", precio_mensual: 19, precio_anual: 190, max_usuarios: 2, max_leads_mes: 150, ia_mes: 40, caracteristicas: ["Hasta 2 usuarios", "150 leads al mes"], destacado: false, orden: 1, activo: true },
@@ -20,7 +20,8 @@
     miembros: [{ rol: FX.rol || "propietario", nombre: "Ana", org: ORG }],
     crm_proyectos: [{ slug: "torre", nombre: "Torre Alba", activo: true }],
     planes: PLANES, organizaciones: [ORG], datos_cobro: [FX.cobro], pagos_suscripcion: FX.pagos || [],
-    crm_oportunidades: [], crm_actividades: [], invitaciones: [], org_marca: FX.marca ? [FX.marca] : []
+    crm_oportunidades: [], crm_actividades: [], invitaciones: [], org_marca: FX.marca ? [FX.marca] : [],
+    crm_unidades: FX.unidades || [], crm_unidades_historial: FX.historialUnidades || []
   }, FX.tables || {});
   FX.rpc = Object.assign({
     crm_equipo: [{ email: "ana@x.com", nombre: "Ana", rol: "propietario" }],
@@ -55,19 +56,46 @@
       FX.tables.org_marca = [FX.marca];
       return FX.marca;
     },
-    marca_publica: function (a) { return (FX.publicas || {})[a.p_subdominio] || null; }
+    marca_publica: function (a) { return (FX.publicas || {})[a.p_subdominio] || null; },
+    /* inventario */
+    guardar_unidad: function (a) {
+      if (FX.errorUnidad) return { __error: FX.errorUnidad };
+      var T = FX.tables.crm_unidades, d = a.p_datos, u;
+      if (T.some(function (x) { return x.id !== a.p_id && x.proyecto === d.proyecto && x.codigo.toLowerCase() === d.codigo.toLowerCase(); })) return { __error: "Ya existe una unidad con el código «" + d.codigo + "» en ese proyecto" };
+      if (a.p_id) { u = T.filter(function (x) { return x.id === a.p_id; })[0]; Object.assign(u, d); }
+      else { u = Object.assign({ id: "u" + (T.length + 1), org_id: ORG.id, estado_at: new Date().toISOString(), publica: true }, d); T.push(u); }
+      return u;
+    },
+    eliminar_unidad: function (a) { FX.tables.crm_unidades = FX.tables.crm_unidades.filter(function (x) { return x.id !== a.p_unidad; }); return null; },
+    cambiar_estado_unidad: function (a) {
+      if (FX.errorEstado) return { __error: FX.errorEstado };
+      var u = FX.tables.crm_unidades.filter(function (x) { return x.id === a.p_unidad; })[0], antes = u.estado;
+      u.estado = a.p_estado; u.estado_at = new Date().toISOString();
+      FX.tables.crm_unidades_historial = [{ id: 99, unidad_id: u.id, estado_antes: antes, estado_despues: a.p_estado, oportunidad_id: a.p_oportunidad, por: "ana@x.com", nota: a.p_nota, created_at: new Date().toISOString() }].concat(FX.tables.crm_unidades_historial);
+      return u;
+    },
+    importar_unidades: function (a) {
+      if (FX.respImportar) return FX.respImportar;
+      var T = FX.tables.crm_unidades, c = 0, m = 0;
+      a.p_filas.forEach(function (f) {
+        var u = T.filter(function (x) { return x.proyecto === f.proyecto && x.codigo.toLowerCase() === f.codigo.toLowerCase(); })[0];
+        if (u) { m++; Object.assign(u, f); } else { c++; T.push(Object.assign({ id: "i" + T.length, org_id: ORG.id, estado: "disponible", estado_at: new Date().toISOString(), publica: true }, f)); }
+      });
+      return { ok: true, creadas: c, actualizadas: m };
+    }
   }, FX.rpc || {});
 
   function builder(table) {
-    var single = false;
+    var single = false, cadena = [];
     var b = new Proxy({}, {
       get: function (_, k) {
         if (k === "then") return function (res, rej) { return Promise.resolve(fin()).then(res, rej); };
         if (k === "maybeSingle" || k === "single") return function () { single = true; return b; };
-        return function () { return b; };
+        return function () { cadena.push([k, [].slice.call(arguments)]); return b; };
       }
     });
     function fin() {
+      if (cadena.some(function (c) { return /^(update|insert|delete|upsert)$/.test(c[0]); })) FX.escrituras.push({ tabla: table, cadena: cadena });
       var d = typeof FX.tables[table] === "function" ? FX.tables[table]() : (FX.tables[table] || []);
       return { data: single ? (d[0] || null) : d, error: null };
     }
