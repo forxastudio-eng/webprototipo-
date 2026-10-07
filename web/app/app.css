@@ -379,3 +379,19 @@ button.unidad:hover{border-color:var(--color-primary)}
 button.unidad.con-foto{grid-template-columns:72px minmax(0,1fr);column-gap:10px}
 button.unidad.con-foto>*:not(.u-thumb){grid-column:2}
 .u-thumb{grid-row:1/span 4;width:72px;height:72px;object-fit:cover;border-radius:10px}
+
+/* ------------------------------------------------------- embudo premium --- */
+.lead-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.col-valor{display:grid;gap:0;margin:-4px 0 8px;padding:0 2px;font-size:.85rem}
+.col-valor small{color:var(--color-text-muted)}
+.chips-sel{display:flex;flex-wrap:wrap;gap:6px}
+.chip-sel{position:relative;cursor:pointer}
+.chip-sel input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.chip-sel span{display:inline-block;padding:7px 12px;border-radius:99px;border:1.5px solid var(--color-border);background:var(--color-card);color:var(--color-text);font-weight:600;font-size:.85rem}
+.chip-sel input:checked+span{background:var(--c-primary-100);border-color:var(--color-primary);color:var(--c-primary-700)}
+.chip-sel input:focus-visible+span{outline:2px solid var(--color-primary);outline-offset:2px}
+.sug-lista{display:grid;gap:8px}
+.sug{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)}
+.sug>div:first-child{min-width:0;flex:1}
+.tbl-wrap{overflow-x:auto}
+.inp-corto{width:64px;min-height:40px;padding:6px 8px;border:1.5px solid var(--color-border);border-radius:10px;background:var(--color-card);color:var(--color-text);font:inherit;text-align:right}

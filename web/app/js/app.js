@@ -51,7 +51,7 @@
     org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [], marca: null, mDraft: null,
     ajSec: "equipo", intervalo: "mensual",
     unidades: null, invF: { q: "", proyecto: "", estado: "disponible", tipo: "" }, invMax: 60, imp: null, invSub: "unidades",
-    cot: null, cotCfg: null, cotizaciones: null, cotQ: "",
+    cot: null, cotCfg: null, cotizaciones: null, cotQ: "", ventas: null, autos: null, metVentas: null,
     ops: [], tareas: [], equipo: [],
     vista: "hoy",
     f: { q: "", proyecto: "", quien: "todos" },
@@ -273,7 +273,8 @@
       pagosEnApp() ? sb.from("datos_cobro").select("*").maybeSingle() : Promise.resolve({ data: {} }),
       pagosEnApp() && esPropietario() ? sb.from("pagos_suscripcion").select("id,plan_id,periodo,total,fecha_transferencia,factura_numero,cubre_hasta")
         .eq("org_id", o).order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
-      sb.from("org_marca").select("*").eq("org_id", o).maybeSingle()
+      sb.from("org_marca").select("*").eq("org_id", o).maybeSingle(),
+      sb.rpc("crm_config_ventas", { p_org: o })
     ]);
     if (r[2].error) throw r[2].error;
     S.equipo = r[0].data || [];
@@ -286,6 +287,7 @@
     S.cobro = r[6].data || {};
     S.pagos = r[7].data || [];
     aplicarMarcaEmpresa(r[8].data || null);
+    if (r[9] && r[9].data) S.ventas = r[9].data;
   }
 
   async function entrar(user) {
@@ -395,8 +397,8 @@
     var acciones = "";
     if (!o.asignado_a && abierta(o) && puedeEscribir())
       acciones += '<button class="btn btn-primary btn-sm" data-action="tomar" data-id="' + esc(o.id) + '">Tomar lead</button>';
-    if (wa) acciones += '<a class="btn btn-sm btn-wa" href="' + esc(wa) + '" target="_blank" rel="noopener">' + icon("chat", "icon-sm") + " WhatsApp</a>";
-    if (tel) acciones += '<a class="btn btn-sm" href="' + esc(tel) + '">' + icon("phone", "icon-sm") + " Llamar</a>";
+    if (wa) acciones += '<a class="btn btn-sm btn-wa" href="' + esc(wa) + '" target="_blank" rel="noopener" data-action="contacto-directo" data-id="' + esc(o.id) + '" data-t="whatsapp">' + icon("chat", "icon-sm") + " WhatsApp</a>";
+    if (tel) acciones += '<a class="btn btn-sm" href="' + esc(tel) + '" data-action="contacto-directo" data-id="' + esc(o.id) + '" data-t="llamada">' + icon("phone", "icon-sm") + " Llamar</a>";
     if (opts.avanzar && abierta(o) && puedeGestionar(o)) {
       var i = ETAPAS.map(function (e) { return e.id; }).indexOf(o.etapa);
       if (i >= 0 && i < 4) acciones += '<button class="btn btn-sm" data-action="avanzar" data-id="' + esc(o.id) + '">→ ' + esc(ETAPAS[i + 1].t) + "</button>";
@@ -406,7 +408,7 @@
       '<span class="lead-name">' + esc(c.nombre || "Sin nombre") + "</span>" + (opts.sinEtapa ? "" : badgeEtapa(o)) + "</div>" +
       '<div class="lead-sub"><span>' + esc(proyTxt(o.proyecto)) + (o.unidad_interes ? " · " + esc(o.unidad_interes) : "") + "</span>" +
       "<span>" + esc(FUENTES[o.fuente] || o.fuente) + "</span><span>" + esc(hace(o.updated_at)) + "</span>" +
-      (opts.asesor ? "<span>" + esc(nombreDe(o.asignado_a)) + "</span>" : "") + "</div>" +
+      (opts.asesor ? "<span>" + esc(nombreDe(o.asignado_a)) + "</span>" : "") + "</div>" + chipsLead(o) +
       (acciones ? '<div class="lead-actions">' + acciones + "</div>" : "") + "</div>";
   }
 
@@ -416,18 +418,26 @@
     var sin = abiertas.filter(function (o) { return !o.asignado_a; });
     var nuevos24 = S.ops.filter(function (o) { return Date.now() - ms(o.created_at) < 86400000; }).length;
     var tareas = S.tareas.slice(0, 40);
-    var estancados = abiertas.filter(function (o) { return o.asignado_a && (esGestor() || esMia(o)) && diasSin(o.updated_at) >= 3; })
-      .sort(function (a, b) { return ms(a.updated_at) - ms(b.updated_at); }).slice(0, 8);
+    var porResponder = abiertas.filter(function (o) { return sinResponder(o) && (esGestor() || esMia(o) || !o.asignado_a); })
+      .sort(function (a, b) { return ms(a.created_at) - ms(b.created_at); });
+    var estancados = abiertas.filter(function (o) { return o.asignado_a && (esGestor() || esMia(o)) && !sinResponder(o) && estancado(o); })
+      .sort(function (a, b) { return diasQuieto(b) - diasQuieto(a); }).slice(0, 8);
 
     var h = '<div class="stats">' +
       '<div class="stat"><b>' + c.abiertas + "</b><span>Leads abiertos</span></div>" +
       '<div class="stat' + (c.sin ? " alert" : "") + '"><b>' + c.sin + "</b><span>Sin asignar</span></div>" +
       '<div class="stat' + (c.venc ? " alert" : "") + '"><b>' + c.venc + "</b><span>Tareas vencidas</span></div>" +
-      '<div class="stat good"><b>' + nuevos24 + "</b><span>Nuevos en 24 h</span></div></div>";
+      '<div class="stat' + (porResponder.some(function (o) { return minDesde(o.created_at) > slaMin(); }) ? " alert" : porResponder.length ? "" : " good") + '"><b>' + porResponder.length + "</b><span>Sin responder</span></div></div>" +
+      '<p class="muted" style="margin:-4px 0 10px"><small>' + nuevos24 + (nuevos24 === 1 ? " lead nuevo" : " leads nuevos") + " en 24 h · meta: responder en " + slaMin() + " min</small></p>";
+    if (porResponder.length) {
+      h += '<div class="sec"><h2>Sin responder (' + porResponder.length + ")</h2></div><div class=\"list\">" +
+        porResponder.slice(0, 15).map(function (o) { return cardLead(o, { asesor: esGestor() }); }).join("") + "</div>";
+    }
 
-    if (sin.length) {
+    var sinYaListados = sin.filter(function (o) { return porResponder.indexOf(o) < 0; });
+    if (sinYaListados.length) {
       h += '<div class="sec"><h2>Sin asignar (' + sin.length + ")</h2></div><div class=\"list\">" +
-        sin.slice(0, 15).map(function (o) { return cardLead(o); }).join("") + "</div>";
+        sinYaListados.slice(0, 15).map(function (o) { return cardLead(o); }).join("") + "</div>";
     }
     h += '<div class="sec"><h2>' + (esGestor() ? "Tareas pendientes" : "Mis tareas") + "</h2></div>";
     if (!tareas.length) h += '<div class="empty">No tienes tareas pendientes. Abre un lead para crear una.</div>';
@@ -440,7 +450,7 @@
     }).join("") + "</div>";
 
     if (estancados.length) {
-      h += '<div class="sec"><h2>Sin movimiento (3+ días)</h2></div><div class="list">' +
+      h += '<div class="sec"><h2>Sin movimiento</h2></div><div class="list">' +
         estancados.map(function (o) { return cardLead(o, { asesor: esGestor() }); }).join("") + "</div>";
     }
     if (!S.ops.length) h += '<div class="empty" style="margin-top:14px">Aún no hay leads. Los del formulario web aparecerán aquí solos' + (puedeEscribir() ? ", o crea uno con el botón +" : "") + ".</div>";
@@ -484,7 +494,10 @@
       var items = lista.filter(function (o) { return o.etapa === e.id; });
       var total = items.length;
       if (CERRADAS.indexOf(e.id) !== -1) items = items.slice(0, 25);
+      var valor = items.concat(lista.filter(function (o) { return o.etapa === e.id; }).slice(items.length)).reduce(function (s2, o) { return s2 + Number(o.valor_estimado || 0); }, 0);
+      var prob = cfgEtapa(e.id).probabilidad;
       return '<section class="col" id="col-' + e.id + '" aria-label="' + esc(e.t) + '"><div class="col-head"><span>' + esc(e.t) + '</span><span class="n">' + total + "</span></div>" +
+        (valor ? '<div class="col-valor"><b>' + esc(precioTxt(valor)) + "</b>" + (prob != null && CERRADAS.indexOf(e.id) < 0 ? '<small title="Valor × probabilidad de la etapa (' + prob + ' %)">≈ ' + esc(precioTxt(Math.round(valor * prob / 100))) + " ponderado</small>" : "") + "</div>" : "") +
         (items.length ? items.map(function (o) { return cardLead(o, { sinEtapa: true, avanzar: true, asesor: esGestor() }); }).join("") : '<div class="col-empty">Sin leads</div>') +
         (total > items.length ? '<div class="col-empty">+' + (total - items.length) + " más (usa la búsqueda)</div>" : "") + "</section>";
     }).join("") + "</div>";
@@ -535,9 +548,9 @@
   /* ------------------------------------------------------------- Métricas */
   async function cargarMetricas() {
     try {
-      var r = await sb.rpc("crm_metricas", { p_org: S.org.id, p_dias: S.metDias });
-      if (r.error) throw r.error;
-      S.metricas = r.data;
+      var r = await Promise.all([sb.rpc("crm_metricas", { p_org: S.org.id, p_dias: S.metDias }), sb.rpc("crm_metricas_ventas", { p_org: S.org.id, p_dias: S.metDias })]);
+      if (r[0].error) throw r[0].error;
+      S.metricas = r[0].data; S.metVentas = r[1].data || null;
       if (S.vista === "metricas") render();
     } catch (e) { toast(mensajeError(e), true); }
   }
@@ -555,6 +568,20 @@
       '<div class="stat"><b>' + m.abiertas + "</b><span>Abiertos ahora</span></div>" +
       '<div class="stat' + (m.sin_asignar ? " alert" : "") + '"><b>' + m.sin_asignar + "</b><span>Sin asignar</span></div>" +
       '<div class="stat' + (m.tareas_vencidas ? " alert" : "") + '"><b>' + m.tareas_vencidas + "</b><span>Tareas vencidas</span></div></div>";
+    var v = S.metVentas;
+    if (v) {
+      var pr = v.primera_respuesta || {};
+      h += '<div class="sec"><h2>Velocidad de respuesta</h2></div><div class="stats">' +
+        '<div class="stat' + (pr.mediana_min != null && pr.mediana_min > v.sla_minutos ? " alert" : pr.mediana_min != null ? " good" : "") + '"><b>' + (pr.mediana_min != null ? esc(duracion(pr.mediana_min)) : "—") + "</b><span>Primera respuesta (mediana)</span></div>" +
+        '<div class="stat"><b>' + (pr.p90_min != null ? esc(duracion(pr.p90_min)) : "—") + "</b><span>9 de cada 10, antes de</span></div>" +
+        '<div class="stat"><b>' + (pr.en_sla_pct != null ? pr.en_sla_pct + "%" : "—") + "</b><span>Respondidos en menos de " + v.sla_minutos + " min</span></div>" +
+        '<div class="stat' + (v.sin_responder ? " alert" : "") + '"><b>' + v.sin_responder + "</b><span>Abiertos sin responder</span></div></div>";
+      h += '<div class="sec"><h2>Valor del embudo</h2></div><div class="stats">' +
+        '<div class="stat"><b>' + esc(precioTxt(v.valor_abierto)) + "</b><span>En negociación</span></div>" +
+        '<div class="stat good"><b>' + esc(precioTxt(v.valor_ponderado)) + "</b><span>Ponderado por etapa</span></div>" +
+        '<div class="stat' + (v.con_tarea_pct != null && v.con_tarea_pct < 70 ? " alert" : "") + '"><b>' + (v.con_tarea_pct != null ? v.con_tarea_pct + "%" : "—") + "</b><span>Con próxima tarea</span></div>" +
+        '<div class="stat' + (v.estancados ? " alert" : "") + '"><b>' + v.estancados + "</b><span>Estancados</span></div></div>";
+    }
     var max = Math.max.apply(null, ETAPAS.map(function (e) { return m.por_etapa[e.id] || 0; }).concat([1]));
     h += '<div class="sec"><h2>Embudo actual</h2></div><div class="card bars">' + ETAPAS.map(function (e) {
       var n = m.por_etapa[e.id] || 0;
@@ -569,8 +596,9 @@
         m.por_campana.map(function (c) { return "<tr><td>" + esc(c.campana) + '<br><small class="muted">' + esc(FUENTES[c.fuente] || c.fuente || "") + "</small></td><td>" + c.leads + "</td><td>" + c.vendidos + "</td></tr>"; }).join("") + "</tbody></table></div>";
     }
     if (m.por_asesor.length && S.rol !== "agente") {
-      h += '<div class="sec"><h2>Por asesor</h2></div><div class="card"><table class="tbl"><thead><tr><th>Asesor</th><th>Abiertos</th><th>Ventas</th></tr></thead><tbody>' +
-        m.por_asesor.map(function (a) { return "<tr><td>" + esc(nombreDe(a.email)) + "</td><td>" + a.abiertas + "</td><td>" + a.vendidos + "</td></tr>"; }).join("") + "</tbody></table></div>";
+      var rpa = {}; ((v && v.por_asesor) || []).forEach(function (x) { rpa[x.email] = x.mediana_min; });
+      h += '<div class="sec"><h2>Por asesor</h2></div><div class="card"><table class="tbl"><thead><tr><th>Asesor</th><th>Abiertos</th><th>Ventas</th><th>1.ª respuesta</th></tr></thead><tbody>' +
+        m.por_asesor.map(function (a) { return "<tr><td>" + esc(nombreDe(a.email)) + "</td><td>" + a.abiertas + "</td><td>" + a.vendidos + "</td><td>" + (rpa[a.email] != null ? esc(duracion(rpa[a.email])) : "—") + "</td></tr>"; }).join("") + "</tbody></table></div>";
     }
     return h;
   }
@@ -592,12 +620,16 @@
       sb.from("crm_contactos").select("*").eq("id", S.det ? S.det.op.contacto_id : "").maybeSingle(),
       sb.from("crm_actividades").select("*").eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(100),
       sb.from("crm_cotizaciones").select("id,numero,proyecto,oportunidad_id,cliente_nombre,cliente_telefono,unidades,precio_final,cuota_mensual,forma_pago,estado,vigencia_hasta,created_at,token,asesor_nombre,asesor_email")
-        .eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(30)
+        .eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(30),
+      sb.from("crm_busquedas").select("*").eq("oportunidad_id", id).maybeSingle(),
+      sb.rpc("unidades_sugeridas", { p_op: id, p_limite: 6 })
     ]);
     if (!S.det || S.det.op.id !== id) return;
     if (r[0].data) S.det.contacto = r[0].data;
     S.det.acts = r[1].data || [];
     S.det.cots = r[2].data || [];
+    S.det.busqueda = r[3].data || null;
+    S.det.sugeridas = r[4].data || [];
     if (r[1].error && !silencioso) toast(mensajeError(r[1].error), true);
     pintarHoja();
   }
@@ -623,12 +655,15 @@
 
     // Contacto rápido
     h += '<div class="quick">' +
-      (tel ? '<a class="btn" href="' + esc(tel) + '">' + icon("phone") + "Llamar</a>" : '<span class="btn" aria-disabled="true" style="opacity:.5">' + icon("phone") + "Sin teléfono</span>") +
-      (wa ? '<a class="btn btn-wa" href="' + esc(wa) + '" target="_blank" rel="noopener" data-action="wa-directo">' + icon("chat") + "WhatsApp</a>" : '<span class="btn" aria-disabled="true" style="opacity:.5">' + icon("chat") + "Sin WhatsApp</span>") +
+      (tel ? '<a class="btn" href="' + esc(tel) + '" data-action="contacto-directo" data-id="' + esc(o.id) + '" data-t="llamada">' + icon("phone") + "Llamar</a>" : '<span class="btn" aria-disabled="true" style="opacity:.5">' + icon("phone") + "Sin teléfono</span>") +
+      (wa ? '<a class="btn btn-wa" href="' + esc(wa) + '" target="_blank" rel="noopener" data-action="contacto-directo" data-id="' + esc(o.id) + '" data-t="whatsapp">' + icon("chat") + "WhatsApp</a>" : '<span class="btn" aria-disabled="true" style="opacity:.5">' + icon("chat") + "Sin WhatsApp</span>") +
       (c.correo ? '<a class="btn" href="mailto:' + esc(c.correo) + '">' + icon("mail") + "Correo</a>" : '<span class="btn" aria-disabled="true" style="opacity:.5">' + icon("mail") + "Sin correo</span>") + "</div>";
 
     // Responsable
-    h += '<div class="card"><div class="row" style="justify-content:space-between"><div><small class="muted">Responsable</small><br><b>' + esc(nombreDe(o.asignado_a)) + "</b></div>";
+    var resp = o.primera_respuesta_at ? "Primera respuesta en " + duracion((ms(o.primera_respuesta_at) - ms(o.created_at)) / 60000)
+      : abierta(o) ? "Sin responder hace " + duracion(minDesde(o.created_at)) + " · meta " + slaMin() + " min" : "";
+    h += '<div class="card"><div class="row" style="justify-content:space-between"><div><small class="muted">Responsable</small><br><b>' + esc(nombreDe(o.asignado_a)) + "</b>" +
+      (resp ? '<br><small class="' + (!o.primera_respuesta_at && minDesde(o.created_at) > slaMin() ? "txt-rojo" : "muted") + '">' + esc(resp) + "</small>" : "") + "</div>";
     if (esGestor()) {
       h += '<select class="inp" id="asignar" style="max-width:220px" aria-label="Asignar a"><option value="">Sin asignar</option>' +
         S.equipo.filter(puedeRecibir).map(function (p) { return '<option value="' + esc(p.email) + '"' + (o.asignado_a === p.email ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select>";
@@ -669,6 +704,9 @@
       if (S.prop) h += propuestaHtml(S.prop);
       h += "</div>";
     }
+
+    // Lo que busca y unidades que le calzan
+    h += busquedaHtml(d, gest);
 
     // Proformas
     var cots = d.cots || [];
@@ -873,7 +911,7 @@
   }
 
   function vistaAjustes() {
-    var secs = [["equipo", "Equipo"], ["proyectos", "Proyectos"]].concat(esGestor() ? [["marca", "Marca"]] : [])
+    var secs = [["equipo", "Equipo"], ["proyectos", "Proyectos"]].concat(esGestor() ? [["embudo", "Embudo"], ["marca", "Marca"]] : [])
       .concat([["integracion", "Tu sitio web"], ["plan", pagosEnApp() ? "Plan y pagos" : "Mi plan"], ["empresa", "Empresa"]]);
     var h = '<div class="sub-tabs" role="tablist">' + secs.map(function (x) {
       return '<button role="tab" class="' + (S.ajSec === x[0] ? "on" : "") + '" data-action="aj-sec" data-s="' + x[0] + '">' + x[1] + "</button>";
@@ -881,6 +919,7 @@
     if (S.ajSec === "equipo") return h + ajEquipo();
     if (S.ajSec === "proyectos") return h + ajProyectos();
     if (S.ajSec === "marca" && esGestor()) return h + ajMarca();
+    if (S.ajSec === "embudo" && esGestor()) return h + ajEmbudo();
     if (S.ajSec === "integracion") return h + ajIntegracion();
     if (S.ajSec === "plan") return h + ajPlan();
     return h + ajEmpresa();
@@ -1145,11 +1184,13 @@
         }).join("") + "</div></div>";
     } else if (!activa()) h += '<p class="muted" style="margin-top:10px">Con la suscripción vencida el inventario es solo de lectura.</p>';
     else if (S.rol === "agente" && (u.estado === "vendida" || u.estado === "no_disponible")) h += '<p class="muted" style="margin-top:10px">Solo un administrador cambia una unidad vendida o bloqueada.</p>';
+    if (u.estado !== "vendida") h += '<div class="sec"><h2>Clientes que buscan algo así</h2></div><div class="sug-lista" id="unidad-interesados"><div class="muted">Buscando…</div></div>';
     h += '<div class="sec"><h2>Historial</h2></div><div class="hist" id="unidad-hist"><div class="muted">Cargando…</div></div>';
     h += '<div class="row end" style="margin-top:14px">' + (esGestor() && activa() ? '<button class="btn btn-sm" data-action="unidad-editar" data-id="' + esc(u.id) + '">Editar</button>' +
       '<button class="btn btn-sm" data-action="unidad-eliminar" data-id="' + esc(u.id) + '" data-c="' + esc(u.codigo) + '">Eliminar</button>' : "") +
       '<button class="btn" data-action="cerrar-modal">Cerrar</button></div>';
     abrirModal(h);
+    if (u.estado !== "vendida") pintarInteresados(u);
     try {
       var r = await sb.from("crm_unidades_historial").select("*").eq("unidad_id", id).order("created_at", { ascending: false }).limit(20);
       var cont = $("unidad-hist"); if (!cont || r.error) return;
@@ -1270,6 +1311,158 @@
   function descargarTexto(nombre, texto, tipo) {
     var url = URL.createObjectURL(new Blob([texto], { type: tipo })), a = document.createElement("a");
     a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /* --------------------------------------------- Embudo premium: tiempos, alertas y matching */
+  var ETAPAS_DEF = { nuevo: { probabilidad: 5, dias_alerta: 1 }, contactado: { probabilidad: 10, dias_alerta: 3 }, cita: { probabilidad: 25, dias_alerta: 5 }, proforma: { probabilidad: 50, dias_alerta: 7 }, reserva: { probabilidad: 85, dias_alerta: 15 } };
+  function cfgEtapa(e) { return ((S.ventas && S.ventas.etapas) || ETAPAS_DEF)[e] || {}; }
+  function slaMin() { return (S.ventas && S.ventas.sla_minutos) || 15; }
+  function minDesde(iso) { return Math.max(0, Math.round((Date.now() - ms(iso)) / 60000)); }
+  function duracion(min) {
+    if (min < 1) return "menos de 1 min";
+    if (min < 60) return Math.round(min) + " min";
+    var h = min / 60; if (h < 24) return (h < 10 ? Math.round(h * 10) / 10 : Math.round(h)).toString().replace(".", ",") + " h";
+    var d = Math.round(h / 24); return d + (d === 1 ? " día" : " días");
+  }
+  function sinResponder(o) { return abierta(o) && !o.primera_respuesta_at; }
+  function diasQuieto(o) { return (Date.now() - Math.max(ms(o.ultima_actividad_at || o.created_at), ms(o.etapa_desde || o.created_at))) / 86400000; }
+  function estancado(o) { var d = cfgEtapa(o.etapa).dias_alerta; return abierta(o) && d != null && diasQuieto(o) >= d; }
+  function tieneTarea(o) { return S.tareas.some(function (t) { return t.oportunidad_id === o.id; }); }
+  function chipsLead(o) {
+    if (!abierta(o)) return "";
+    var h = "";
+    if (sinResponder(o)) {
+      var m = minDesde(o.created_at), tarde = m > slaMin();
+      h += '<span class="chip ' + (tarde ? "red" : "amber") + '" title="Meta: responder en ' + slaMin() + ' min">Sin responder · ' + esc(duracion(m)) + "</span>";
+    } else if (estancado(o)) h += '<span class="chip amber">' + Math.floor(diasQuieto(o)) + " d sin actividad</span>";
+    if (o.asignado_a && !tieneTarea(o)) h += '<span class="chip gray">Sin próxima tarea</span>';
+    return h ? '<div class="lead-chips">' + h + "</div>" : "";
+  }
+  async function cargarVentas() {
+    var r = await sb.rpc("crm_config_ventas", { p_org: S.org.id });
+    if (!r.error && r.data) S.ventas = r.data;
+  }
+  /* Registro automático al tocar WhatsApp o Llamar: así se mide la primera respuesta sin escribir nada. */
+  function registrarContacto(opId, tipo) {
+    var o = opPorId(opId); if (!o || !puedeGestionar(o)) return;
+    sb.from("crm_actividades").insert({ oportunidad_id: o.id, contacto_id: o.contacto_id, tipo: tipo, contenido: tipo === "llamada" ? "Llamó desde la app" : "Escribió por WhatsApp desde la app", creado_por: S.email })
+      .then(function (r) { if (!r.error) { if (!o.primera_respuesta_at) o.primera_respuesta_at = new Date().toISOString(); o.ultima_actividad_at = new Date().toISOString(); recargar(); } });
+  }
+
+  /* Lo que busca el cliente y las unidades que le calzan (ficha del lead). */
+  var TIPOS_BUSQ = ["departamento", "suite", "casa", "lote", "local", "oficina"];
+  function busquedaTxt(b) {
+    if (!b) return "";
+    var p = [];
+    if (b.tipos && b.tipos.length) p.push(b.tipos.map(function (t) { return TIPOS_UNIDAD[t] || t; }).join(" o "));
+    if (b.dormitorios_min != null) p.push(b.dormitorios_min + "+ dorm.");
+    if (b.precio_min != null && b.precio_max != null) p.push(precioTxt(b.precio_min) + " a " + precioTxt(b.precio_max));
+    else if (b.precio_max != null) p.push("hasta " + precioTxt(b.precio_max));
+    else if (b.precio_min != null) p.push("desde " + precioTxt(b.precio_min));
+    if (b.proyecto) p.push(proyTxt(b.proyecto));
+    return p.join(" · ");
+  }
+  function busquedaHtml(d, gest) {
+    var b = d.busqueda, txt = busquedaTxt(b), h = '<div class="card" id="card-busqueda"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Lo que busca</h3>' +
+      (gest && !d.editBusq ? '<button class="btn btn-sm" data-action="busq-editar">' + (txt ? "Editar" : "Anotar") + "</button>" : "") + "</div>";
+    if (d.editBusq) {
+      var t = (b && b.tipos) || [], proy = (b && b.proyecto) || d.op.proyecto || "";
+      h += '<form class="form" id="form-busqueda" style="margin-top:8px"><div class="fld"><span>Tipo</span><div class="chips-sel">' + TIPOS_BUSQ.map(function (x) {
+          return '<label class="chip-sel"><input type="checkbox" name="tipo" value="' + x + '"' + (t.indexOf(x) >= 0 ? " checked" : "") + "><span>" + TIPOS_UNIDAD[x] + "</span></label>";
+        }).join("") + "</div></div>" +
+        '<div class="form2"><label class="fld"><span>Presupuesto desde</span><input name="precio_min" inputmode="decimal" value="' + esc(b && b.precio_min != null ? String(b.precio_min) : "") + '" placeholder="Opcional"></label>' +
+        '<label class="fld"><span>Presupuesto hasta</span><input name="precio_max" inputmode="decimal" value="' + esc(b && b.precio_max != null ? String(b.precio_max) : "") + '" placeholder="Ej. 120000"></label></div>' +
+        '<div class="form2"><label class="fld"><span>Dormitorios (mínimo)</span><select name="dormitorios_min"><option value="">Da igual</option>' + [0, 1, 2, 3, 4, 5].map(function (n) {
+          return '<option value="' + n + '"' + (b && b.dormitorios_min === n ? " selected" : "") + ">" + (n === 0 ? "Estudio / sin dormitorio" : n + "+") + "</option>"; }).join("") + "</select></label>" +
+        '<label class="fld"><span>Proyecto</span><select name="proyecto"><option value="">Cualquiera</option>' + S.proyectos.map(function (p) {
+          return '<option value="' + esc(p.slug) + '"' + (proy === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label></div>" +
+        '<label class="fld"><span>Notas</span><input name="notas" maxlength="500" value="' + esc((b && b.notas) || "") + '" placeholder="Ej. piso alto, con balcón, mascotas"></label>' +
+        '<div class="row end"><button type="button" class="btn btn-sm" data-action="busq-cancelar">Cancelar</button><button class="btn btn-primary btn-sm" type="submit">Guardar y buscar</button></div></form>';
+    } else if (txt) {
+      h += '<p style="margin:6px 0 0"><b>' + esc(txt) + "</b>" + (b.notas ? '<br><small class="muted">' + esc(b.notas) + "</small>" : "") + "</p>";
+      var sug = d.sugeridas || [];
+      h += '<div class="sec" style="margin-top:10px"><h2>Unidades que le calzan' + (sug.length ? " (" + sug.length + ")" : "") + "</h2></div>" +
+        (sug.length ? '<div class="sug-lista">' + sug.map(function (u) {
+          return '<div class="sug"><div><b>' + esc(u.codigo) + '</b> <span class="chip ' + (u.puntaje >= 90 ? "green" : "") + '">Calza ' + u.puntaje + " %</span><br><small class=\"muted\">" +
+            esc([proyTxt(u.proyecto), TIPOS_UNIDAD[u.tipo], u.piso ? "Piso " + u.piso : "", u.dormitorios != null ? u.dormitorios + " dorm." : "", u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : ""].filter(Boolean).join(" · ")) +
+            "</small><br><b>" + (u.precio != null ? esc(precioTxt(u.precio)) : "Sin precio") + '</b></div><div class="row">' +
+            (gest && u.precio != null ? '<button class="btn btn-primary btn-sm" data-action="sug-proforma" data-u="' + esc(u.id) + '">Proforma</button>' : "") +
+            '<button class="btn btn-sm" data-action="sug-ver" data-u="' + esc(u.id) + '">Ver</button></div></div>';
+        }).join("") + "</div>" : '<p class="muted" style="margin:0">Ninguna unidad disponible calza todavía. Te avisaremos en la ficha de cada unidad nueva.</p>');
+    } else h += '<p class="muted" style="margin:6px 0 0">' + (gest ? "Anota qué busca (tipo, presupuesto, dormitorios) y te mostramos las unidades disponibles que le calzan." : "Sin datos.") + "</p>";
+    return h + "</div>";
+  }
+  async function guardarBusqueda(f, btn) {
+    var fd = new FormData(f), datos = { tipos: fd.getAll("tipo"), proyecto: fd.get("proyecto") || null, dormitorios_min: fd.get("dormitorios_min") === "" ? null : Number(fd.get("dormitorios_min")), notas: fd.get("notas") };
+    var malo = "";
+    ["precio_min", "precio_max"].forEach(function (k) { var r = GPUImportar.numero(fd.get(k)); if (r.vacio) datos[k] = null; else if (r.error || r.valor < 0) malo = "El presupuesto no es un número válido."; else datos[k] = r.valor; });
+    if (!malo && datos.precio_min != null && datos.precio_max != null && datos.precio_min > datos.precio_max) malo = "El presupuesto «desde» es mayor que el «hasta».";
+    if (malo) { toast(malo, true); return; }
+    var id = S.det.op.id;
+    return conBoton(btn, async function () {
+      var r = await sb.rpc("guardar_busqueda", { p_op: id, p_datos: datos }); if (r.error) throw r.error;
+      S.det.editBusq = false; S.det.busqueda = r.data; await cargarSugeridas(id); toast("Guardado. Estas son las unidades que le calzan.");
+    });
+  }
+  async function cargarSugeridas(id) {
+    var r = await sb.rpc("unidades_sugeridas", { p_op: id, p_limite: 6 });
+    if (S.det && S.det.op.id === id) { S.det.sugeridas = r.data || []; pintarHoja(); }
+  }
+
+  /* Clientes interesados en una unidad (ficha de la unidad). */
+  async function pintarInteresados(u) {
+    var cont = $("unidad-interesados"); if (!cont) return;
+    var r = await sb.rpc("leads_para_unidad", { p_unidad: u.id, p_limite: 20 });
+    cont = $("unidad-interesados"); if (!cont) return;
+    var ls = r.data || [];
+    if (!ls.length) { cont.innerHTML = '<p class="muted" style="margin:0">Ningún cliente con búsqueda anotada calza con esta unidad.</p>'; return; }
+    cont.innerHTML = ls.map(function (l) {
+      var primero = (l.nombre || "").split(" ")[0];
+      var msg = "Hola " + primero + ", tengo una opción que encaja con lo que buscas: " + (TIPOS_UNIDAD[u.tipo] || "unidad").toLowerCase() + " " + u.codigo + " en " + proyTxt(u.proyecto) +
+        (u.precio != null ? " por " + precioTxt(u.precio) : "") + ". ¿Te paso los detalles?";
+      return '<div class="sug"><div><b>' + esc(l.nombre) + '</b> <span class="chip ' + (l.puntaje >= 90 ? "green" : "") + '">Calza ' + l.puntaje + " %</span><br><small class=\"muted\">" +
+        esc(etapaTxt(l.etapa) + (l.asignado_a ? " · " + nombreDe(l.asignado_a) : " · sin asesor")) + '</small></div><div class="row">' +
+        (l.telefono_norm ? '<a class="btn btn-sm btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(l.telefono_norm) + "?text=" + encodeURIComponent(msg) + '" data-action="contacto-directo" data-id="' + esc(l.oportunidad_id) + '" data-t="whatsapp">' + icon("chat", "icon-sm") + " Avisar</a>" : "") +
+        (u.estado === "disponible" && u.precio != null && puedeEscribir() ? '<button class="btn btn-sm" data-action="int-proforma" data-op="' + esc(l.oportunidad_id) + '" data-u="' + esc(u.id) + '">Proforma</button>' : "") +
+        '<button class="btn btn-sm" data-action="int-ficha" data-id="' + esc(l.oportunidad_id) + '">Ficha</button></div></div>';
+    }).join("");
+  }
+
+  /* ------------------------------------------------------- Ajustes → Embudo */
+  async function cargarAutomatizaciones() {
+    var r = await sb.from("crm_automatizaciones").select("*").eq("org_id", S.org.id).order("created_at");
+    S.autos = r.data || []; if (S.vista === "ajustes" && S.ajSec === "embudo") render();
+  }
+  var PLAZOS = [[15, "15 minutos"], [60, "1 hora"], [240, "4 horas"], [1440, "1 día"], [2880, "2 días"], [4320, "3 días"], [10080, "1 semana"]];
+  function plazoTxt(m) { var p = PLAZOS.filter(function (x) { return x[0] === m; })[0]; return p ? p[1] : duracion(m); }
+  function ajEmbudo() {
+    if (S.autos == null) { cargarAutomatizaciones(); return '<div class="empty">Cargando…</div>'; }
+    var ok = activa(), etapas = ETAPAS.filter(function (e) { return CERRADAS.indexOf(e.id) < 0; });
+    var h = '<form class="card form" id="form-embudo"><h3>Velocidad y alertas</h3>' +
+      '<label class="fld"><span>Responder un lead nuevo en (minutos)</span><input name="sla" inputmode="numeric" value="' + slaMin() + '" style="max-width:160px">' +
+      '<small class="muted">Lo que tarde más se marca en rojo en «Hoy» y cuenta fuera de meta en Métricas.</small></label>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Etapa</th><th>Probabilidad de cierre</th><th>Alerta sin actividad</th></tr></thead><tbody>' +
+      etapas.map(function (e) {
+        var c = cfgEtapa(e.id);
+        return "<tr><td>" + esc(e.t) + '</td><td><input name="p_' + e.id + '" inputmode="numeric" value="' + (c.probabilidad != null ? c.probabilidad : "") + '" aria-label="Probabilidad de ' + esc(e.t) + '" class="inp-corto"> %</td>' +
+          '<td><input name="d_' + e.id + '" inputmode="numeric" value="' + (c.dias_alerta != null ? c.dias_alerta : "") + '" aria-label="Días de alerta de ' + esc(e.t) + '" class="inp-corto" placeholder="—"> días</td></tr>';
+      }).join("") + "</tbody></table></div>" +
+      '<small class="muted">La probabilidad calcula el valor ponderado del embudo. Deja vacía la alerta para no avisar en esa etapa.</small>' +
+      '<div class="row end"><button class="btn btn-primary" type="submit"' + (ok ? "" : " disabled") + ">Guardar</button></div></form>";
+    h += '<div class="sec"><h2>Tareas automáticas por etapa</h2></div><div class="card"><p class="muted" style="margin:0 0 8px">Cuando un lead entra a una etapa se le crea esta tarea. Puedes usar {cliente} y {proyecto}.</p>' +
+      (S.autos.length ? S.autos.map(function (a) {
+        return '<div class="person"><div><b>' + esc(a.titulo) + "</b><small>Al entrar a «" + esc(etapaTxt(a.etapa)) + "» · vence en " + esc(plazoTxt(a.vence_min)) + (a.activa ? "" : " · pausada") + '</small></div><div class="row">' +
+          '<button class="btn btn-sm" data-action="auto-activa" data-id="' + esc(a.id) + '"' + (ok ? "" : " disabled") + ">" + (a.activa ? "Pausar" : "Activar") + "</button>" +
+          '<button class="btn btn-sm" data-action="auto-borrar" data-id="' + esc(a.id) + '"' + (ok ? "" : " disabled") + ">Eliminar</button></div></div>";
+      }).join("") : '<div class="empty">Aún no hay tareas automáticas. Una buena primera: «Contactar a {cliente} por WhatsApp» al entrar a Nuevo, en 15 minutos.</div>') + "</div>" +
+      '<form class="card form" id="form-auto" style="margin-top:12px"><h3>Nueva tarea automática</h3><div class="form2"><label class="fld"><span>Al entrar a</span><select name="etapa">' +
+      ETAPAS.map(function (e) { return '<option value="' + e.id + '">' + esc(e.t) + "</option>"; }).join("") + '</select></label><label class="fld"><span>Vence en</span><select name="vence">' +
+      PLAZOS.map(function (p) { return '<option value="' + p[0] + '"' + (p[0] === 60 ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + "</select></label></div>" +
+      '<label class="fld"><span>Tarea</span><input name="titulo" maxlength="200" placeholder="Ej. Contactar a {cliente} por WhatsApp" list="auto-ideas"><datalist id="auto-ideas">' +
+      ["Contactar a {cliente} por WhatsApp", "Llamar a {cliente} para agendar la visita", "Confirmar la visita a {proyecto} con {cliente}", "Enviar la proforma de {proyecto} a {cliente}", "Dar seguimiento a la proforma de {cliente}", "Pedir los documentos de la reserva a {cliente}"]
+        .map(function (t) { return '<option value="' + esc(t) + '">'; }).join("") + "</datalist></label>" +
+      '<div class="row end"><button class="btn btn-primary" type="submit"' + (ok ? "" : " disabled") + ">Agregar</button></div></form>";
+    return h;
   }
 
   /* ------------------------------------------------------------------ Cotizador (proformas) */
@@ -1896,6 +2089,24 @@
       instalarEvento.prompt(); instalarEvento.userChoice.finally(function () { instalarEvento = null; cerrarModal(); });
     },
     "aj-sec": function (el) { if (el.dataset.s !== "marca") S.mDraft = null; S.ajSec = el.dataset.s; render(); },
+    "contacto-directo": function (el) { registrarContacto(el.dataset.id, el.dataset.t); },
+    "busq-editar": function () { S.det.editBusq = true; pintarHoja(); },
+    "busq-cancelar": function () { S.det.editBusq = false; pintarHoja(); },
+    "sug-proforma": function (el) { abrirCotizador({ op: S.det.op.id, unidad: el.dataset.u }); },
+    "sug-ver": async function (el) { if (S.unidades === null) await cargarInventario(true); abrirUnidad(el.dataset.u); },
+    "int-proforma": function (el) { abrirCotizador({ op: el.dataset.op, unidad: el.dataset.u }); },
+    "int-ficha": function (el) { cerrarModal(); abrirHoja(el.dataset.id); },
+    "auto-activa": function (el) {
+      var a = S.autos.filter(function (x) { return x.id === el.dataset.id; })[0];
+      return conBoton(el, async function () {
+        var r = await sb.rpc("guardar_automatizacion", { p_org: S.org.id, p_id: a.id, p_etapa: a.etapa, p_titulo: a.titulo, p_vence_min: a.vence_min, p_activa: !a.activa }); if (r.error) throw r.error;
+        toast(a.activa ? "Automatización pausada" : "Automatización activa"); await cargarAutomatizaciones();
+      });
+    },
+    "auto-borrar": function (el) {
+      if (!window.confirm("¿Eliminar esta tarea automática? Las tareas ya creadas se conservan.")) return;
+      return conBoton(el, async function () { var r = await sb.rpc("eliminar_automatizacion", { p_id: el.dataset.id }); if (r.error) throw r.error; toast("Automatización eliminada"); await cargarAutomatizaciones(); });
+    },
     "inv-sub": function (el) { S.invSub = el.dataset.s; render(); },
     "nueva-proforma": function () { abrirCotizador({}); },
     "cotizar-unidad": function (el) { abrirCotizador({ unidad: el.dataset.id }); },
@@ -2161,6 +2372,30 @@
     if (f.id === "form-marca") return guardarMarca(f, btn);
     if (f.id === "form-unidad") return guardarUnidad(f, btn);
     if (f.id === "form-cfg-cot") return guardarConfigCot(f, btn);
+    if (f.id === "form-busqueda") return guardarBusqueda(f, btn);
+    if (f.id === "form-embudo") {
+      var fd = new FormData(f), sla = Number(fd.get("sla")), etapas = {}, malo = "";
+      if (!(sla >= 1 && sla <= 1440 && sla % 1 === 0)) malo = "El tiempo para responder va de 1 a 1440 minutos.";
+      ETAPAS.filter(function (e) { return CERRADAS.indexOf(e.id) < 0; }).forEach(function (e) {
+        var p = String(fd.get("p_" + e.id) || "").trim(), d = String(fd.get("d_" + e.id) || "").trim();
+        if (!/^\d{1,3}$/.test(p) || Number(p) > 100) malo = malo || "La probabilidad de «" + e.t + "» va de 0 a 100.";
+        if (d && (!/^\d{1,2}$/.test(d) || Number(d) < 1 || Number(d) > 90)) malo = malo || "La alerta de «" + e.t + "» va de 1 a 90 días.";
+        etapas[e.id] = { probabilidad: Number(p), dias_alerta: d ? Number(d) : null };
+      });
+      if (malo) { toast(malo, true); return; }
+      return conBoton(btn, async function () {
+        var r = await sb.rpc("guardar_config_ventas", { p_org: S.org.id, p_sla: sla, p_etapas: etapas }); if (r.error) throw r.error;
+        S.ventas = r.data; render(); toast("Embudo guardado");
+      });
+    }
+    if (f.id === "form-auto") {
+      var fa = new FormData(f), tit = String(fa.get("titulo") || "").trim();
+      if (tit.length < 3) { toast("Escribe la tarea (al menos 3 letras)", true); return; }
+      return conBoton(btn, async function () {
+        var r = await sb.rpc("guardar_automatizacion", { p_org: S.org.id, p_id: null, p_etapa: fa.get("etapa"), p_titulo: tit, p_vence_min: Number(fa.get("vence")), p_activa: true }); if (r.error) throw r.error;
+        toast("Tarea automática creada"); await cargarAutomatizaciones();
+      });
+    }
     if (f.id === "form-anular") {
       var mot = String(new FormData(f).get("motivo") || "").trim();
       if (mot.length < 3) { toast("Escribe el motivo", true); return; }

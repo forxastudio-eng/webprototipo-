@@ -75,6 +75,25 @@
       FX.tables.crm_unidades_historial = [{ id: 99, unidad_id: u.id, estado_antes: antes, estado_despues: a.p_estado, oportunidad_id: a.p_oportunidad, por: "ana@x.com", nota: a.p_nota, created_at: new Date().toISOString() }].concat(FX.tables.crm_unidades_historial);
       return u;
     },
+    /* embudo premium */
+    crm_config_ventas: function () { return FX.ventas || null; },
+    crm_metricas_ventas: function () { return FX.metVentas || null; },
+    guardar_config_ventas: function (a) { FX.ventas = { sla_minutos: a.p_sla, etapas: a.p_etapas }; return FX.ventas; },
+    guardar_automatizacion: function (a) {
+      var T = FX.tables.crm_automatizaciones = FX.tables.crm_automatizaciones || [];
+      var x = a.p_id ? T.filter(function (y) { return y.id === a.p_id; })[0] : null;
+      if (!x) { x = { id: "au" + (T.length + 1), org_id: ORG.id, created_at: new Date().toISOString() }; T.push(x); }
+      Object.assign(x, { etapa: a.p_etapa, titulo: a.p_titulo, vence_min: a.p_vence_min, activa: a.p_activa });
+      return x;
+    },
+    eliminar_automatizacion: function (a) { FX.tables.crm_automatizaciones = (FX.tables.crm_automatizaciones || []).filter(function (y) { return y.id !== a.p_id; }); return null; },
+    guardar_busqueda: function (a) {
+      var b = Object.assign({ oportunidad_id: a.p_op, org_id: ORG.id }, a.p_datos);
+      FX.tables.crm_busquedas = (FX.tables.crm_busquedas || []).filter(function (y) { return y.oportunidad_id !== a.p_op; }).concat([b]);
+      return b;
+    },
+    unidades_sugeridas: function () { return FX.sugeridas || []; },
+    leads_para_unidad: function () { return FX.interesados || []; },
     /* cotizador */
     crear_cotizacion: function (a) {
       if (FX.errorCotizacion) return { __error: FX.errorCotizacion };

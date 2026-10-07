@@ -2,7 +2,7 @@
 
 CRM inmobiliario multiempresa con IA. Cada inmobiliaria tiene su espacio aislado, su equipo, sus leads y su plan. Se paga **por transferencia bancaria** y GPUnlock activa cada plan desde su consola. No hay pasarela de pagos.
 
-Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_INMOBILIARIO_IA.md).
+Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_INMOBILIARIO_IA.md). Hoja de ruta «CRM premium LATAM» (análisis frente a Kommo, HubSpot, Pipedrive, Tokko…): [`docs/ROADMAP_PREMIUM.md`](docs/ROADMAP_PREMIUM.md).
 
 ```
 .
@@ -14,7 +14,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 │   ├── proforma/         la proforma que ve el cliente (enlace privado, se guarda en PDF)
 │   ├── embed/            lead.js (captura de leads) e inventario.js (disponibilidad en vivo) para la web de cada inmobiliaria
 │   └── css/ js/ assets/  marca GPUnlock (tokens, fuentes, logos) y configuración pública
-├── supabase/             base de datos (01 → 08), funciones de servidor y pruebas de SQL
+├── supabase/             base de datos (01 → 09), funciones de servidor y pruebas de SQL
 ├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
 ├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
 ├── site/                 landings del demo (se publican aparte: Base directory = site)
@@ -23,7 +23,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ## Puesta en marcha
 
-1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 8 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql`, `06_avisos.sql`, `07_inventario.sql` y `08_cotizador.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
+1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 9 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql`, `06_avisos.sql`, `07_inventario.sql`, `08_cotizador.sql` y `09_ventas.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
 2. **Autenticación.** Authentication → Providers → Email: deja activado *Confirm email*. En *URL Configuration* pon tu dominio como Site URL y agrega `https://TU-DOMINIO/app/` y `https://TU-DOMINIO/consola/` en Redirect URLs.
 3. **Primer superadmin (tú).** Crea tu cuenta en Authentication → Add user (o regístrate en `/app/`) y luego, en el SQL Editor:
    ```sql
@@ -69,6 +69,13 @@ GitHub Actions corre las dos en cada cambio (`.github/workflows/ci.yml`).
 Pestaña **Inventario** de la app: todo el equipo ve las unidades (departamentos, casas, lotes, locales…) con precio y estado. Propietario y administrador crean, editan, eliminan e **importan desde Excel (.xlsx) o CSV** (el archivo se lee en el navegador; se reconocen los títulos habituales, se muestra una vista previa con los errores por fila y solo se envían las filas válidas). Los agentes reservan o liberan; vender o bloquear es de un administrador. Reservar o vender para un lead lo mueve a *Reserva* o *Vendido* con el precio de la unidad, y todo cambio queda en el historial (quién, cuándo, para qué lead).
 
 Para mostrar la disponibilidad en la web de la inmobiliaria: **Ajustes → Tu sitio web** da un `<div data-crm-inventario>` y el script `embed/inventario.js`. Solo sale lo marcado como visible (y los precios solo si el proyecto lo permite, en **Ajustes → Proyectos**). Cada unidad puede tener hasta 8 fotos (se achican en el teléfono antes de subir); la portada sale en la lista, en la web y en la proforma.
+
+## Embudo premium
+- **Velocidad de respuesta:** la base mide cuánto tarda cada lead en recibir su primera respuesta (un WhatsApp, una llamada, una nota). Tocar «WhatsApp» o «Llamar» en la app ya lo registra. «Hoy» muestra primero los leads **sin responder**, en rojo si pasaron la meta (15 minutos por defecto).
+- **Alertas por etapa:** cada etapa tiene días máximos sin actividad y una probabilidad de cierre; el embudo muestra el valor de cada columna y el **valor ponderado**, y cada tarjeta avisa «6 d sin actividad» o «Sin próxima tarea».
+- **Tareas automáticas:** en **Ajustes → Embudo** se define, por etapa, la tarea que se crea sola (p. ej. «Contactar a {cliente} por WhatsApp» en 15 minutos al llegar un lead nuevo).
+- **Lo que busca cada cliente** (tipo, presupuesto, dormitorios, proyecto) → la ficha muestra las **unidades que le calzan** y la proforma sale en un toque; y cada unidad muestra los **clientes a los que les calza**, con un WhatsApp ya redactado.
+- **Métricas:** primera respuesta (mediana, 9 de cada 10, % en meta), por asesor, valor en negociación y ponderado, % con próxima tarea y estancados.
 
 ## Proformas (cotizador)
 Desde **Inventario → Nueva proforma**, desde la ficha de una unidad («Hacer proforma con esta unidad») o desde la ficha de un lead:
