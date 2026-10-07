@@ -477,7 +477,8 @@
     Object.keys(PROYECTOS).forEach(function (k) { proys[k] = PROYECTOS[k]; });
     S.ops.forEach(function (o) { if (o.proyecto && !proys[o.proyecto]) proys[o.proyecto] = o.proyecto; });
     var lista = filtrar();
-    var h = '<div class="filters"><input class="inp" type="search" id="f-q" placeholder="Buscar nombre, teléfono, proyecto…" value="' + esc(S.f.q) + '" aria-label="Buscar">' +
+    var h = (esGestor() ? '<div class="row" style="margin-bottom:10px;justify-content:flex-end"><button class="btn btn-sm" data-action="importar-leads"' + (activa() ? "" : " disabled") + ">Importar cartera (Excel o CSV)</button></div>" : "") +
+      '<div class="filters"><input class="inp" type="search" id="f-q" placeholder="Buscar nombre, teléfono, proyecto…" value="' + esc(S.f.q) + '" aria-label="Buscar">' +
       '<select class="inp" id="f-proyecto" aria-label="Proyecto"><option value="">Todos los proyectos</option>' +
       Object.keys(proys).map(function (k) { return '<option value="' + esc(k) + '"' + (S.f.proyecto === k ? " selected" : "") + ">" + esc(proys[k]) + "</option>"; }).join("") + "</select>" +
       '<select class="inp" id="f-quien" aria-label="Responsable">' +
@@ -1248,38 +1249,65 @@
   }
 
   /* ----------------------------------------------- Importar desde Excel o CSV */
-  function abrirImportar() {
-    S.imp = { paso: 1, archivo: null, nombre: "", columnas: [], filas: [], mapa: {}, proyecto: S.invF.proyecto || (S.proyectos[0] && S.proyectos[0].slug) || "", actualizarEstado: false, error: "", enviando: false };
+  /* tipo: "inventario" (unidades) o "leads" (cartera de clientes). */
+  function abrirImportar(tipo) {
+    S.imp = { tipo: tipo === "leads" ? "leads" : "inventario", paso: 1, archivo: null, nombre: "", columnas: [], filas: [], mapa: {},
+      proyecto: tipo === "leads" ? "" : S.invF.proyecto || (S.proyectos[0] && S.proyectos[0].slug) || "", actualizarEstado: false,
+      fuente: "cartera", asignado: "", error: "", enviando: false, hecho: null };
     pintarImportar();
   }
   function conversionImp() {
     var I = S.imp;
+    if (I.tipo === "leads") return GPUImportar.convertirLeads(I.filas, I.mapa, { proyectos: S.proyectos, equipo: S.equipo });
     return GPUImportar.convertir(I.filas, I.mapa, { proyectos: S.proyectos, proyectoDefecto: I.mapa.proyecto >= 0 ? (I.proyecto || null) : I.proyecto });
   }
   function pintarImportar() {
     var I = S.imp; if (!I) return;
-    var h = "<h2>Importar inventario</h2>";
+    var leads = I.tipo === "leads", h = "<h2>" + (leads ? "Importar cartera de clientes" : "Importar inventario") + "</h2>";
+    if (I.hecho) {
+      var x = I.hecho;
+      h += '<div class="cot-ok"><div class="cot-ok-icono" aria-hidden="true">✓</div><h2>' + x.creados + (x.creados === 1 ? " lead importado" : " leads importados") + "</h2>" +
+        (x.existentes ? '<p class="muted" style="margin:0">' + x.existentes + (x.existentes === 1 ? " ya estaba" : " ya estaban") + " en tu CRM y no se duplicaron.</p>" : "") +
+        '<p class="muted" style="margin:0"><small>No cuentan en el límite mensual de tu plan ni aparecen como «sin responder». ¿Te equivocaste de archivo? Puedes deshacerlo durante 7 días.</small></p>' +
+        '<div class="row" style="justify-content:center"><button class="btn" data-action="imp-deshacer" data-id="' + esc(x.importacion_id) + '">Deshacer importación</button><button class="btn btn-primary" data-action="cerrar-modal">Listo</button></div></div>';
+      return abrirModal(h);
+    }
     if (I.paso === 1) {
-      h += '<p class="muted" style="margin:0 0 10px">Sube un Excel (.xlsx) o un CSV con una fila de títulos y una unidad por fila. El archivo se lee en tu equipo; solo se envía lo que confirmes.</p>' +
+      h += '<p class="muted" style="margin:0 0 10px">' + (leads
+          ? "Sube tu cartera en Excel (.xlsx) o CSV: una hoja propia o lo que exportes de Kommo, Pipedrive o HubSpot. Reconocemos las columnas solas. El archivo se lee en tu equipo; solo se envía lo que confirmes."
+          : "Sube un Excel (.xlsx) o un CSV con una fila de títulos y una unidad por fila. El archivo se lee en tu equipo; solo se envía lo que confirmes.") + "</p>" +
         '<label class="fld"><span>Archivo</span><input type="file" id="imp-archivo" accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>' +
         (I.error ? '<div class="notice notice-error" role="alert">' + esc(I.error) + "</div>" : "") +
         '<p style="margin:10px 0 0"><button type="button" class="link-btn" data-action="imp-plantilla">Descargar plantilla de ejemplo (CSV)</button></p>' +
-        '<p class="muted" style="margin:8px 0 0"><small>Si ya existe una unidad con el mismo código en el proyecto, se actualiza (sin borrar los datos que tu archivo no trae). Máximo 2.000 filas.</small></p>' +
+        '<p class="muted" style="margin:8px 0 0"><small>' + (leads
+          ? "Un cliente que ya está en el CRM (mismo teléfono o correo) no se duplica. Máximo 2.000 filas."
+          : "Si ya existe una unidad con el mismo código en el proyecto, se actualiza (sin borrar los datos que tu archivo no trae). Máximo 2.000 filas.") + "</small></p>" +
         '<div class="row end" style="margin-top:12px"><button class="btn" data-action="cerrar-modal">Cancelar</button></div>';
     } else {
-      var c = conversionImp(), I2 = I, cols = I.columnas;
+      var c = conversionImp(), I2 = I, cols = I.columnas, campos = leads ? GPUImportar.LEADS.CAMPOS : GPUImportar.CAMPOS, etq = leads ? GPUImportar.LEADS.ETIQUETAS : GPUImportar.ETIQUETAS;
       var opciones = function (campo) {
         return '<option value="-1">— no viene en el archivo —</option>' + cols.map(function (t, i) { return '<option value="' + i + '"' + (I2.mapa[campo] === i ? " selected" : "") + ">" + esc(t || "Columna " + (i + 1)) + "</option>"; }).join("");
       };
       h += '<p class="muted" style="margin:0 0 10px"><b>' + esc(I.nombre) + "</b> · " + I.filas.length + " filas. Revisa qué columna es cada dato.</p><div class=\"imp-mapa\">" +
-        GPUImportar.CAMPOS.map(function (campo) {
-          var obl = campo === "codigo" ? " *" : "";
-          return '<label class="fld"><span>' + GPUImportar.ETIQUETAS[campo] + obl + '</span><select data-imp-map="' + campo + '">' + opciones(campo) + "</select></label>";
+        campos.map(function (campo) {
+          var obl = campo === (leads ? "nombre" : "codigo") ? " *" : "";
+          return '<label class="fld"><span>' + etq[campo] + obl + '</span><select data-imp-map="' + campo + '">' + opciones(campo) + "</select></label>";
         }).join("") + "</div>";
-      h += '<label class="fld" style="margin-top:8px"><span>Proyecto para las filas sin proyecto</span><select id="imp-proyecto">' +
-        S.proyectos.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (I.proyecto === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>" +
-        '<label class="row" style="gap:8px;margin-top:8px"><input type="checkbox" id="imp-estado"' + (I.actualizarEstado ? " checked" : "") + '> <span>Actualizar también el estado de las unidades que ya existen</span></label>';
-      h += '<div class="card" style="margin-top:12px"><b>' + c.filas.length + " " + (c.filas.length === 1 ? "unidad lista" : "unidades listas") + "</b>" + (c.errores.length ? ' · <b class="txt-rojo">' + c.errores.length + " con errores</b>" : "") +
+      if (leads) {
+        h += '<div class="form2" style="margin-top:8px"><label class="fld"><span>Proyecto para las filas sin proyecto</span><select id="imp-proyecto"><option value="">Ninguno</option>' +
+          S.proyectos.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (I.proyecto === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>" +
+          '<label class="fld"><span>Fuente para las filas sin fuente</span><select id="imp-fuente">' +
+          Object.keys(FUENTES).map(function (k) { return '<option value="' + k + '"' + (I.fuente === k ? " selected" : "") + ">" + esc(FUENTES[k]) + "</option>"; }).join("") + "</select></label></div>" +
+          '<label class="fld"><span>Leads sin asesor en el archivo</span><select id="imp-asignado"><option value="">Dejar sin asignar</option>' +
+          (S.equipo.some(function (p) { return p.rol === "agente"; }) ? '<option value="__repartir__"' + (I.asignado === "__repartir__" ? " selected" : "") + ">Repartir entre los agentes</option>" : "") +
+          S.equipo.filter(puedeRecibir).map(function (p) { return '<option value="' + esc(p.email) + '"' + (I.asignado === p.email ? " selected" : "") + ">Asignar a " + esc(p.nombre) + "</option>"; }).join("") + "</select></label>";
+      } else {
+        h += '<label class="fld" style="margin-top:8px"><span>Proyecto para las filas sin proyecto</span><select id="imp-proyecto">' +
+          S.proyectos.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (I.proyecto === p.slug ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>" +
+          '<label class="row" style="gap:8px;margin-top:8px"><input type="checkbox" id="imp-estado"' + (I.actualizarEstado ? " checked" : "") + '> <span>Actualizar también el estado de las unidades que ya existen</span></label>';
+      }
+      var uno = leads ? "cliente listo" : "unidad lista", varios = leads ? "clientes listos" : "unidades listas";
+      h += '<div class="card" style="margin-top:12px"><b>' + c.filas.length + " " + (c.filas.length === 1 ? uno : varios) + "</b>" + (c.errores.length ? ' · <b class="txt-rojo">' + c.errores.length + " con errores</b>" : "") +
         c.avisos.map(function (a) { return '<p class="muted" style="margin:6px 0 0">⚠ ' + esc(a) + "</p>"; }).join("") +
         (c.errores.length ? '<ul class="imp-errores">' + c.errores.slice(0, 8).map(function (e) { return "<li>Fila " + e.fila + ": " + esc(e.error) + "</li>"; }).join("") +
           (c.errores.length > 8 ? "<li>…y " + (c.errores.length - 8) + " más</li>" : "") + "</ul><p class=\"muted\" style=\"margin:6px 0 0\"><small>Las filas con error no se importan: corrígelas en tu archivo y vuelve a subirlo.</small></p>" : "") + "</div>";
@@ -1292,7 +1320,7 @@
     var f = input.files && input.files[0]; if (!f || !S.imp) return;
     try {
       var r = await GPUImportar.leerArchivo(f);
-      S.imp.nombre = f.name; S.imp.columnas = r.columnas; S.imp.filas = r.filas; S.imp.mapa = GPUImportar.sugerirMapa(r.columnas); S.imp.paso = 2; S.imp.error = "";
+      S.imp.nombre = f.name; S.imp.columnas = r.columnas; S.imp.filas = r.filas; S.imp.mapa = GPUImportar.sugerirMapa(r.columnas, S.imp.tipo === "leads" ? "leads" : undefined); S.imp.paso = 2; S.imp.error = "";
     } catch (e) { S.imp.error = e.message || "No pudimos leer el archivo."; S.imp.paso = 1; }
     pintarImportar();
   }
@@ -1300,10 +1328,13 @@
     var I = S.imp, c = conversionImp(); if (!c.filas.length) return;
     I.enviando = true; I.error = "";
     return conBoton(btn, async function () {
-      var r = await sb.rpc("importar_unidades", { p_org: S.org.id, p_filas: c.filas, p_actualizar_estado: I.actualizarEstado });
+      var r = I.tipo === "leads"
+        ? await sb.rpc("importar_leads", { p_org: S.org.id, p_archivo: I.nombre, p_filas: c.filas, p_defectos: { proyecto: I.proyecto || null, fuente: I.fuente || "cartera", asignado: I.asignado || null } })
+        : await sb.rpc("importar_unidades", { p_org: S.org.id, p_filas: c.filas, p_actualizar_estado: I.actualizarEstado });
       I.enviando = false;
       if (r.error) { I.error = mensajeError(r.error); pintarImportar(); return; }
       if (!r.data.ok) { I.error = "El servidor encontró problemas: " + r.data.errores.slice(0, 3).map(function (e) { return "fila " + e.fila + " (" + e.error + ")"; }).join("; "); pintarImportar(); return; }
+      if (I.tipo === "leads") { I.hecho = r.data; pintarImportar(); cargar(true); return; }
       S.imp = null; cerrarModal(); await cargarInventario(true);
       toast("Importación lista: " + r.data.creadas + " nuevas y " + r.data.actualizadas + " actualizadas");
     });
@@ -2161,9 +2192,20 @@
       });
     },
     "unidad-estado": function (el) { return cambiarEstadoUnidad(el); },
-    importar: function () { abrirImportar(); },
+    importar: function () { abrirImportar("inventario"); },
+    "importar-leads": function () { abrirImportar("leads"); },
+    "imp-deshacer": function (el) {
+      if (!window.confirm("¿Deshacer la importación? Se borran los leads que creó (con lo que hayas anotado en ellos). Los clientes que ya estaban no se tocan.")) return;
+      return conBoton(el, async function () {
+        var r = await sb.rpc("deshacer_importacion", { p_id: el.dataset.id }); if (r.error) throw r.error;
+        cerrarModal(); toast("Importación deshecha: " + r.data.leads_borrados + " leads borrados"); cargar(true);
+      });
+    },
     "imp-otro": function () { if (S.imp) { S.imp.paso = 1; S.imp.error = ""; pintarImportar(); } },
-    "imp-plantilla": function () { descargarTexto("plantilla-inventario.csv", GPUImportar.plantillaCSV((S.proyectos[0] || {}).slug), "text/csv;charset=utf-8"); },
+    "imp-plantilla": function () {
+      if (S.imp && S.imp.tipo === "leads") descargarTexto("plantilla-cartera.csv", GPUImportar.plantillaLeadsCSV((S.proyectos[0] || {}).slug), "text/csv;charset=utf-8");
+      else descargarTexto("plantilla-inventario.csv", GPUImportar.plantillaCSV((S.proyectos[0] || {}).slug), "text/csv;charset=utf-8");
+    },
     "imp-confirmar": function (el) { return confirmarImportar(el); },
     "proy-precios": function (el) {
       var p = S.proyectos.filter(function (x) { return x.slug === el.dataset.s; })[0], nuevo = p.precios_publicos === false;
@@ -2277,6 +2319,8 @@
     else if (t.id === "imp-archivo") { elegirArchivoImp(t); }
     else if (t.id === "imp-proyecto" && S.imp) { S.imp.proyecto = t.value; pintarImportar(); }
     else if (t.id === "imp-estado" && S.imp) { S.imp.actualizarEstado = t.checked; }
+    else if (t.id === "imp-fuente" && S.imp) { S.imp.fuente = t.value; }
+    else if (t.id === "imp-asignado" && S.imp) { S.imp.asignado = t.value; }
     else if (t.dataset && t.dataset.impMap !== undefined && S.imp) { S.imp.mapa[t.dataset.impMap] = Number(t.value); pintarImportar(); }
     else if (t.id === "m-logo") { elegirLogo(t, false); }
     else if (t.id === "m-logo-oscuro") { elegirLogo(t, true); }

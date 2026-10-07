@@ -176,21 +176,22 @@
   var ORDEN = ["proyecto", "codigo", "tipo", "bloque", "piso", "area_m2", "dormitorios", "banos", "parqueos", "bodegas", "precio", "estado", "descripcion"];
 
   /* Para cada campo, la columna del archivo que mejor le corresponde (o -1). Primero coincidencia exacta, luego parcial. */
-  function sugerirMapa(columnas) {
+  function sugerirMapa(columnas, tipo) {
+    var esq = tipo === "leads" ? LEADS : { CAMPOS: CAMPOS, ORDEN: ORDEN }, CAMPOS_ = esq.CAMPOS, ORDEN_ = esq.ORDEN;
     var mapa = {}, usadas = {}, claves = columnas.map(sinEspacios);
-    ORDEN.forEach(function (c) { mapa[c] = -1; });
-    ORDEN.forEach(function (campo) {
-      var sin = CAMPOS[campo];
+    ORDEN_.forEach(function (c) { mapa[c] = -1; });
+    ORDEN_.forEach(function (campo) {
+      var sin = CAMPOS_[campo];
       for (var s = 0; s < sin.length; s++) {
         var i = claves.indexOf(sin[s]);
         if (i >= 0 && !usadas[i]) { mapa[campo] = i; usadas[i] = true; return; }
       }
     });
-    ORDEN.forEach(function (campo) {
+    ORDEN_.forEach(function (campo) {
       if (mapa[campo] >= 0) return;
       for (var i = 0; i < claves.length; i++) {
         if (usadas[i] || !claves[i]) continue;
-        var coincide = CAMPOS[campo].some(function (s) { return s.length >= 3 && claves[i].indexOf(s) === 0; });
+        var coincide = CAMPOS_[campo].some(function (s) { return s.length >= 3 && claves[i].indexOf(s) === 0; });
         if (coincide) { mapa[campo] = i; usadas[i] = true; return; }
       }
     });
@@ -286,8 +287,103 @@
       s + ";A-102;suite;A;1;45;1;1;1;0;78500;reservada\r\n";
   }
 
+
+  /* ============================================================ cartera de leads */
+  /* Títulos de Excel propios y de las exportaciones de Kommo, Pipedrive y HubSpot. */
+  var LEADS = {
+    ORDEN: ["nombre", "apellido", "telefono", "correo", "proyecto", "unidad", "etapa", "fuente", "asignado", "valor", "nota"],
+    ETIQUETAS: { nombre: "Nombre del cliente", apellido: "Apellido", telefono: "Teléfono / WhatsApp", correo: "Correo", proyecto: "Proyecto", unidad: "Unidad de interés",
+      etapa: "Etapa", fuente: "Fuente", asignado: "Asesor", valor: "Valor / presupuesto", nota: "Nota" },
+    CAMPOS: {
+      nombre: ["contactoprincipal", "nombre", "nombres", "nombrecompleto", "nombredelcontacto", "nombredelcliente", "cliente", "contacto", "personanombre", "name", "fullname", "firstname", "primernombre", "nombredellead"],
+      apellido: ["apellido", "apellidos", "lastname", "surname", "personaapellido"],
+      telefono: ["telefono", "telefonomovil", "celular", "movil", "whatsapp", "personatelefono", "phone", "phonenumber", "mobilephone", "mobilephonenumber", "tel", "telefonodecontacto", "telefonotrabajo"],
+      correo: ["correo", "correoelectronico", "email", "mail", "emailaddress", "personacorreoelectronico", "personaemail", "correodelcontacto"],
+      proyecto: ["proyecto", "project", "desarrollo", "edificio", "proyectodeinteres"],
+      unidad: ["unidad", "unidaddeinteres", "inmueble", "propiedad", "interes"],
+      etapa: ["etapa", "estado", "stage", "status", "fase", "lifecyclestage", "negocioetapa", "etapadelembudo", "dealstage", "estadodellead"],
+      fuente: ["fuente", "origen", "source", "canal", "medio", "leadsource", "fuentedellead", "originaltrafficsource", "negociofuente"],
+      asignado: ["asesor", "vendedor", "responsable", "usuarioresponsable", "propietario", "owner", "contactowner", "dealowner", "negociopropietario", "agente", "asignadoa"],
+      valor: ["valor", "presupuesto", "monto", "budget", "amount", "negociovalor", "dealvalue", "valorestimado", "venta"],
+      nota: ["nota", "notas", "comentario", "comentarios", "observaciones", "observacion", "mensaje", "descripcion", "notes"]
+    }
+  };
+  var ETAPAS_LEAD = {
+    nuevo: ["nuevo", "nueva", "new", "lead", "prospecto", "sin contactar", "incoming leads", "leads entrantes", "subscriber", "contacto inicial"],
+    contactado: ["contactado", "contactada", "contacted", "en contacto", "calificado", "calificada", "qualified", "marketing qualified lead", "sales qualified lead", "seguimiento"],
+    cita: ["cita", "visita", "reunion", "meeting", "cita agendada", "visita agendada", "appointment scheduled"],
+    proforma: ["proforma", "cotizacion", "cotizado", "propuesta", "propuesta enviada", "presupuesto", "presupuesto enviado", "proposal", "negociacion", "negotiation", "opportunity"],
+    reserva: ["reserva", "reservado", "reservada", "separado", "apartado", "contract sent", "contrato"],
+    vendido: ["vendido", "vendida", "ganado", "ganada", "won", "closed won", "cerrado ganado", "cliente", "customer", "logrado con exito", "venta"],
+    perdido: ["perdido", "perdida", "lost", "closed lost", "cerrado perdido", "descartado", "descartada", "no interesado", "cerrado y no concretado"]
+  };
+  var FUENTES_LEAD = {
+    formulario_web: ["formulario web", "formulario", "web", "sitio web", "pagina web", "landing", "website", "organic search", "direct traffic"],
+    whatsapp: ["whatsapp", "wa"], llamada: ["llamada", "telefono", "call"], facebook: ["facebook", "fb", "meta", "facebook ads", "paid social"],
+    instagram: ["instagram", "ig"], tiktok: ["tiktok"], google: ["google", "google ads", "adwords", "paid search"], marketplace: ["marketplace"],
+    portal: ["portal", "portal inmobiliario", "plusvalia", "properati", "inmuebles24", "zonaprop"], feria: ["feria", "evento", "expo"],
+    cartera: ["cartera", "base", "base de datos", "importado"], co_broker: ["co broker", "cobroker", "asesor externo", "broker"],
+    referido: ["referido", "referida", "referral", "recomendado"], oficina: ["oficina", "sala de ventas", "walk in", "visita a oficina"], otro: ["otro", "otros", "other", "offline sources"]
+  };
+  function enTabla(tabla, v) { var n = norm(v), k; for (k in tabla) if (tabla[k].indexOf(n) >= 0) return k; return null; }
+
+  /* ctx: { proyectos: [{slug, nombre}], equipo: [{email, nombre, rol}] } */
+  function convertirLeads(filas, mapa, ctx) {
+    var out = [], errores = [], cuenta = { etapa: 0, fuente: 0, asesor: 0 }, proy = {}, eq = {};
+    (ctx.proyectos || []).forEach(function (p) { proy[sinEspacios(p.nombre)] = p.slug; proy[sinEspacios(p.slug)] = p.slug; });
+    (ctx.equipo || []).filter(function (m) { return m.rol !== "lector"; }).forEach(function (m) { eq[String(m.email).toLowerCase()] = m.email; if (m.nombre) eq[sinEspacios(m.nombre)] = m.email; });
+    function val(f, campo) { var i = mapa[campo]; return i == null || i < 0 ? "" : String(f[i] == null ? "" : f[i]).trim(); }
+    function err(n, m) { errores.push({ fila: n, error: m }); }
+    filas.forEach(function (f, idx) {
+      var n = idx + 2, o = { fila: n }, av = {};
+      var nom = (val(f, "nombre") + " " + val(f, "apellido")).replace(/\s+/g, " ").trim();
+      if (nom.length < 2) { err(n, "Falta el nombre del cliente"); return; }
+      o.nombre = nom.slice(0, 120);
+      var tel = val(f, "telefono"), dig = tel.replace(/\D/g, ""), cor = val(f, "correo").toLowerCase();
+      if (tel && (dig.length < 9 || dig.length > 15)) { err(n, "Teléfono «" + tel + "» no válido"); return; }
+      if (cor && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cor)) { err(n, "Correo «" + cor + "» no válido"); return; }
+      if (!tel && !cor) { err(n, "Falta el teléfono o el correo"); return; }
+      if (tel) o.telefono = tel; if (cor) o.correo = cor;
+      var pr = val(f, "proyecto");
+      if (pr) { var sl = proy[sinEspacios(pr)]; if (!sl) { err(n, "El proyecto «" + pr + "» no existe en tu empresa (créalo antes en Ajustes → Proyectos)"); return; } o.proyecto = sl; }
+      var et = val(f, "etapa");
+      if (et) { var ek = enTabla(ETAPAS_LEAD, et); if (ek) o.etapa = ek; else av.etapa = 1; }
+      var fu = val(f, "fuente");
+      if (fu) { var fk = enTabla(FUENTES_LEAD, fu); if (fk) o.fuente = fk; else av.fuente = 1; }
+      var as = val(f, "asignado");
+      if (as) { var em = eq[as.toLowerCase()] || eq[sinEspacios(as)]; if (em) o.asignado = em; else av.asesor = 1; }
+      var vr = numero(val(f, "valor"));
+      if (!vr.vacio) { if (vr.error || vr.valor < 0) { err(n, "El valor «" + val(f, "valor") + "» no es un número válido"); return; } o.valor = vr.valor; }
+      var un = val(f, "unidad"); if (un) o.unidad = un.slice(0, 120);
+      var nt = val(f, "nota"); if (nt) o.nota = nt.slice(0, 4000);
+      Object.defineProperty(o, "_av", { value: av, enumerable: false });
+      out.push(o);
+    });
+    var vistos = {};
+    out.forEach(function (o) {
+      [o.telefono ? "t" + o.telefono.replace(/\D/g, "").replace(/^0/, "593") : null, o.correo ? "c" + o.correo : null].filter(Boolean).forEach(function (k) {
+        if (vistos[k] && vistos[k] !== o.fila) err(o.fila, "Cliente repetido en el archivo (también en la fila " + vistos[k] + ")"); else vistos[k] = o.fila;
+      });
+    });
+    errores.sort(function (a, b) { return a.fila - b.fila; });
+    var malas = {}; errores.forEach(function (x) { malas[x.fila] = 1; });
+    var buenas = out.filter(function (o) { return !malas[o.fila]; });
+    buenas.forEach(function (o) { Object.keys(o._av).forEach(function (k) { cuenta[k]++; }); });
+    var avisos = [];
+    if (cuenta.etapa) avisos.push(cuenta.etapa + (cuenta.etapa === 1 ? " fila tiene" : " filas tienen") + " una etapa que no reconocimos: entrarán como «Nuevo».");
+    if (cuenta.fuente) avisos.push(cuenta.fuente + (cuenta.fuente === 1 ? " fila tiene" : " filas tienen") + " una fuente que no reconocimos: se usará la fuente elegida abajo.");
+    if (cuenta.asesor) avisos.push(cuenta.asesor + (cuenta.asesor === 1 ? " fila tiene" : " filas tienen") + " un asesor que no está en tu equipo: se asignarán como elijas abajo.");
+    return { filas: buenas, errores: errores, avisos: avisos };
+  }
+  function plantillaLeadsCSV(slug) {
+    var s = slug || "mi-proyecto";
+    return "﻿nombre;telefono;correo;proyecto;etapa;fuente;asesor;presupuesto;nota\r\n" +
+      "Lucía Mora;0991234567;lucia@correo.com;" + s + ";cita;facebook;;120000;Busca 2 dormitorios\r\n" +
+      "Pedro Paz;0987654321;;" + s + ";nuevo;referido;;;Llamar después de las 5\r\n";
+  }
   var API = { leerArchivo: leerArchivo, parseCSV: parseCSV, parseXLSX: parseXLSX, sugerirMapa: sugerirMapa, convertir: convertir, plantillaCSV: plantillaCSV, numero: numero,
-    CAMPOS: ORDEN, ETIQUETAS: ETIQUETAS, MAX_FILAS: MAX_FILAS, slugify: slugify };
+    CAMPOS: ORDEN, ETIQUETAS: ETIQUETAS, MAX_FILAS: MAX_FILAS, slugify: slugify,
+    convertirLeads: convertirLeads, plantillaLeadsCSV: plantillaLeadsCSV, LEADS: { CAMPOS: LEADS.ORDEN, ETIQUETAS: LEADS.ETIQUETAS } };
   root.GPUImportar = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);

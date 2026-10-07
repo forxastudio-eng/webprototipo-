@@ -14,7 +14,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 │   ├── proforma/         la proforma que ve el cliente (enlace privado, se guarda en PDF)
 │   ├── embed/            lead.js (captura de leads) e inventario.js (disponibilidad en vivo) para la web de cada inmobiliaria
 │   └── css/ js/ assets/  marca GPUnlock (tokens, fuentes, logos) y configuración pública
-├── supabase/             base de datos (01 → 09), funciones de servidor y pruebas de SQL
+├── supabase/             base de datos (01 → 10), funciones de servidor y pruebas de SQL
 ├── e2e/                  pruebas de navegador (Playwright) con un Supabase simulado
 ├── demo/                 sitio de demostración anterior de GPUnlock (landings y su SQL)
 ├── site/                 landings del demo (se publican aparte: Base directory = site)
@@ -23,7 +23,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ## Puesta en marcha
 
-1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 9 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql`, `06_avisos.sql`, `07_inventario.sql`, `08_cotizador.sql` y `09_ventas.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
+1. **Base de datos.** En Supabase → SQL Editor pega y ejecuta **`supabase/instalar_todo.sql`** (las 10 migraciones en un solo archivo; se puede repetir sin problema). Si prefieres, ejecuta una por una `01_nucleo.sql`, `02_crm.sql`, `03_atribucion.sql`, `04_cobros.sql`, `05_marca.sql`, `06_avisos.sql`, `07_inventario.sql`, `08_cotizador.sql`, `09_ventas.sql` y `10_importacion.sql`. Funciona en un proyecto nuevo o en uno existente: no toca tablas de otros sistemas. Tras cambiar una migración, regenera el instalador con `supabase/generar_instalador.sh` (las pruebas avisan si está desactualizado).
 2. **Autenticación.** Authentication → Providers → Email: deja activado *Confirm email*. En *URL Configuration* pon tu dominio como Site URL y agrega `https://TU-DOMINIO/app/` y `https://TU-DOMINIO/consola/` en Redirect URLs.
 3. **Primer superadmin (tú).** Crea tu cuenta en Authentication → Add user (o regístrate en `/app/`) y luego, en el SQL Editor:
    ```sql
@@ -75,6 +75,7 @@ Para mostrar la disponibilidad en la web de la inmobiliaria: **Ajustes → Tu si
 - **Alertas por etapa:** cada etapa tiene días máximos sin actividad y una probabilidad de cierre; el embudo muestra el valor de cada columna y el **valor ponderado**, y cada tarjeta avisa «6 d sin actividad» o «Sin próxima tarea».
 - **Tareas automáticas:** en **Ajustes → Embudo** se define, por etapa, la tarea que se crea sola (p. ej. «Contactar a {cliente} por WhatsApp» en 15 minutos al llegar un lead nuevo).
 - **Lo que busca cada cliente** (tipo, presupuesto, dormitorios, proyecto) → la ficha muestra las **unidades que le calzan** y la proforma sale en un toque; y cada unidad muestra los **clientes a los que les calza**, con un WhatsApp ya redactado.
+- **Importar la cartera** (Embudo → «Importar cartera»): Excel o CSV propio o exportado de Kommo, Pipedrive o HubSpot; reconoce las columnas, muestra los errores por fila, no duplica clientes, reparte entre los agentes si quieres y se puede **deshacer durante 7 días**. Los leads importados no cuentan en el límite mensual del plan ni aparecen como «sin responder».
 - **Métricas:** primera respuesta (mediana, 9 de cada 10, % en meta), por asesor, valor en negociación y ponderado, % con próxima tarea y estancados.
 
 ## Proformas (cotizador)

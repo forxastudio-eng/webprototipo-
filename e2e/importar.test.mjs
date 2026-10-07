@@ -85,4 +85,33 @@ c = I.convertir([["x".repeat(41)]], { codigo: 0, proyecto: -1 }, { proyectos, pr
 const pl = I.parseCSV(I.plantillaCSV("torre-alba")), mp = I.sugerirMapa(pl[0]);
 c = I.convertir(pl.slice(1), mp, { proyectos, proyectoDefecto: null });
 assert.equal(c.errores.length, 0); assert.equal(c.filas.length, 2); assert.equal(c.filas[0].area_m2, 85.5); assert.equal(c.filas[1].estado, "reservada"); ok("la plantilla CSV descargable se lee sin errores (con coma decimal y punto y coma)");
-console.log("Importación de inventario: OK (" + n + ")");
+/* 8. Cartera de leads (Excel propio y exportaciones de Kommo, Pipedrive y HubSpot) ------------------ */
+const equipo = [{ email: "ana@x.com", nombre: "Ana Pérez", rol: "propietario" }, { email: "gabo@x.com", nombre: "Gabo Ruiz", rol: "agente" }, { email: "lu@x.com", nombre: "Lucho", rol: "lector" }];
+let ml = I.sugerirMapa(["Contacto principal", "Teléfono móvil", "Correo electrónico", "Etapa", "Usuario responsable", "Presupuesto", "Nombre del lead"], "leads");
+assert.deepEqual([ml.nombre, ml.telefono, ml.correo, ml.etapa, ml.asignado, ml.valor], [0, 1, 2, 3, 4, 5]); ok("reconoce una exportación de Kommo (y prefiere «Contacto principal» al nombre del lead)");
+ml = I.sugerirMapa(["Persona - Nombre", "Persona - Teléfono", "Persona - Correo electrónico", "Negocio - Etapa", "Negocio - Valor", "Negocio - Propietario"], "leads");
+assert.deepEqual([ml.nombre, ml.telefono, ml.correo, ml.etapa, ml.valor, ml.asignado], [0, 1, 2, 3, 4, 5]); ok("reconoce una exportación de Pipedrive");
+ml = I.sugerirMapa(["First Name", "Last Name", "Phone Number", "Email", "Lifecycle Stage", "Contact owner", "Original Traffic Source"], "leads");
+assert.deepEqual([ml.nombre, ml.apellido, ml.telefono, ml.correo, ml.etapa, ml.asignado, ml.fuente], [0, 1, 2, 3, 4, 5, 6]); ok("reconoce una exportación de HubSpot (nombre y apellido por separado)");
+const mh = I.sugerirMapa(["Nombre", "Apellido", "Celular", "Email", "Proyecto", "Estado", "Origen", "Asesor", "Presupuesto", "Observaciones"], "leads");
+const cl = I.convertirLeads([
+  ["Lucía", "Mora", "099 123 4567", "LUCIA@X.com", "Torre Alba", "Cita agendada", "Facebook Ads", "gabo@x.com", "120.000", "Piso alto"],   // 2
+  ["Pedro", "", "", "pedro@x.com", "", "Ganado", "Instagram", "Ana Pérez", "", ""],                                                        // 3
+  ["X", "", "0991111111", "", "", "", "", "", "", ""],                                                                                       // 4 nombre
+  ["Sin Contacto", "", "", "", "", "", "", "", "", ""],                                                                                      // 5
+  ["Tel Malo", "", "12345", "", "", "", "", "", "", ""],                                                                                     // 6
+  ["Proy Malo", "", "0992222222", "", "Otro", "", "", "", "", ""],                                                                           // 7
+  ["Raro", "", "0993333333", "", "", "En el limbo", "TV abierta", "Lucho", "caro", ""],                                                      // 8 valor
+  ["Raro Dos", "", "0994444444", "", "", "En el limbo", "TV abierta", "Lucho", "", ""],                                                      // 9 avisos
+  ["Repetida", "", "+593 99 123 4567", "", "", "", "", "", "", ""]                                                                           // 10 repetido
+], mh, { proyectos, equipo });
+assert.deepEqual(cl.filas[0], { fila: 2, nombre: "Lucía Mora", telefono: "099 123 4567", correo: "lucia@x.com", proyecto: "torre-alba", etapa: "cita", fuente: "facebook", asignado: "gabo@x.com", valor: 120000, nota: "Piso alto" });
+ok("convierte una fila completa: nombre + apellido, correo en minúsculas, etapa, fuente, asesor y 120.000");
+assert.deepEqual(cl.filas[1], { fila: 3, nombre: "Pedro", correo: "pedro@x.com", etapa: "vendido", fuente: "instagram", asignado: "ana@x.com" }); ok("solo correo vale; «Ganado» → vendido; el asesor se reconoce por su nombre");
+assert.deepEqual(cl.errores.map((e) => e.fila), [4, 5, 6, 7, 8, 10]); ok("errores por fila: nombre, sin contacto, teléfono, proyecto, valor y repetido");
+assert.match(cl.errores[5].error, /repetido.*fila 2/); ok("detecta el mismo teléfono escrito de otra forma (+593…)");
+assert.equal(cl.filas.length, 3); assert.equal(cl.filas[2].etapa, undefined); assert.equal(cl.filas[2].fuente, undefined); assert.equal(cl.filas[2].asignado, undefined); ok("etapa, fuente o asesor desconocidos no bloquean (los lectores no reciben leads)");
+assert.equal(cl.avisos.length, 3); assert.match(cl.avisos[0], /1 fila tiene una etapa que no reconocimos/); ok("y se avisan");
+const plc = I.parseCSV(I.plantillaLeadsCSV("torre-alba")), cpl = I.convertirLeads(plc.slice(1), I.sugerirMapa(plc[0], "leads"), { proyectos, equipo });
+assert.equal(cpl.errores.length, 0); assert.equal(cpl.filas.length, 2); assert.equal(cpl.filas[0].valor, 120000); ok("la plantilla de cartera se lee sin errores");
+console.log("Importación de inventario y cartera: OK (" + n + ")");

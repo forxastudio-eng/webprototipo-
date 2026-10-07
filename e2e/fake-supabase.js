@@ -94,6 +94,8 @@
     },
     unidades_sugeridas: function () { return FX.sugeridas || []; },
     leads_para_unidad: function () { return FX.interesados || []; },
+    importar_leads: function (a) { return FX.respImportarLeads || { ok: true, importacion_id: "imp-1", creados: a.p_filas.length - 1, existentes: 1 }; },
+    deshacer_importacion: function () { return { leads_borrados: 2, contactos_borrados: 2 }; },
     /* cotizador */
     crear_cotizacion: function (a) {
       if (FX.errorCotizacion) return { __error: FX.errorCotizacion };

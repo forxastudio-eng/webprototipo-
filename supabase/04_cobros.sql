@@ -343,7 +343,7 @@ begin
     'usuarios', (select count(*) from public.miembros where org_id = o.id)
               + (select count(*) from public.invitaciones where org_id = o.id),
     'leads_mes', coalesce((select count(*) from public.crm_oportunidades
-                           where org_id = o.id and created_at >= date_trunc('month', now())), 0),
+                           where org_id = o.id and created_at >= date_trunc('month', now()) and importacion_id is null), 0),
     'ia_mes', coalesce((select count(*) from public.crm_ia_uso
                         where org_id = o.id and created_at >= date_trunc('month', now())), 0),
     'solicitud', (select to_jsonb(s) - 'comprobante_path' - 'creado_por' - 'revisado_por'
@@ -509,7 +509,7 @@ begin
       'prueba_hasta', o.prueba_hasta, 'periodo_hasta', o.periodo_hasta, 'creada', o.created_at,
       'propietario', (select email from public.miembros m where m.org_id = o.id and m.rol = 'propietario' limit 1),
       'usuarios', (select count(*) from public.miembros m where m.org_id = o.id),
-      'leads_mes', (select count(*) from public.crm_oportunidades x where x.org_id = o.id and x.created_at >= date_trunc('month', now())),
+      'leads_mes', (select count(*) from public.crm_oportunidades x where x.org_id = o.id and x.created_at >= date_trunc('month', now()) and x.importacion_id is null),
       'ultimo_pago', (select max(fecha_transferencia) from public.pagos_suscripcion g where g.org_id = o.id),
       'pago_abierto', exists (select 1 from public.solicitudes_pago s where s.org_id = o.id and s.estado in ('pendiente', 'en_revision'))
     ) order by o.created_at desc)

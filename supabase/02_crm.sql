@@ -75,6 +75,8 @@ create table if not exists public.crm_oportunidades (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Leads que llegaron en una importación de cartera (ver 10_importacion.sql): no cuentan en el límite mensual del plan.
+alter table public.crm_oportunidades add column if not exists importacion_id uuid;
 create index if not exists crm_op_org_etapa_ix on public.crm_oportunidades (org_id, etapa);
 create index if not exists crm_op_asignado_ix on public.crm_oportunidades (org_id, asignado_a);
 create index if not exists crm_op_contacto_ix on public.crm_oportunidades (contacto_id);
@@ -451,7 +453,7 @@ begin
     p_fuente := 'otro';
   end if;
   select p.max_leads_mes into v_max from public.organizaciones o join public.planes p on p.id = o.plan_id where o.id = p_org;
-  select count(*) into v_usados from public.crm_oportunidades where org_id = p_org and created_at >= date_trunc('month', now());
+  select count(*) into v_usados from public.crm_oportunidades where org_id = p_org and created_at >= date_trunc('month', now()) and importacion_id is null;
   if v_usados >= v_max then
     raise exception 'Llegaste al límite de % leads al mes de tu plan. Mejora tu plan para seguir.', v_max;
   end if;

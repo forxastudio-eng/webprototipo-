@@ -173,6 +173,7 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare a record; v_cli text; v_proy text;
 begin
   if tg_op = 'UPDATE' and new.etapa is not distinct from old.etapa then return new; end if;
+  if tg_op = 'INSERT' and new.importacion_id is not null then return new; end if;   -- la cartera importada no genera tareas en masa
   if not exists (select 1 from public.crm_automatizaciones where org_id = new.org_id and etapa = new.etapa and activa) then return new; end if;
   select nombre into v_cli from public.crm_contactos where id = new.contacto_id;
   select nombre into v_proy from public.crm_proyectos where org_id = new.org_id and slug = new.proyecto;
@@ -304,14 +305,14 @@ begin
                         filter (where primera_respuesta_at is not null))::numeric, 1),
         'en_sla_pct', round(100.0 * count(*) filter (where primera_respuesta_at <= created_at + make_interval(mins => v_sla))
                         / nullif(count(*) filter (where primera_respuesta_at is not null), 0), 0))
-      from public.crm_oportunidades where org_id = p_org and created_at >= v_desde),
+      from public.crm_oportunidades where org_id = p_org and created_at >= v_desde and importacion_id is null),
     'sin_responder', (select count(*) from public.crm_oportunidades where org_id = p_org and primera_respuesta_at is null and etapa not in ('vendido', 'perdido')),
     'por_asesor', coalesce((
       select jsonb_agg(jsonb_build_object('email', asignado_a, 'respondidos', n, 'mediana_min', med) order by med nulls last)
       from (select asignado_a, count(*) as n,
                    round((percentile_cont(0.5) within group (order by (extract(epoch from primera_respuesta_at - created_at) / 60)::float8))::numeric, 1) as med
               from public.crm_oportunidades
-             where org_id = p_org and created_at >= v_desde and asignado_a is not null and primera_respuesta_at is not null
+             where org_id = p_org and created_at >= v_desde and asignado_a is not null and primera_respuesta_at is not null and importacion_id is null
              group by asignado_a) a), '[]'::jsonb),
     'valor_abierto', (select coalesce(sum(valor_estimado), 0) from public.crm_oportunidades where org_id = p_org and etapa not in ('vendido', 'perdido')),
     'valor_ponderado', (select coalesce(round(sum(valor_estimado * coalesce((cfg -> 'etapas' -> etapa ->> 'probabilidad')::numeric, 0) / 100), 2), 0)

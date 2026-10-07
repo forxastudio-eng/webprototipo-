@@ -33,14 +33,14 @@ Leyenda: ✅ hecho · 🟡 parcial · ⬜ falta · 🔑 necesita una cuenta o un
 | 5.22 | Multiempresa, moneda, zona horaria | ✅ | Multiempresa con RLS, USD, hora de Ecuador. |
 | 5.23 | API, webhooks, conversiones offline | ⬜ 🔑 | Bloque 5 (Meta CAPI y Google Ads al vender). |
 | 5.24 | App móvil | 🟡 | App instalable (PWA) con modo claro/oscuro. Falta: APK, push, visitas con ubicación (Bloque 3). |
-| 5.25 | Importación y protección de datos | 🟡 | Importación de inventario Excel/CSV, políticas legales en borrador. Falta: **importar cartera de leads** (Bloque 1), exportar o borrar los datos de un contacto. |
+| 5.25 | Importación y protección de datos | 🟡 | Importación de inventario Excel/CSV, políticas legales en borrador. Importación de cartera de leads desde Excel/CSV, Kommo, Pipedrive o HubSpot, con deshacer. Falta: exportar o borrar los datos de un contacto. |
 | 9 | Vertical inmobiliario: inventario, matching, portales, visitas, captación | 🟡 | Inventario con fotos, web pública, proformas. Búsqueda del cliente y matching unidad ↔ lead (hecho). Después: visitas, captación y portales. |
 
 ## 2. Orden de construcción propuesto
 
 Prioridad = lo que más mueve las ventas de una inmobiliaria pequeña o mediana, empezando por lo que no depende de cuentas externas.
 
-**Bloque 1 · Embudo premium + matching inmobiliario** — hecho, salvo la importación de la cartera de leads (siguiente).
+**Bloque 1 · Embudo premium + matching inmobiliario** — ✅ hecho, incluida la importación de la cartera (con deshacer).
 - Probabilidad por etapa y valor ponderado del embudo; días sin actividad por etapa (*rotting*) y aviso de «sin próxima tarea».
 - Tiempo de primera respuesta (*speed-to-lead*): por lead, por asesor y mediana del equipo; lista «Sin responder» en Hoy.
 - Automatización por etapa: al entrar a una etapa se crea la tarea que la empresa defina (p. ej. «Llamar en 15 minutos» al llegar un lead nuevo).
