@@ -266,8 +266,8 @@
       esGestor() ? sb.from("invitaciones").select("id,email,rol,created_at").eq("org_id", o).order("created_at") : Promise.resolve({ data: [] }),
       sb.from("planes").select("*").order("orden"),
       sb.from("organizaciones").select("id,nombre,clave_publica,reparto,plan_id,estado").eq("id", o).maybeSingle(),
-      sb.from("datos_cobro").select("*").maybeSingle(),
-      esPropietario() ? sb.from("pagos_suscripcion").select("id,plan_id,periodo,total,fecha_transferencia,factura_numero,cubre_hasta")
+      pagosEnApp() ? sb.from("datos_cobro").select("*").maybeSingle() : Promise.resolve({ data: {} }),
+      pagosEnApp() && esPropietario() ? sb.from("pagos_suscripcion").select("id,plan_id,periodo,total,fecha_transferencia,factura_numero,cubre_hasta")
         .eq("org_id", o).order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
       sb.from("org_marca").select("*").eq("org_id", o).maybeSingle()
     ]);
@@ -805,17 +805,27 @@
 
   /* ------------------------------------------------------ suscripción / banner */
   function diasPrueba() { return Math.max(0, Math.ceil((ms(S.uso.prueba_hasta) - Date.now()) / 86400000)); }
+  function pagosEnApp() { return CFG.PAGOS_EN_APP === true; }
+  /* WhatsApp de ventas con el mensaje ya escrito (cuando el pago se acuerda directamente con GPUnlock). */
+  function waVentas(texto) {
+    var n = String(CFG.VENTAS_WHATSAPP || "").replace(/\D/g, "");
+    return "https://wa.me/" + n + "?text=" + encodeURIComponent(texto);
+  }
+  function textoContratar(plan) {
+    return "Hola, quiero " + (plan ? "el plan " + plan : "contratar o renovar mi plan") + " de GPUnlock CRM para " + marcaNombre() + ".";
+  }
   function bannerSuscripcion() {
     var u = S.uso; if (!u) return "";
-    var revisando = u.solicitud && u.solicitud.estado === "en_revision";
+    var revisando = pagosEnApp() && u.solicitud && u.solicitud.estado === "en_revision";
     var btnPlan = '<button class="btn btn-primary" data-action="ir-plan">' + (esPropietario() ? (revisando ? "Ver mi pago" : "Ver planes") : "Ver plan") + "</button>";
+    var verbo = pagosEnApp() ? "Paga" : "Renueva";
     if (u.activa && u.estado === "prueba") {
       var d = diasPrueba();
       return '<div class="banner' + (d <= 3 ? " warn" : "") + '"><span>Prueba gratis: ' + (d === 0 ? "termina hoy" : "te quedan <b>" + d + (d === 1 ? " día" : " días") + "</b>") + "." + (revisando ? " Estamos revisando tu transferencia." : "") + "</span>" + btnPlan + "</div>";
     }
     if (u.estado === "gracia") {
       return '<div class="banner warn"><span><b>Tu suscripción venció.</b> ' + (revisando ? "Estamos revisando tu pago. " : "") +
-        (u.gracia_hasta ? "Paga antes del " + esc(fechaLarga(u.gracia_hasta)) + " para no quedar en solo lectura." : "") + "</span>" +
+        (u.gracia_hasta ? verbo + " antes del " + esc(fechaLarga(u.gracia_hasta)) + " para no quedar en solo lectura." : "") + "</span>" +
         (esPropietario() ? btnPlan : "<span>Avisa al propietario.</span>") + "</div>";
     }
     if (!u.activa) {
@@ -846,7 +856,7 @@
 
   function vistaAjustes() {
     var secs = [["equipo", "Equipo"], ["proyectos", "Proyectos"]].concat(esGestor() ? [["marca", "Marca"]] : [])
-      .concat([["integracion", "Tu sitio web"], ["plan", "Plan y pagos"], ["empresa", "Empresa"]]);
+      .concat([["integracion", "Tu sitio web"], ["plan", pagosEnApp() ? "Plan y pagos" : "Mi plan"], ["empresa", "Empresa"]]);
     var h = '<div class="sub-tabs" role="tablist">' + secs.map(function (x) {
       return '<button role="tab" class="' + (S.ajSec === x[0] ? "on" : "") + '" data-action="aj-sec" data-s="' + x[0] + '">' + x[1] + "</button>";
     }).join("") + "</div>";
@@ -912,7 +922,7 @@
   }
 
   function ajPlan() {
-    var u = S.uso, p = u.plan, sol = u.solicitud, h = bannerSuscripcion();
+    var u = S.uso, p = u.plan, sol = pagosEnApp() ? u.solicitud : null, h = bannerSuscripcion();
     var abierta = !!sol && (sol.estado === "pendiente" || sol.estado === "en_revision");
     var estadoTxt = u.estado === "activa" ? "Activa" : u.estado === "gracia" ? "Venció: días de gracia" : u.estado === "vencida" ? "Vencida" :
       u.estado === "cancelada" ? "Cancelada" : u.activa ? "En prueba gratis" : "Prueba terminada";
@@ -936,16 +946,20 @@
       var anualOk = S.intervalo === "anual" && x.precio_anual;
       var precio = anualOk ? x.precio_anual : x.precio_mensual;
       var bloqueado = !!sol && sol.estado === "en_revision";
-      var accion = !esPropietario() ? (actual ? '<span class="chip green">Tu plan actual</span>' : "") :
+      var accion = !pagosEnApp() ? (!esPropietario() ? (actual ? '<span class="chip green">Tu plan actual</span>' : "") :
+        '<a class="btn ' + (actual ? "" : "btn-primary ") + 'btn-block" target="_blank" rel="noopener" href="' + esc(waVentas(textoContratar(x.nombre))) + '">' + (actual ? "Renovar " : "Pedir ") + esc(x.nombre) + " por WhatsApp</a>" +
+        (actual ? '<span class="chip green" style="justify-self:start">Tu plan actual</span>' : "")) :
+        !esPropietario() ? (actual ? '<span class="chip green">Tu plan actual</span>' : "") :
         '<button class="btn ' + (actual ? "" : "btn-primary ") + 'btn-block" data-action="pagar" data-p="' + esc(x.id) + '"' + (bloqueado ? " disabled" : "") + ">" + (actual ? "Renovar " : "Elegir ") + esc(x.nombre) + "</button>" +
         (actual ? '<span class="chip green" style="justify-self:start">Tu plan actual</span>' : "");
       return '<div class="plan' + (actual ? " actual" : "") + '"><h3>' + esc(x.nombre) + (x.destacado ? ' <span class="chip">Popular</span>' : "") + '</h3><div class="precio">' + precioTxt(precio) + "<small> /" + (anualOk ? "año" : "mes") + " + impuestos</small></div>" +
         '<p class="muted" style="margin:0">' + esc(x.descripcion || "") + "</p><ul>" + (x.caracteristicas || []).map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul>" + accion + "</div>";
     }).join("") + "</div>";
-    if (!esPropietario()) h += '<p class="muted" style="margin-top:10px">Solo el propietario puede contratar o cambiar el plan.</p>';
+    if (!pagosEnApp()) h += '<p class="muted" style="margin-top:10px">El pago se acuerda directamente con GPUnlock. Al escribirnos por WhatsApp activamos tu plan apenas confirmemos el pago' + (esPropietario() ? "." : "; pídele al propietario que lo solicite.") + "</p>";
+    else if (!esPropietario()) h += '<p class="muted" style="margin-top:10px">Solo el propietario puede contratar o cambiar el plan.</p>';
     else if (sol && sol.estado === "en_revision") h += '<p class="muted" style="margin-top:10px">Mientras revisamos tu transferencia no puedes pedir otro pago.</p>';
 
-    if (esPropietario() && S.pagos.length) {
+    if (pagosEnApp() && esPropietario() && S.pagos.length) {
       h += '<div class="sec"><h2>Historial de pagos</h2></div><div class="card hist">' + S.pagos.map(function (g) {
         var pl = S.planes.filter(function (x) { return x.id === g.plan_id; })[0];
         return '<div class="item"><span><b>' + dinero2(g.total) + "</b> · " + esc(pl ? pl.nombre : g.plan_id) + " " + esc(g.periodo) + '<br><small class="muted">Pagado el ' + esc(fechaLarga(g.fecha_transferencia + "T12:00:00")) +

@@ -10,6 +10,8 @@ Envía por correo, con [Resend](https://resend.com), lo que la base deja prepara
 | Comprobante por revisar | GPUnlock (superadmins y `correo_cobros`) | cuando una empresa sube su comprobante |
 | Pago aprobado / rechazado | propietario | cuando lo resuelves en la consola |
 
+Los avisos de comprobante, pago aprobado y pago rechazado solo se generan si activas `PAGOS_EN_APP` en `web/js/config.js`; con el modo por defecto (el pago se acuerda directamente contigo) solo salen los de prueba y vencimiento.
+
 Los agentes y administradores nunca reciben avisos de cobro. Una empresa que ya renovó no recibe «tu plan vence».
 
 ## Puesta en marcha (una sola vez)

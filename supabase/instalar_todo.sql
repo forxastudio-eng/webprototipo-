@@ -1633,7 +1633,7 @@ begin
   if not public.es_superadmin() then raise exception 'Solo el equipo de GPUnlock puede registrar pagos'; end if;
   if p_periodo not in ('mensual', 'anual') then raise exception 'Periodo no válido'; end if;
   if not exists (select 1 from public.planes where id = p_plan) then raise exception 'Plan no válido'; end if;
-  if p_total is null or p_total <= 0 then raise exception 'Monto no válido'; end if;
+  if p_total is null or p_total < 0 then raise exception 'Monto no válido'; end if;
   if p_fecha is null or p_fecha > current_date + 1 then raise exception 'Fecha de la transferencia no válida'; end if;
   select iva_porcentaje into v_iva_pct from public.datos_cobro where id;
   v_subtotal := round(p_total / (1 + v_iva_pct / 100), 2);

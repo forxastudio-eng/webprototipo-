@@ -29,7 +29,7 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
    insert into public.superadmins (user_id, email)
    select id, lower(email) from auth.users where lower(email) = 'tu-correo@dominio.com';
    ```
-4. **Datos de cobro.** Entra a `/consola/` → *Datos de cobro*: banco, cuenta, titular, RUC, IVA y días de gracia. Los valores iniciales son de ejemplo.
+4. **Ajustes de cobro.** Entra a `/consola/` → *Ajustes de cobro*: días de gracia (y, si cobras desde la app, banco, cuenta, titular, RUC e IVA).
 5. **Conectar la web.** Edita `web/js/config.js` con la Project URL y la clave `anon public` (Project Settings → API). Son valores públicos; nunca pongas aquí la `service_role`.
 6. **Avisos por correo (recomendado).** Vencimientos, comprobante recibido y pago aprobado o rechazado: sigue `supabase/functions/cobros-avisos/README.md` (Resend + una programación cada 30 minutos).
 7. **IA (opcional).** `cp supabase/.env.example supabase/.env`, completa `ANTHROPIC_API_KEY` y despliega:
@@ -41,13 +41,16 @@ Plan completo del producto: [`docs/PLAN_CRM_INMOBILIARIO_IA.md`](docs/PLAN_CRM_I
 
 ## Cómo se cobra
 
+Por defecto (`PAGOS_EN_APP: false` en `web/js/config.js`) **nadie paga ni sube comprobantes dentro de la app**:
+
 1. La inmobiliaria prueba 14 días gratis (sin tarjeta).
-2. En *Ajustes → Plan y pagos* el propietario elige plan y periodo y la app le muestra el monto con IVA, tus datos bancarios y un código de referencia (`GPU-XXXX-0000`).
-3. Transfiere y sube el comprobante (foto o PDF, hasta 5 MB). Mientras se revisa, sigue trabajando.
-4. En `/consola/` ves la solicitud, abres el comprobante, confirmas el dinero en tu banco y pulsas **Aprobar**. Es la **única** forma de cambiar el plan, el estado o el vencimiento de una empresa (también `Registrar pago` y `Ajustar` para casos manuales). Todo queda en la auditoría.
-5. El periodo se extiende sin quitar ni regalar días: continúa desde el vencimiento si ya estaba pagada o en gracia, y empieza al terminar la prueba si pagó antes de que acabara.
-6. `cobros_actualizar_estados()` corre a diario (08:00 Ecuador, con `pg_cron`): activa → gracia → vencida, y deja listos los avisos de vencimiento en `cobros_avisos`.
-7. Vencida = solo lectura. No se borra nada y **los leads de formularios web siguen entrando**.
+2. En *Ajustes → Mi plan* ve su plan, su vencimiento y los planes; cada botón abre tu WhatsApp (`VENTAS_WHATSAPP`) con el mensaje ya escrito.
+3. Acuerdan el pago contigo y te pagan por fuera. En `/consola/` → *Empresas* pulsas **Activar plan**: eliges plan y periodo (el monto es opcional) y listo. Esa y **Ajustar** son las únicas formas de cambiar plan, estado o vencimiento. Todo queda en la auditoría.
+4. El periodo se extiende sin quitar ni regalar días: continúa desde el vencimiento si ya estaba pagada o en gracia, y empieza al terminar la prueba si pagó antes de que acabara.
+5. `cobros_actualizar_estados()` corre a diario (08:00 Ecuador, con `pg_cron`): activa → gracia → vencida, y deja listos los avisos de vencimiento en `cobros_avisos`.
+6. Vencida = solo lectura. No se borra nada y **los leads de formularios web siguen entrando**.
+
+Si algún día quieres cobrar desde la app, pon `PAGOS_EN_APP: true`: vuelve el flujo de transferencia con monto + IVA, referencia (`GPU-XXXX-0000`), datos bancarios y subida de comprobante, que apruebas en la pestaña *Pagos por revisar* de la consola. Ese código sigue en el repositorio y probado.
 
 ## Pruebas
 
@@ -70,5 +73,5 @@ El propietario o un administrador entra a **Ajustes → Marca**: sube su logo (P
 - **Avisos por correo**: despliega `cobros-avisos` (paso 6 de la puesta en marcha); sin eso los avisos quedan preparados pero no se envían.
 - **Factura electrónica del SRI**: hoy se emite con tu sistema actual y el número se registra al aprobar.
 - **IVA vigente**: el 15 % es un valor inicial; confírmalo con tu contador (se cambia en la consola).
-- **WhatsApp de ventas** (`VENTAS_WHATSAPP` en `web/js/config.js`) y **Datos de cobro** (consola): hoy tienen valores de ejemplo.
+- **WhatsApp de ventas** (`VENTAS_WHATSAPP` en `web/js/config.js`): hoy es un número de ejemplo y es a donde llegan los pedidos de plan.
 - Precios, límites y nombre de los planes (tabla `planes`).

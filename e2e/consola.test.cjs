@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const { servir, abrirApp, chromium } = require("./lib.cjs");
 let n = 0; const ok = (m) => console.log("ok  - " + m + " (" + ++n + ")");
-const OPC = { ruta: "/consola/", esperar: "#consola:not([hidden]), #login:not([hidden]), #denegado:not([hidden])" };
+const OPC = { pagosEnApp: true, ruta: "/consola/", esperar: "#consola:not([hidden]), #login:not([hidden]), #denegado:not([hidden])" };
 const llamadas = (page, nombre) => page.evaluate((nom) => window.__FX.calls.filter((c) => c.name === nom).map((c) => c.args), nombre);
 
 const PAGO = { id: "p1", org_id: "o1", empresa: "Inmobiliaria Andes", propietario: "ana@andes.com", plan_id: "profesional", plan: "Profesional", periodo: "mensual", referencia: "GPU-7F3K-2611",
@@ -67,7 +67,7 @@ const FX = { sinSesion: true, pagosConsola: { en_revision: [PAGO], pendiente: [P
     await page.selectOption('#dlg [name="plan"]', "agencia"); await page.selectOption('#dlg [name="periodo"]', "anual");
     await page.fill('#dlg [name="total"]', "1483.5"); await page.fill('#dlg [name="factura"]', "F-9");
     await page.click('#dlg [type="submit"]');
-    await page.waitForFunction(() => /Pago registrado/.test(document.querySelector("#toast").textContent));
+    await page.waitForFunction(() => /Plan activado\. Vence/.test(document.querySelector("#toast").textContent));
     const pm = (await llamadas(page, "registrar_pago_manual"))[0];
     assert.deepEqual([pm.p_org, pm.p_plan, pm.p_periodo, pm.p_total, pm.p_factura], ["o2", "agencia", "anual", 1483.5, "F-9"]); ok("registra un pago manual con monto numérico");
     await page.click('[data-a="ajustar"][data-id="o1"]');
@@ -117,6 +117,21 @@ const FX = { sinSesion: true, pagosConsola: { en_revision: [PAGO], pendiente: [P
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true); ok("la consola cabe en un celular");
     await page.screenshot({ path: (process.env.CAPTURAS || "/tmp") + "/consola-celular.png", fullPage: true });
     await page.context().close();
+
+    /* Sin pagos dentro de la app (modo por defecto): la consola abre en Empresas y se usa «Activar plan» */
+    ({ page, errores } = await abrirApp(browser, url, Object.assign({}, FX, { sinSesion: false }), { width: 1280, height: 900 }, Object.assign({}, OPC, { pagosEnApp: false })));
+    await page.waitForSelector("#consola:not([hidden])");
+    assert.equal(await page.locator('#tabs [data-v="pagos"]').count(), 0); ok("sin pagos en la app no hay pestaña «Pagos por revisar»");
+    assert.match(await page.getAttribute('#tabs [aria-current="page"]', "data-v"), /empresas/); ok("la consola abre en Empresas");
+    assert.equal(await page.locator('[data-a="pago-manual"]').first().textContent(), "Activar plan"); ok("el botón se llama «Activar plan»");
+    await page.click('[data-a="pago-manual"]');
+    await page.waitForSelector("#dlg [name=total]");
+    assert.match(await page.textContent("#dlg"), /pago que recibiste por fuera/); ok("explica que es para pagos recibidos por fuera");
+    assert.equal(await page.getAttribute('#dlg [name="total"]', "min"), "0"); assert.equal(await page.getAttribute('#dlg [name="total"]', "required"), null); ok("el monto es opcional");
+    await page.click('#dlg [type="submit"]');
+    await page.waitForFunction(() => window.__FX.calls.some((c) => c.name === "registrar_pago_manual"));
+    assert.equal((await llamadas(page, "registrar_pago_manual"))[0].p_total, 0); ok("sin monto se envía 0");
+    assert.deepEqual(errores, []);
   } finally { await browser.close(); server.close(); }
   console.log("Todas las pruebas de la consola pasaron (" + n + ").");
 })().catch((e) => { console.error(e); process.exit(1); });

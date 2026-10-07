@@ -49,9 +49,9 @@ const CONFIG = (legal) => 'window.CRM_CONFIG={SUPABASE_URL:"https://fake.supabas
     /* 3. Contenido que el producto realmente necesita decir */
     const web = (f) => fs.readFileSync(path.join(__dirname, "..", "web", f), "utf8").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
     const t = web("terminos/index.html"), p = web("privacidad/index.html");
-    for (const [re, que] of [[/transferencia bancaria/, "pago por transferencia"], [/verifica la transferencia/, "activación manual"], [/días de gracia/, "días de gracia"], [/solo lectura/, "solo lectura"], [/IVA/, "IVA"], [/inteligencia artificial/i, "IA"], [/leads que lleguen por el formulario/, "los leads de la web siguen entrando"]])
+    for (const [re, que] of [[/transferencia bancaria/, "pago por transferencia"], [/confirmamos el pago/, "activación al confirmar el pago"], [/No se realizan pagos ni se suben comprobantes/, "sin pagos en la app"], [/días de gracia/, "días de gracia"], [/solo lectura/, "solo lectura"], [/IVA/, "IVA"], [/inteligencia artificial/i, "IA"], [/leads que lleguen por el formulario/, "los leads de la web siguen entrando"]])
       assert.match(t, re, "términos: " + que);
-    ok("los términos explican pago por transferencia, activación, gracia, solo lectura, IVA e IA");
+    ok("los términos explican que el pago se acuerda con GPUnlock, la activación, gracia, solo lectura, IVA e IA");
     for (const [re, que] of [[/LOPDP|Protección de Datos Personales/, "ley aplicable"], [/encargado/, "rol de encargado"], [/Supabase/, "Supabase"], [/Netlify/, "Netlify"], [/Anthropic/, "Anthropic"], [/acceso, rectificación, eliminación, oposición, portabilidad/, "derechos"], [/Superintendencia/, "autoridad"], [/30 días/, "script de atribución"], [/fbclid/, "origen de leads"]])
       assert.match(p, re, "privacidad: " + que);
     ok("la privacidad nombra la ley, el rol de encargado, los proveedores, los derechos y los datos de campañas");

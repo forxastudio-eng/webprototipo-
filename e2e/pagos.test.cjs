@@ -1,7 +1,8 @@
 /* Pantalla «Plan y pagos» (cobro por transferencia), de punta a punta con un Supabase simulado.
    Uso: NODE_PATH=$(npm root -g) node e2e/pagos.test.cjs   (o `npm test` dentro de e2e/) */
 const assert = require("node:assert/strict");
-const { servir, abrirApp, chromium } = require("./lib.cjs");
+const { servir, abrirApp: abrir, chromium } = require("./lib.cjs");
+const abrirApp = (b, u, fx, vp, o) => abrir(b, u, fx, vp, Object.assign({ pagosEnApp: true }, o));   // este archivo prueba el flujo de pago dentro de la app
 
 const DIA = 86400000;
 async function irAPlan(page) {

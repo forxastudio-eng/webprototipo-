@@ -182,3 +182,13 @@ select test.login(:'a','a@x.com');
 select test.assert((select count(*) = 0 from public.consola_auditoria), 'la auditoría no la ve una empresa');
 
 select 'cobros: OK' as resultado;
+
+-- 11. Activar un plan cuyo pago se recibió por fuera (sin monto registrado) -------------------------
+select test.login(:'a2','a2@x.com'); select public.crear_organizacion('Inmobiliaria C','Cata') as org_c \gset
+select test.login(:'s','super@gpunlock.com');
+select test.falla($$ select public.registrar_pago_manual('$$ || :'org_c' || $$', 'profesional', 'mensual', -5, current_date) $$, 'un monto negativo no es válido');
+select public.registrar_pago_manual(:'org_c', 'profesional', 'mensual', 0, current_date);
+reset role;
+select test.assert((select plan_id = 'profesional' and estado = 'activa' and periodo_hasta > now() + interval '25 days' from public.organizaciones where id = :'org_c'),
+                   'activar sin monto: el plan queda activo con su periodo');
+select test.assert((select total = 0 from public.pagos_suscripcion where org_id = :'org_c'), 'queda el registro del periodo con monto 0');

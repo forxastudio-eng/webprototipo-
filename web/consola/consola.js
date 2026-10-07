@@ -7,7 +7,8 @@
   var CONFIGURADO = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(CFG.SUPABASE_URL || "") && !!CFG.SUPABASE_ANON_KEY && CFG.SUPABASE_ANON_KEY !== "TU_ANON_KEY";
   var sb = CONFIGURADO ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
   var $ = function (id) { return document.getElementById(id); };
-  var S = { vista: "pagos", resumen: null, pagos: [], pendientes: [], empresas: [], historial: [], cobro: null, planes: [] };
+  var CFGC = window.CRM_CONFIG || {}, PAGOS_APP = CFGC.PAGOS_EN_APP === true;
+  var S = { vista: PAGOS_APP ? "pagos" : "empresas", resumen: null, pagos: [], pendientes: [], empresas: [], historial: [], cobro: null, planes: [] };
   var ESTADOS = { prueba: ["En prueba", "ojo"], activa: ["Activa", "ok"], gracia: ["En gracia", "ojo"], vencida: ["Vencida", "mal"], cancelada: ["Cancelada", "mal"] };
 
   function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -58,7 +59,7 @@
     pintar();
   }
   function pintar() {
-    var tabs = [["pagos", "Pagos por revisar", S.pagos.length], ["empresas", "Empresas", 0], ["ingresos", "Ingresos", 0], ["cobro", "Datos de cobro", 0]];
+    var tabs = (PAGOS_APP ? [["pagos", "Pagos por revisar", S.pagos.length]] : []).concat([["empresas", "Empresas", 0], ["ingresos", "Ingresos", 0], ["cobro", PAGOS_APP ? "Datos de cobro" : "Ajustes de cobro", 0]]);
     $("tabs").innerHTML = tabs.map(function (t) {
       return '<button data-a="vista" data-v="' + t[0] + '"' + (S.vista === t[0] ? ' aria-current="page"' : "") + ">" + t[1] + (t[2] ? "<b>" + t[2] + "</b>" : "") + "</button>";
     }).join("");
@@ -96,7 +97,7 @@
         var vence = o.estado === "prueba" ? o.prueba_hasta : o.periodo_hasta;
         return "<tr><td><b>" + esc(o.nombre) + '</b><span class="sub">' + esc(o.propietario || "") + "</span></td><td>" + esc(o.plan) + "</td><td>" + chipEstado(o.estado) +
           (o.pago_abierto ? ' <span class="chip ojo">Pago abierto</span>' : "") + "</td><td>" + fecha(vence) + "</td><td>" + o.usuarios + "</td><td>" + o.leads_mes + "</td><td>" + fecha(o.ultimo_pago) +
-          '</td><td><button class="btn peq" data-a="pago-manual" data-id="' + esc(o.id) + '">Registrar pago</button> <button class="btn peq" data-a="ajustar" data-id="' + esc(o.id) + '">Ajustar</button></td></tr>';
+          '</td><td><button class="btn peq" data-a="pago-manual" data-id="' + esc(o.id) + '">Activar plan</button> <button class="btn peq" data-a="ajustar" data-id="' + esc(o.id) + '">Ajustar</button></td></tr>';
       }).join("") + "</tbody></table></div>";
   }
 
@@ -161,15 +162,15 @@
     },
     "pago-manual": function (el) {
       var o = buscar(S.empresas, el.dataset.id);
-      dlg('<h2 id="dlg-titulo">Registrar pago de ' + esc(o.nombre) + "</h2>" + AV +
-        '<p class="suave" style="margin:0">Para un pago que llegó sin solicitud previa. El monto va con impuesto incluido.</p><div class="form2">' +
+      dlg('<h2 id="dlg-titulo">Activar plan de ' + esc(o.nombre) + "</h2>" + AV +
+        '<p class="suave" style="margin:0">Para un pago que recibiste por fuera. Se activa el plan y se suma el periodo (desde hoy, o desde el vencimiento si aún está vigente). El monto es opcional y va con impuesto incluido.</p><div class="form2">' +
         '<label class="fld"><span>Plan</span><select name="plan">' + selPlanes(o.plan_id) + '</select></label><label class="fld"><span>Periodo</span><select name="periodo"><option value="mensual">Mensual</option><option value="anual">Anual</option></select></label>' +
-        '<label class="fld"><span>Total recibido (USD)</span><input name="total" type="number" min="0.01" step="0.01" required></label><label class="fld"><span>Fecha de la transferencia</span><input type="date" name="fecha" value="' + hoy() + '" required></label>' +
+        '<label class="fld"><span>Total recibido (USD, opcional)</span><input name="total" type="number" min="0" step="0.01"></label><label class="fld"><span>Fecha del pago</span><input type="date" name="fecha" value="' + hoy() + '" required></label>' +
         '<label class="fld"><span>Banco de origen</span><input name="banco" maxlength="60"></label><label class="fld"><span>N.º de comprobante</span><input name="comprobante" maxlength="60"></label>' +
-        '<label class="fld"><span>N.º de factura</span><input name="factura" maxlength="60"></label></div>' + pie("Registrar y activar"),
+        '<label class="fld"><span>N.º de factura</span><input name="factura" maxlength="60"></label></div>' + pie("Activar plan"),
         async function (f) {
-          var r = await rpc("registrar_pago_manual", { p_org: o.id, p_plan: f.get("plan"), p_periodo: f.get("periodo"), p_total: Number(f.get("total")), p_fecha: f.get("fecha"), p_banco: f.get("banco"), p_comprobante: f.get("comprobante"), p_factura: f.get("factura") });
-          toast("Pago registrado. Vence el " + fecha(r.periodo_hasta)); await cargar();
+          var r = await rpc("registrar_pago_manual", { p_org: o.id, p_plan: f.get("plan"), p_periodo: f.get("periodo"), p_total: Number(f.get("total") || 0), p_fecha: f.get("fecha"), p_banco: f.get("banco"), p_comprobante: f.get("comprobante"), p_factura: f.get("factura") });
+          toast("Plan activado. Vence el " + fecha(r.periodo_hasta)); await cargar();
         });
     },
     ajustar: function (el) {

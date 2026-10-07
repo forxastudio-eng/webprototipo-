@@ -13,6 +13,9 @@ window.CRM_CONFIG = {
   APP_NAME: "GPUnlock CRM",
   /* WhatsApp de ventas, formato internacional sin "+". Valor de ejemplo. */
   VENTAS_WHATSAPP: "593900000000",
+  /* false = nadie paga ni sube comprobantes dentro de la app: el pago se acuerda directamente con GPUnlock y
+     tú activas el plan desde /consola/. true = flujo de transferencia con referencia y comprobante dentro de la app. */
+  PAGOS_EN_APP: false,
   /* Datos que aparecen en /terminos y /privacidad. Lo que quede vacío se muestra resaltado como «[completar: …]».
      Cuando un abogado revise los textos, pon revisado: true para quitar el aviso de borrador. */
   LEGAL: {
