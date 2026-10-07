@@ -12,5 +12,16 @@ window.CRM_CONFIG = {
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvaXd3b3RyaHN3b2NwbGRnYXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMTI1MTAsImV4cCI6MjEwNjg4ODUxMH0.BJlRRYApwPbJfzfMGlmTCVE1bm8IZhMEcagRRNkE338",
   APP_NAME: "GPUnlock CRM",
   /* WhatsApp de ventas, formato internacional sin "+". Valor de ejemplo. */
-  VENTAS_WHATSAPP: "593900000000"
+  VENTAS_WHATSAPP: "593900000000",
+  /* Datos que aparecen en /terminos y /privacidad. Lo que quede vacío se muestra resaltado como «[completar: …]».
+     Cuando un abogado revise los textos, pon revisado: true para quitar el aviso de borrador. */
+  LEGAL: {
+    razon_social: "GPUnlock",
+    ruc: "",
+    domicilio: "",
+    ciudad: "",
+    correo_privacidad: "",
+    actualizado: "7 de octubre de 2026",
+    revisado: false
+  }
 };

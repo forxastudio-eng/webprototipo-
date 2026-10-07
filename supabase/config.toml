@@ -1,2 +1,5 @@
 # Configuración para la CLI de Supabase (supabase functions deploy ...).
 project_id = "gpunlock-crm"
+
+[functions.cobros-avisos]
+verify_jwt = false   # se protege con el encabezado x-cron-secret
