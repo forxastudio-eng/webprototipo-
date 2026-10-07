@@ -21,7 +21,8 @@
     crm_proyectos: [{ slug: "torre", nombre: "Torre Alba", activo: true }],
     planes: PLANES, organizaciones: [ORG], datos_cobro: [FX.cobro], pagos_suscripcion: FX.pagos || [],
     crm_oportunidades: [], crm_actividades: [], invitaciones: [], org_marca: FX.marca ? [FX.marca] : [],
-    crm_unidades: FX.unidades || [], crm_unidades_historial: FX.historialUnidades || []
+    crm_unidades: FX.unidades || [], crm_unidades_historial: FX.historialUnidades || [],
+    crm_cotizador_config: FX.cfgCot || [], crm_cotizaciones: FX.cotizaciones || []
   }, FX.tables || {});
   FX.rpc = Object.assign({
     crm_equipo: [{ email: "ana@x.com", nombre: "Ana", rol: "propietario" }],
@@ -74,6 +75,36 @@
       FX.tables.crm_unidades_historial = [{ id: 99, unidad_id: u.id, estado_antes: antes, estado_despues: a.p_estado, oportunidad_id: a.p_oportunidad, por: "ana@x.com", nota: a.p_nota, created_at: new Date().toISOString() }].concat(FX.tables.crm_unidades_historial);
       return u;
     },
+    /* cotizador */
+    crear_cotizacion: function (a) {
+      if (FX.errorCotizacion) return { __error: FX.errorCotizacion };
+      var d = a.p_datos, ops = FX.tables.crm_oportunidades, op;
+      if (d.oportunidad_id) op = ops.filter(function (o) { return o.id === d.oportunidad_id; })[0];
+      else {
+        op = { id: "nuevo-" + (ops.length + 1), org_id: ORG.id, etapa: "nuevo", proyecto: d.proyecto, asignado_a: FX.user.email, fuente: "oficina", created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          contacto: { id: "cn", nombre: d.cliente.nombre, telefono: d.cliente.telefono, telefono_norm: d.cliente.telefono.replace(/\D/g, ""), correo: d.cliente.correo || null } };
+        ops.push(op);
+      }
+      var us = FX.tables.crm_unidades.filter(function (u) { return d.unidades.indexOf(u.id) >= 0; });
+      var lista = us.reduce(function (s, u) { return s + u.precio; }, 0);
+      var k = window.GPUCotizar.calcular({ precioLista: lista, descuento: d.descuento, forma: d.forma_pago, entradaPct: d.entrada_pct, reserva: d.reserva, cuotas: d.cuotas_entrada, tasa: d.tasa_anual, plazo: d.plazo_anios });
+      var n = FX.tables.crm_cotizaciones.length + 1;
+      var q = { id: "q" + n, org_id: ORG.id, numero: "TA-" + String(n).padStart(4, "0"), proyecto: d.proyecto, oportunidad_id: op.id, cliente_nombre: op.contacto.nombre, cliente_telefono: op.contacto.telefono,
+        unidades: us.map(function (u) { return { id: u.id, codigo: u.codigo, tipo: u.tipo, precio: u.precio, foto: (u.fotos || [])[0] || null }; }), precio_lista: lista, descuento: d.descuento,
+        precio_final: k.precioFinal, forma_pago: d.forma_pago, entrada_pct: d.entrada_pct, entrada: k.entrada, reserva: k.reserva, cuotas_entrada: d.cuotas_entrada, cuota_entrada: k.cuotaEntrada,
+        saldo: k.saldo, tasa_anual: d.tasa_anual, plazo_anios: d.plazo_anios, cuota_mensual: k.cuotaMensual, vigencia_hasta: new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10),
+        token: "ab".repeat(32), estado: "emitida", asesor_nombre: "Ana", asesor_email: FX.user.email, created_at: new Date().toISOString() };
+      FX.tables.crm_cotizaciones.unshift(q); op.etapa = "proforma";
+      return q;
+    },
+    guardar_config_cotizador: function (a) {
+      var c = Object.assign({ org_id: ORG.id, proyecto: a.p_proyecto }, a.p_datos);
+      FX.tables.crm_cotizador_config = FX.tables.crm_cotizador_config.filter(function (x) { return x.proyecto !== a.p_proyecto; }).concat([c]);
+      return c;
+    },
+    anular_cotizacion: function (a) { FX.tables.crm_cotizaciones.forEach(function (q) { if (q.id === a.p_id) q.estado = "anulada"; }); return null; },
+    crm_tomar_lead: function (a) { FX.tables.crm_oportunidades.forEach(function (o) { if (o.id === a.p_op) o.asignado_a = FX.user.email; }); return null; },
+    guardar_fotos_unidad: function (a) { var u = FX.tables.crm_unidades.filter(function (x) { return x.id === a.p_unidad; })[0]; u.fotos = a.p_fotos; return a.p_fotos; },
     importar_unidades: function (a) {
       if (FX.respImportar) return FX.respImportar;
       var T = FX.tables.crm_unidades, c = 0, m = 0;

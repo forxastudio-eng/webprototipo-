@@ -50,7 +50,8 @@
     user: null, email: "", rol: null,
     org: null, orgs: [], uso: null, planes: [], proyectos: [], invitaciones: [], cobro: {}, pagos: [], marca: null, mDraft: null,
     ajSec: "equipo", intervalo: "mensual",
-    unidades: null, invF: { q: "", proyecto: "", estado: "disponible", tipo: "" }, invMax: 60, imp: null,
+    unidades: null, invF: { q: "", proyecto: "", estado: "disponible", tipo: "" }, invMax: 60, imp: null, invSub: "unidades",
+    cot: null, cotCfg: null, cotizaciones: null, cotQ: "",
     ops: [], tareas: [], equipo: [],
     vista: "hoy",
     f: { q: "", proyecto: "", quien: "todos" },
@@ -327,6 +328,7 @@
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "crm_actividades", filter: filtro }, recargar)
       .on("postgres_changes", { event: "*", schema: "public", table: "crm_unidades", filter: filtro }, recargarInv)
+      .on("postgres_changes", { event: "*", schema: "public", table: "crm_cotizaciones", filter: filtro }, function () { if (S.cotizaciones !== null) cargarCotizaciones(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "org_marca", filter: filtro }, function (p) {
         aplicarMarcaEmpresa(p.eventType === "DELETE" ? null : (p.new && p.new.org_id ? p.new : null));
         toast("La marca de tu empresa se actualizó");
@@ -588,11 +590,14 @@
   async function cargarDetalle(id, silencioso) {
     var r = await Promise.all([
       sb.from("crm_contactos").select("*").eq("id", S.det ? S.det.op.contacto_id : "").maybeSingle(),
-      sb.from("crm_actividades").select("*").eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(100)
+      sb.from("crm_actividades").select("*").eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(100),
+      sb.from("crm_cotizaciones").select("id,numero,proyecto,oportunidad_id,cliente_nombre,cliente_telefono,unidades,precio_final,cuota_mensual,forma_pago,estado,vigencia_hasta,created_at,token,asesor_nombre,asesor_email")
+        .eq("oportunidad_id", id).order("created_at", { ascending: false }).limit(30)
     ]);
     if (!S.det || S.det.op.id !== id) return;
     if (r[0].data) S.det.contacto = r[0].data;
     S.det.acts = r[1].data || [];
+    S.det.cots = r[2].data || [];
     if (r[1].error && !silencioso) toast(mensajeError(r[1].error), true);
     pintarHoja();
   }
@@ -664,6 +669,13 @@
       if (S.prop) h += propuestaHtml(S.prop);
       h += "</div>";
     }
+
+    // Proformas
+    var cots = d.cots || [];
+    h += '<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Proformas</h3>' +
+      (gest ? '<button class="btn btn-primary btn-sm" data-action="proforma-lead" data-id="' + esc(o.id) + '">' + icon("plus", "icon-sm") + " Nueva proforma</button>" : "") + "</div>" +
+      (cots.length ? '<div class="cot-lista">' + cots.map(function (q) { return itemCot(q, false); }).join("") + "</div>"
+        : '<p class="muted" style="margin:6px 0 0">' + (gest ? "Cotiza en segundos con los datos de este cliente y envíasela por WhatsApp." : "Sin proformas.") + "</p>") + "</div>";
 
     // Datos
     h += '<details class="card"><summary><b>Datos del lead</b></summary>' + (gest ? formDatos(o, c) : '<p class="muted">Solo lectura para tu rol.</p>') + "</details>";
@@ -762,8 +774,8 @@
   }
 
   /* ----------------------------------------------------------------- modales */
-  function abrirModal(html) { $("modal-card").innerHTML = html; $("modal").hidden = false; var f = $("modal-card").querySelector("input,select,textarea"); if (f && window.innerWidth > 900) f.focus(); }
-  function cerrarModal() { $("modal").hidden = true; $("modal-card").innerHTML = ""; }
+  function abrirModal(html, clase) { $("modal-card").className = "modal-card" + (clase ? " " + clase : ""); $("modal-card").innerHTML = html; $("modal").hidden = false; var f = $("modal-card").querySelector("input,select,textarea"); if (f && window.innerWidth > 900) f.focus(); }
+  function cerrarModal() { $("modal").hidden = true; $("modal-card").innerHTML = ""; $("modal-card").className = "modal-card"; S.cot = null; S.imp = null; }
 
   function abrirNuevo() {
     var proys = S.proyectos.filter(function (p) { return p.activo; }).map(function (p) { return p.slug; });
@@ -908,7 +920,7 @@
     var h = '<div class="card"><p class="muted" style="margin:0 0 8px">Tus proyectos o desarrollos. Se usan para ordenar los leads y para que la IA conozca tu oferta.</p>' +
       (S.proyectos.length ? S.proyectos.map(function (p) {
         return '<div class="person"><div><b>' + esc(p.nombre) + (p.activo ? "" : " (oculto)") + "</b><small>" + esc(p.slug) + "</small></div>" +
-          (esGestor() ? '<div class="row"><button class="btn btn-sm" data-action="proy-precios" data-s="' + esc(p.slug) + '" title="Si muestras u ocultas los precios en la disponibilidad de tu web">' + (p.precios_publicos === false ? "Precios ocultos en tu web" : "Precios visibles en tu web") + '</button><button class="btn btn-sm" data-action="proy-activo" data-s="' + esc(p.slug) + '">' + (p.activo ? "Ocultar" : "Mostrar") + '</button><button class="btn btn-sm" data-action="proy-borrar" data-s="' + esc(p.slug) + '" data-n="' + esc(p.nombre) + '">Eliminar</button></div>' : "") + "</div>";
+          (esGestor() ? '<div class="row"><button class="btn btn-sm" data-action="cfg-cot" data-s="' + esc(p.slug) + '">Cotizador</button><button class="btn btn-sm" data-action="proy-precios" data-s="' + esc(p.slug) + '" title="Si muestras u ocultas los precios en la disponibilidad de tu web">' + (p.precios_publicos === false ? "Precios ocultos en tu web" : "Precios visibles en tu web") + '</button><button class="btn btn-sm" data-action="proy-activo" data-s="' + esc(p.slug) + '">' + (p.activo ? "Ocultar" : "Mostrar") + '</button><button class="btn btn-sm" data-action="proy-borrar" data-s="' + esc(p.slug) + '" data-n="' + esc(p.nombre) + '">Eliminar</button></div>' : "") + "</div>";
       }).join("") : '<div class="empty">Aún no tienes proyectos.</div>') + "</div>";
     if (esGestor()) h += '<div class="sec"><h2>Nuevo proyecto</h2></div><form class="card form" id="form-proyecto"><label class="fld"><span>Nombre</span><input name="nombre" required maxlength="80" placeholder="Ej. Torres del Parque"></label><button class="btn btn-primary" type="submit"' + (activa() ? "" : " disabled") + ">Agregar proyecto</button></form>";
     return h;
@@ -1041,6 +1053,13 @@
   })();
 
   function vistaInventario() {
+    var sub = '<div class="sub-tabs" role="tablist"><button role="tab" class="' + (S.invSub === "unidades" ? "on" : "") + '" data-action="inv-sub" data-s="unidades">Unidades</button>' +
+      '<button role="tab" class="' + (S.invSub === "proformas" ? "on" : "") + '" data-action="inv-sub" data-s="proformas">Proformas</button></div>';
+    var nueva = puedeEscribir() ? '<button class="btn btn-primary btn-sm" data-action="nueva-proforma">' + icon("plus", "icon-sm") + " Nueva proforma</button>" : "";
+    if (S.invSub === "proformas") return sub + (nueva ? '<div class="row" style="margin-bottom:10px">' + nueva + "</div>" : "") + vistaProformas();
+    return sub + vistaUnidades(nueva);
+  }
+  function vistaUnidades(nueva) {
     if (S.unidades === null) return '<div class="empty">Cargando inventario…</div>';
     var gest = esGestor();
     if (!S.proyectos.length) {
@@ -1057,9 +1076,9 @@
     var tipos = Object.keys(TIPOS_UNIDAD).filter(function (t) { return S.unidades.some(function (u) { return u.tipo === t; }); });
 
     var h = "";
-    if (gest) {
-      h += '<div class="row" style="margin-bottom:10px"><button class="btn btn-primary btn-sm" data-action="unidad-nueva"' + (activa() ? "" : " disabled") + ">" + icon("plus", "icon-sm") + " Unidad</button>" +
-        '<button class="btn btn-sm" data-action="importar"' + (activa() ? "" : " disabled") + ">Importar Excel o CSV</button></div>";
+    if (gest || nueva) {
+      h += '<div class="row" style="margin-bottom:10px">' + (nueva || "") + (gest ? '<button class="btn btn-sm" data-action="unidad-nueva"' + (activa() ? "" : " disabled") + ">" + icon("plus", "icon-sm") + " Unidad</button>" +
+        '<button class="btn btn-sm" data-action="importar"' + (activa() ? "" : " disabled") + ">Importar Excel o CSV</button>" : "") + "</div>";
     }
     if (!S.unidades.length) {
       return h + '<div class="empty"><b>Tu inventario está vacío.</b><br>' + (gest ? "Agrega unidades una por una o impórtalas de golpe desde un Excel o CSV." : "Un administrador debe cargar las unidades.") + "</div>";
@@ -1083,7 +1102,7 @@
       var e = ESTADOS_UNIDAD[u.estado] || [u.estado, "gray"];
       var med = [u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : "", u.dormitorios != null ? u.dormitorios + " dorm." : "", u.banos != null ? fmtNum(u.banos) + " baños" : "", u.parqueos ? u.parqueos + " parq." : ""].filter(Boolean).join(" · ");
       var ubic = [S.proyectos.length > 1 ? proyTxt(u.proyecto) : "", TIPOS_UNIDAD[u.tipo] || "", u.bloque ? "Torre " + u.bloque : "", u.piso ? "Piso " + u.piso : ""].filter(Boolean).join(" · ");
-      return '<button type="button" class="card unidad" data-action="unidad" data-id="' + esc(u.id) + '"><span class="u-top"><b>' + esc(u.codigo) + '</b><span class="chip ' + e[1] + '">' + e[0] + "</span></span>" +
+      return '<button type="button" class="card unidad' + (u.fotos && u.fotos[0] ? " con-foto" : "") + '" data-action="unidad" data-id="' + esc(u.id) + '">' + (u.fotos && u.fotos[0] ? '<img class="u-thumb" src="' + esc(urlFoto(u.fotos[0])) + '" alt="" loading="lazy">' : "") + '<span class="u-top"><b>' + esc(u.codigo) + '</b><span class="chip ' + e[1] + '">' + e[0] + "</span></span>" +
         '<small class="muted">' + esc(ubic) + "</small>" + (med ? "<span>" + esc(med) + "</span>" : "") +
         '<span class="u-precio">' + (u.precio != null ? precioTxt(u.precio) : '<span class="muted">Sin precio</span>') + "</span></button>";
     }).join("") + "</div>";
@@ -1101,6 +1120,18 @@
       '<dl class="kv">' + fila("Tipo", TIPOS_UNIDAD[u.tipo]) + fila("Torre / bloque", u.bloque) + fila("Piso", u.piso) + fila("Área", u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : "") +
       fila("Dormitorios", u.dormitorios) + fila("Baños", u.banos != null ? fmtNum(u.banos) : "") + fila("Parqueos", u.parqueos) + fila("Bodegas", u.bodegas) +
       fila("Precio", u.precio != null ? dinero2(u.precio) : "Sin precio") + (esGestor() ? fila("En tu web", u.publica ? "Visible" : "Oculta") : "") + fila("Descripción", u.descripcion) + "</dl>";
+    var fotos = u.fotos || [], gf = esGestor() && activa();
+    if (fotos.length || gf) {
+      h += '<div class="u-galeria" id="u-fotos">' + fotos.map(function (f, i) {
+        return '<figure><a href="' + esc(urlFoto(f)) + '" target="_blank" rel="noopener"><img src="' + esc(urlFoto(f)) + '" alt="Foto ' + (i + 1) + " de " + esc(u.codigo) + '" loading="lazy"></a>' +
+          (i === 0 ? "<figcaption>Portada</figcaption>" : "") +
+          (gf ? '<div class="u-foto-acc">' + (i ? '<button type="button" data-action="foto-portada" data-id="' + esc(u.id) + '" data-f="' + esc(f) + '">Portada</button>' : "") +
+            '<button type="button" data-action="foto-quitar" data-id="' + esc(u.id) + '" data-f="' + esc(f) + '" aria-label="Quitar foto ' + (i + 1) + '">Quitar</button></div>' : "") + "</figure>";
+      }).join("") + (gf && fotos.length < 8 ? '<label class="u-foto-nueva">' + icon("plus") + '<span>Agregar fotos</span><input type="file" id="u-fotos-input" data-id="' + esc(u.id) + '" accept="image/jpeg,image/png,image/webp" multiple hidden></label>' : "") + "</div>";
+    }
+    if (u.estado === "disponible" && u.precio != null && puedeEscribir()) {
+      h += '<div class="row" style="margin-top:10px"><button class="btn btn-primary" data-action="cotizar-unidad" data-id="' + esc(u.id) + '">Hacer proforma con esta unidad</button></div>';
+    }
     if (dest.length) {
       var leads = S.ops.filter(function (o) { return abierta(o) && puedeGestionar(o); })
         .sort(function (a, b) { return (b.proyecto === u.proyecto) - (a.proyecto === u.proyecto) || natural((a.contacto || {}).nombre || "", (b.contacto || {}).nombre || ""); }).slice(0, 200);
@@ -1239,6 +1270,366 @@
   function descargarTexto(nombre, texto, tipo) {
     var url = URL.createObjectURL(new Blob([texto], { type: tipo })), a = document.createElement("a");
     a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /* ------------------------------------------------------------------ Cotizador (proformas) */
+  /* Una sola pantalla: cliente (buscar un lead o escribir uno nuevo) → proyecto y unidades → condiciones → resumen en vivo.
+     Las cifras se ven al instante con GPUCotizar (la misma cuenta que hace el servidor al emitir). */
+  function urlProforma(token, imprimir) { return location.origin + "/proforma/?t=" + token + (imprimir ? "&imprimir=1" : ""); }
+  function urlFoto(path) { return path ? CFG.SUPABASE_URL + "/storage/v1/object/public/inventario/" + path : ""; }
+  function soloDigitos(t) { return String(t || "").replace(/\D/g, ""); }
+  function telNorm(t) { var d = soloDigitos(t); if (d.length === 10 && d[0] === "0") d = "593" + d.slice(1); return d; }
+  function cfgDe(slug) { return Object.assign({}, GPUCotizar.DEFECTO, (S.cotCfg || {})[slug] || {}); }
+  async function cargarCfgCot() {
+    var r = await sb.from("crm_cotizador_config").select("*").eq("org_id", S.org.id);
+    S.cotCfg = {}; (r.data || []).forEach(function (c) { S.cotCfg[c.proyecto] = c; });
+  }
+  function numCot(v) { var r = GPUImportar.numero(v); return r.vacio ? null : r.error ? NaN : r.valor; }
+
+  /* Abre el cotizador. o: { op: id de lead, unidad: id de unidad } (ambos opcionales). */
+  async function abrirCotizador(o) {
+    o = o || {};
+    if (!puedeEscribir()) { toast(activa() ? "Tu rol no permite hacer proformas." : "Con la suscripción vencida no se hacen proformas.", true); return; }
+    abrirModal('<div class="empty">Preparando el cotizador…</div>', "grande");
+    try {
+      await Promise.all([S.unidades === null ? cargarInventario(true) : null, cargarCfgCot()]);
+    } catch (e) { /* se reintenta al emitir */ }
+    var u = o.unidad ? unidadPorId(o.unidad) : null, op = o.op ? opPorId(o.op) : null;
+    var proy = (u && u.proyecto) || (op && op.proyecto && PROYECTOS[op.proyecto] ? op.proyecto : "") || S.invF.proyecto || (S.proyectos.filter(function (p) { return p.activo; })[0] || {}).slug || "";
+    var cfg = cfgDe(proy);
+    S.cot = { op: op ? op.id : null, nuevo: null, buscar: "", proyecto: proy, unidades: u && u.estado === "disponible" && u.precio != null ? [u.id] : [], buscarU: "",
+      descModo: "monto", descuento: "", forma: "credito", entradaPct: String(cfg.entrada_pct), reserva: "", reservaTocada: false,
+      cuotas: String(cfg.cuotas_entrada), tasa: String(cfg.tasa_anual), plazo: String(cfg.plazo_anios), notas: "", hecho: null };
+    pintarCot();
+    if (!op) { var b = $("cot-buscar"); if (b) b.focus(); }
+  }
+  function cotLead() { return S.cot && S.cot.op ? opPorId(S.cot.op) : null; }
+  function unidadesCot() { return S.cot.unidades.map(unidadPorId).filter(Boolean); }
+
+  /* Cifras y validación de lo que hay en pantalla. */
+  function estadoCot() {
+    var c = S.cot, cfg = cfgDe(c.proyecto), us = unidadesCot();
+    var lista = GPUCotizar.r2(us.reduce(function (s, u) { return s + Number(u.precio || 0); }, 0));
+    var dIn = numCot(c.descuento), desc = 0, err = "";
+    if (dIn != null) {
+      if (isNaN(dIn) || dIn < 0) err = "El descuento no es un número válido";
+      else desc = GPUCotizar.r2(c.descModo === "pct" ? lista * dIn / 100 : dIn);
+    }
+    var maxDesc = GPUCotizar.r2(lista * Number(cfg.descuento_max_pct) / 100);
+    if (!err && lista && desc >= lista) err = "El descuento no puede ser el precio completo";
+    if (!err && S.rol === "agente" && desc > maxDesc) err = "Tu descuento máximo es " + fmtNum(cfg.descuento_max_pct) + " % (" + dinero2(maxDesc) + ")";
+    var ent = numCot(c.entradaPct), cuotas = numCot(c.cuotas), tasa = numCot(c.tasa), plazo = numCot(c.plazo);
+    if (!err && (ent == null || isNaN(ent) || ent < 0 || ent > 100)) err = "La entrada va de 0 % a 100 %";
+    if (!err && (cuotas == null || isNaN(cuotas) || cuotas < 0 || cuotas > 120 || cuotas % 1)) err = "Las cuotas de la entrada van de 0 a 120";
+    if (!err && c.forma === "credito" && (tasa == null || isNaN(tasa) || tasa < 0 || tasa > 30)) err = "La tasa va de 0 % a 30 %";
+    if (!err && c.forma === "credito" && (plazo == null || isNaN(plazo) || plazo < 1 || plazo > 30 || plazo % 1)) err = "El plazo va de 1 a 30 años";
+    var sugerida = GPUCotizar.reservaSugerida(cfg, GPUCotizar.r2(lista - desc));
+    var res = c.reservaTocada ? numCot(c.reserva) : sugerida;
+    if (!err && (res == null || isNaN(res) || res < 0)) err = "La reserva no es un número válido";
+    var k = lista ? GPUCotizar.calcular({ precioLista: lista, descuento: desc, forma: c.forma, entradaPct: ent || 0, reserva: res || 0, cuotas: cuotas || 0, tasa: tasa || 0, plazo: plazo || 1 }) : null;
+    var falta = "";
+    if (!cotLead() && !c.nuevo) falta = "Elige o escribe el cliente";
+    else if (c.nuevo && (c.nuevo.nombre.trim().length < 2)) falta = "Escribe el nombre del cliente";
+    else if (c.nuevo && soloDigitos(c.nuevo.telefono).length < 9) falta = "Escribe el teléfono del cliente";
+    else if (!us.length) falta = "Elige al menos una unidad";
+    return { cfg: cfg, us: us, lista: lista, desc: desc, maxDesc: maxDesc, sugerida: sugerida, reserva: res, ent: ent, cuotas: cuotas, tasa: tasa, plazo: plazo, k: k, error: err, falta: falta || err };
+  }
+
+  function pintarCot() {
+    var c = S.cot; if (!c) return;
+    if (c.hecho) return pintarCotHecho();
+    var h = '<div class="cot-cab"><h2>Nueva proforma</h2><button class="icon-btn" data-action="cerrar-modal" aria-label="Cerrar">' + icon("x") + "</button></div>" +
+      '<section class="cot-sec" id="cot-cliente"></section><section class="cot-sec" id="cot-unidades"></section>' +
+      '<section class="cot-sec" id="cot-condiciones"></section><section class="cot-sec" id="cot-resumen" aria-live="polite"></section>' +
+      '<label class="fld cot-sec"><span>Nota para el cliente (opcional)</span><textarea id="cot-notas" maxlength="1000" placeholder="Ej. Incluye cocina equipada. Visita agendada para el sábado.">' + esc(c.notas) + "</textarea></label>" +
+      '<div class="cot-pie" id="cot-pie"></div>';
+    abrirModal(h, "grande");
+    pintarCotCliente(); pintarCotUnidades(); pintarCotCondiciones(); pintarCotResumen();
+  }
+
+  function pintarCotCliente() {
+    var c = S.cot, el = $("cot-cliente"); if (!el) return;
+    var op = cotLead(), h = '<h3><span class="paso">1</span> Cliente</h3>';
+    if (op) {
+      var k = op.contacto || {}, tomar = !op.asignado_a && S.rol === "agente";
+      h += '<div class="cot-elegido"><div><b>' + esc(k.nombre || "Lead") + '</b><small class="muted">' + esc([k.telefono, k.correo].filter(Boolean).join(" · ") || "Sin teléfono ni correo") + "</small>" +
+        '<small class="muted">' + esc(proyTxt(op.proyecto)) + " · " + esc(etapaTxt(op.etapa)) + (op.asignado_a && op.asignado_a !== S.email ? " · " + esc(nombreDe(op.asignado_a)) : "") + "</small>" +
+        (tomar ? '<small class="cot-aviso">Este lead no tiene asesor: al emitir la proforma pasará a ser tuyo.</small>' : "") +
+        '</div><button class="btn btn-sm" data-action="cot-cambiar">Cambiar</button></div>';
+    } else if (c.nuevo) {
+      h += '<div class="form2"><label class="fld"><span>Nombre del cliente *</span><input id="cot-n-nombre" value="' + esc(c.nuevo.nombre) + '" maxlength="120" autocomplete="off"></label>' +
+        '<label class="fld"><span>Teléfono / WhatsApp *</span><input id="cot-n-telefono" type="tel" inputmode="tel" value="' + esc(c.nuevo.telefono) + '" placeholder="09XXXXXXXX" autocomplete="off"></label></div>' +
+        '<label class="fld"><span>Correo (opcional)</span><input id="cot-n-correo" type="email" value="' + esc(c.nuevo.correo) + '" autocomplete="off"></label>' +
+        '<div id="cot-dup"></div><p class="muted" style="margin:0"><small>Se guarda como lead tuyo en el CRM. Si ya existe alguien con ese teléfono o correo, se usa su ficha (no se duplica).</small></p>' +
+        '<button type="button" class="link-btn" data-action="cot-buscar-existente">← Buscar un cliente que ya está en el CRM</button>';
+    } else {
+      h += '<div class="cot-buscador"><input type="search" id="cot-buscar" value="' + esc(c.buscar) + '" placeholder="Busca por nombre, teléfono o correo" autocomplete="off" aria-label="Buscar cliente" aria-controls="cot-resultados"></div>' +
+        '<div id="cot-resultados" class="cot-resultados" role="listbox" aria-label="Clientes"></div>' +
+        '<button type="button" class="btn btn-sm" data-action="cot-nuevo">' + icon("plus", "icon-sm") + " Cliente nuevo</button>";
+    }
+    el.innerHTML = h;
+    if (!op && !c.nuevo) pintarCotResultados();
+    if (c.nuevo) pintarCotDuplicado();
+  }
+  function buscarLeads(q) {
+    var t = norm(q).trim(), d = soloDigitos(q);
+    var lista = S.ops.filter(function (o) {
+      if (!t) return true;
+      var k = o.contacto || {};
+      return norm(k.nombre).indexOf(t) >= 0 || (d.length >= 4 && (soloDigitos(k.telefono).indexOf(d) >= 0 || String(k.telefono_norm || "").indexOf(d) >= 0)) || (t.indexOf("@") >= 0 || t.length >= 3) && norm(k.correo).indexOf(t) >= 0;
+    });
+    return lista.sort(function (a, b) { return abierta(b) - abierta(a) || ms(b.updated_at) - ms(a.updated_at); }).slice(0, 6);
+  }
+  function pintarCotResultados() {
+    var el = $("cot-resultados"); if (!el) return;
+    var q = S.cot.buscar, r = buscarLeads(q);
+    if (!S.ops.length && !q) { el.innerHTML = '<p class="muted" style="margin:0">Aún no tienes leads. Escribe los datos de un cliente nuevo.</p>'; return; }
+    el.innerHTML = (q ? "" : '<small class="muted">Recientes</small>') + r.map(function (o) {
+      var k = o.contacto || {};
+      return '<button type="button" class="cot-res" role="option" data-action="cot-lead" data-id="' + esc(o.id) + '"><b>' + esc(k.nombre || "Lead") + "</b><small>" +
+        esc([k.telefono, proyTxt(o.proyecto), etapaTxt(o.etapa)].filter(Boolean).join(" · ")) + "</small></button>";
+    }).join("") + (q && !r.length ? '<p class="muted" style="margin:0">Nadie coincide con «' + esc(q) + '». <button type="button" class="link-btn" data-action="cot-nuevo">Crear cliente nuevo con estos datos</button></p>' : "");
+  }
+  function pintarCotDuplicado() {
+    var el = $("cot-dup"), n = S.cot.nuevo; if (!el || !n) return;
+    var tel = telNorm(n.telefono), cor = norm(n.correo).trim();
+    var ya = S.ops.filter(function (o) {
+      var k = o.contacto || {};
+      return (tel.length >= 9 && (k.telefono_norm === tel || telNorm(k.telefono) === tel)) || (cor.indexOf("@") > 0 && norm(k.correo) === cor);
+    })[0];
+    el.innerHTML = ya ? '<div class="cot-dup">Ya tienes a <b>' + esc((ya.contacto || {}).nombre) + "</b> con " + (tel && (ya.contacto || {}).telefono_norm === tel ? "este teléfono" : "este correo") +
+      ' (' + esc(proyTxt(ya.proyecto)) + ' · ' + esc(etapaTxt(ya.etapa)) + ').<button type="button" class="btn btn-sm" data-action="cot-lead" data-id="' + esc(ya.id) + '">Usar su ficha</button></div>' : "";
+  }
+
+  function pintarCotUnidades() {
+    var c = S.cot, el = $("cot-unidades"); if (!el) return;
+    var proys = S.proyectos.filter(function (p) { return p.activo || p.slug === c.proyecto; });
+    var h = '<h3><span class="paso">2</span> Proyecto y unidades</h3>';
+    if (!proys.length) { el.innerHTML = h + '<div class="empty">Primero crea un proyecto y carga su inventario.</div>'; return; }
+    if (proys.length > 1) h += '<label class="fld"><span>Proyecto</span><select id="cot-proyecto">' + proys.map(function (p) { return '<option value="' + esc(p.slug) + '"' + (p.slug === c.proyecto ? " selected" : "") + ">" + esc(p.nombre) + "</option>"; }).join("") + "</select></label>";
+    var sel = unidadesCot();
+    if (sel.length) {
+      h += '<div class="cot-sel">' + sel.map(function (u) {
+        return '<span class="cot-chip"><b>' + esc(u.codigo) + "</b> " + esc(TIPOS_UNIDAD[u.tipo] || "") + " · " + esc(precioTxt(u.precio)) +
+          '<button type="button" data-action="cot-quitar-u" data-id="' + esc(u.id) + '" aria-label="Quitar ' + esc(u.codigo) + '">' + icon("x", "icon-sm") + "</button></span>";
+      }).join("") + "</div>";
+    }
+    var disp = (S.unidades || []).filter(function (u) { return u.proyecto === c.proyecto && u.estado === "disponible" && c.unidades.indexOf(u.id) < 0; });
+    var q = norm(c.buscarU).trim();
+    var vis = disp.filter(function (u) { return !q || norm([u.codigo, u.bloque, u.piso, TIPOS_UNIDAD[u.tipo]].join(" ")).indexOf(q) >= 0; });
+    if (!disp.length && !sel.length) {
+      h += '<div class="empty">No hay unidades disponibles en este proyecto.' + (esGestor() ? " Cárgalas en <b>Inventario</b>." : "") + "</div>";
+    } else if (disp.length) {
+      h += '<input type="search" id="cot-buscar-u" class="cot-input" value="' + esc(c.buscarU) + '" placeholder="' + (sel.length ? "Agregar otra unidad (parqueo, bodega…)" : "Busca la unidad por código, torre o piso") + '" autocomplete="off" aria-label="Buscar unidad">' +
+        '<div class="cot-unis">' + vis.slice(0, 24).map(function (u) {
+          var sinPrecio = u.precio == null;
+          return '<button type="button" class="cot-uni" data-action="cot-agregar-u" data-id="' + esc(u.id) + '"' + (sinPrecio ? ' disabled title="Sin precio en el inventario"' : "") + ">" +
+            (u.fotos && u.fotos[0] ? '<img src="' + esc(urlFoto(u.fotos[0])) + '" alt="" loading="lazy">' : "") +
+            "<b>" + esc(u.codigo) + "</b><small>" + esc([TIPOS_UNIDAD[u.tipo], u.piso ? "Piso " + u.piso : "", u.area_m2 != null ? fmtNum(u.area_m2) + " m²" : "", u.dormitorios != null ? u.dormitorios + " dorm." : ""].filter(Boolean).join(" · ")) + "</small>" +
+            "<span>" + (sinPrecio ? "Sin precio" : esc(precioTxt(u.precio))) + "</span></button>";
+        }).join("") + (vis.length > 24 ? '<p class="muted" style="margin:0"><small>Escribe para ver más (' + vis.length + " disponibles).</small></p>" : "") +
+        (!vis.length ? '<p class="muted" style="margin:0">Ninguna unidad disponible coincide.</p>' : "") + "</div>";
+    }
+    el.innerHTML = h;
+  }
+
+  function pintarCotCondiciones() {
+    var c = S.cot, el = $("cot-condiciones"); if (!el) return;
+    var e = estadoCot(), cfg = e.cfg;
+    var h = '<h3><span class="paso">3</span> Precio y forma de pago</h3>' +
+      '<div class="seg" role="group" aria-label="Forma de pago" style="margin-bottom:10px"><button type="button" class="' + (c.forma === "credito" ? "on" : "") + '" aria-pressed="' + (c.forma === "credito") + '" data-action="cot-forma" data-f="credito">Crédito hipotecario</button>' +
+      '<button type="button" class="' + (c.forma === "contado" ? "on" : "") + '" aria-pressed="' + (c.forma === "contado") + '" data-action="cot-forma" data-f="contado">Contado</button></div>' +
+      '<div class="form2"><label class="fld"><span>Descuento</span><span class="cot-desc"><input id="cot-descuento" inputmode="decimal" value="' + esc(c.descuento) + '" placeholder="0" autocomplete="off">' +
+      '<button type="button" class="cot-unidad" data-action="cot-desc-modo" aria-label="Cambiar entre monto y porcentaje">' + (c.descModo === "pct" ? "%" : "$") + "</button></span>" +
+      '<small class="muted" id="cot-desc-ayuda">' + (S.rol === "agente" ? "Máximo para ti: " + fmtNum(cfg.descuento_max_pct) + " %" + (e.lista ? " (" + esc(dinero2(e.maxDesc)) + ")" : "") : "Sin tope para administradores") + "</small></label>" +
+      '<label class="fld"><span>Entrada (%)</span><input id="cot-entrada" inputmode="decimal" value="' + esc(c.entradaPct) + '"></label></div>' +
+      '<div class="form2"><label class="fld"><span>Reserva ($)</span><input id="cot-reserva" inputmode="decimal" value="' + esc(c.reservaTocada ? c.reserva : String(e.sugerida || "").replace(".", ",")) + '">' +
+      '<small class="muted">' + (cfg.reserva_tipo === "monto" ? "Sugerida: " + esc(dinero2(cfg.reserva_valor)) : "Sugerida: " + fmtNum(cfg.reserva_valor) + " % del precio") + "</small></label>" +
+      '<label class="fld"><span>Cuotas de la entrada</span><input id="cot-cuotas" inputmode="numeric" value="' + esc(c.cuotas) + '"><small class="muted">0 = el saldo de la entrada se paga a la firma</small></label></div>' +
+      (c.forma === "credito" ? '<div class="form2"><label class="fld"><span>Tasa anual (%)</span><input id="cot-tasa" inputmode="decimal" value="' + esc(c.tasa) + '"></label>' +
+        '<label class="fld"><span>Plazo (años)</span><input id="cot-plazo" inputmode="numeric" value="' + esc(c.plazo) + '"></label></div>' : "");
+    el.innerHTML = h;
+  }
+
+  function pintarCotResumen() {
+    var el = $("cot-resumen"), pie = $("cot-pie"); if (!el || !pie) return;
+    var c = S.cot, e = estadoCot(), k = e.k;
+    if (!k) el.innerHTML = '<h3><span class="paso">4</span> Resumen</h3><p class="muted" style="margin:0">Elige las unidades para ver el precio y la cuota.</p>';
+    else {
+      var resto = GPUCotizar.r2(k.entrada - k.reserva), l = function (a, b, cls) { return '<div class="cot-l' + (cls ? " " + cls : "") + '"><span>' + a + "</span><b>" + b + "</b></div>"; };
+      el.innerHTML = '<h3><span class="paso">4</span> Resumen</h3><div class="cot-res-box">' +
+        (e.desc ? l("Precio de lista", esc(dinero2(e.lista))) + l("Descuento", "− " + esc(dinero2(e.desc))) : "") +
+        l("Precio final", esc(dinero2(k.precioFinal)), "fuerte") + l("Reserva", esc(dinero2(k.reserva))) +
+        (resto > 0 ? l(e.cuotas > 0 ? e.cuotas + (e.cuotas === 1 ? " cuota" : " cuotas") + " de entrada de" : "Saldo de entrada a la firma", esc(dinero2(e.cuotas > 0 ? k.cuotaEntrada : resto))) : "") +
+        l("Entrada total (" + fmtNum(e.ent || 0) + " %)", esc(dinero2(k.entrada))) +
+        l(c.forma === "credito" ? "Saldo con crédito" : "Saldo contra entrega", esc(dinero2(k.saldo))) +
+        (c.forma === "credito" && k.saldo > 0 ? '<div class="cot-cuota"><span>Cuota mensual estimada<br><small>' + esc(String(e.plazo)) + " años al " + esc(fmtNum(e.tasa || 0)) + " %</small></span><b>" + esc(dinero2(k.cuotaMensual)) + "</b></div>" : "") +
+        "</div>" + '<p class="muted" style="margin:6px 0 0"><small>Válida ' + esc(String(e.cfg.vigencia_dias)) + " días. La cuota es una simulación; la aprueba la entidad financiera.</small></p>";
+    }
+    var ri = $("cot-reserva");
+    if (ri && !c.reservaTocada && document.activeElement !== ri) ri.value = String(e.sugerida || "").replace(".", ",");
+    var ayuda = $("cot-desc-ayuda");
+    if (ayuda && S.rol === "agente") ayuda.textContent = "Máximo para ti: " + fmtNum(e.cfg.descuento_max_pct) + " %" + (e.lista ? " (" + dinero2(e.maxDesc) + ")" : "");
+    pie.innerHTML = '<div><small class="muted">' + (k ? "Precio final" : "Total") + "</small><b>" + (k ? esc(dinero2(k.precioFinal)) : "—") + "</b>" +
+      (e.falta ? '<small class="cot-falta">' + esc(e.falta) + "</small>" : "") + "</div>" +
+      '<button class="btn btn-primary" data-action="cot-emitir"' + (e.falta || c.enviando ? " disabled" : "") + ">Emitir proforma</button>";
+  }
+
+  async function emitirCot(btn) {
+    var c = S.cot, e = estadoCot(); if (e.falta) { toast(e.falta, true); return; }
+    var op = cotLead();
+    var datos = { proyecto: c.proyecto, unidades: c.unidades.slice(), descuento: e.desc, forma_pago: c.forma, entrada_pct: e.ent, reserva: e.reserva,
+      cuotas_entrada: e.cuotas, tasa_anual: e.tasa, plazo_anios: e.plazo, notas: ($("cot-notas") || {}).value || c.notas || "" };
+    if (op) datos.oportunidad_id = op.id;
+    else datos.cliente = { nombre: c.nuevo.nombre.trim(), telefono: c.nuevo.telefono.trim(), correo: c.nuevo.correo.trim() };
+    c.enviando = true;
+    return conBoton(btn, async function () {
+      try {
+        if (op && !op.asignado_a && S.rol === "agente") { var t = await sb.rpc("crm_tomar_lead", { p_op: op.id }); if (t.error) throw t.error; }
+        var r = await sb.rpc("crear_cotizacion", { p_org: S.org.id, p_datos: datos }); if (r.error) throw r.error;
+        c.hecho = r.data; S.cotizaciones = null;
+        pintarCot(); cargar(true); if (S.det) cargarDetalle(S.det.op.id, true);
+      } finally { c.enviando = false; }
+    });
+  }
+  function mensajeProforma(q) {
+    var primero = ((q.cliente_nombre || "").split(" ")[0]) || "";
+    return "Hola " + primero + ", te comparto la proforma " + q.numero + " de " + proyTxt(q.proyecto) + " (" + (q.unidades || []).map(function (u) { return u.codigo; }).join(", ") + "): " +
+      dinero2(q.precio_final) + (q.cuota_mensual != null ? ", con una cuota estimada de " + dinero2(q.cuota_mensual) + " al mes" : "") + ".\n" + urlProforma(q.token) + "\nCualquier duda, aquí estoy.";
+  }
+  function waProforma(q) {
+    var t = telNorm(q.cliente_telefono);
+    return (t.length >= 9 ? "https://wa.me/" + t : "https://wa.me/") + "?text=" + encodeURIComponent(mensajeProforma(q));
+  }
+  function pintarCotHecho() {
+    var q = S.cot.hecho;
+    abrirModal('<div class="cot-ok"><div class="cot-ok-icono" aria-hidden="true">✓</div><h2>Proforma ' + esc(q.numero) + " lista</h2>" +
+      '<p class="muted" style="margin:0">' + esc(q.cliente_nombre) + " · " + esc(proyTxt(q.proyecto)) + "</p>" +
+      '<p class="cot-ok-total">' + esc(dinero2(q.precio_final)) + (q.cuota_mensual != null ? "<small>Cuota estimada " + esc(dinero2(q.cuota_mensual)) + " al mes</small>" : "<small>De contado</small>") + "</p>" +
+      '<p class="muted" style="margin:0"><small>El lead pasó a «Proforma» y la guardamos en su historial.</small></p>' +
+      '<div class="cot-ok-acciones"><a class="btn btn-wa" href="' + esc(waProforma(q)) + '" target="_blank" rel="noopener">' + icon("chat") + " Enviar por WhatsApp</a>" +
+      '<a class="btn" href="' + esc(urlProforma(q.token, true)) + '" target="_blank" rel="noopener">Ver y descargar PDF</a>' +
+      '<button class="btn" data-action="copiar-texto" data-t="' + esc(urlProforma(q.token)) + '">' + icon("copy", "icon-sm") + " Copiar enlace</button></div>" +
+      '<div class="row end"><button class="btn" data-action="cot-otra">Hacer otra para este cliente</button><button class="btn btn-primary" data-action="cerrar-modal">Listo</button></div></div>', "grande");
+  }
+
+  /* ---------------------------------------------------------- Proformas: lista y ficha */
+  async function cargarCotizaciones() {
+    var r = await sb.from("crm_cotizaciones").select("id,numero,proyecto,oportunidad_id,cliente_nombre,cliente_telefono,unidades,precio_final,cuota_mensual,forma_pago,estado,vigencia_hasta,created_at,token,asesor_nombre,asesor_email")
+      .eq("org_id", S.org.id).order("created_at", { ascending: false }).limit(300);
+    S.cotizaciones = r.data || [];
+    if (S.vista === "inventario") render();
+    if (S.det) pintarHoja();
+  }
+  function vigente(q) { return q.estado === "emitida" && new Date(q.vigencia_hasta + "T23:59:59") >= new Date(); }
+  function chipCot(q) { return q.estado === "anulada" ? '<span class="chip red">Anulada</span>' : vigente(q) ? '<span class="chip green">Vigente</span>' : '<span class="chip gray">Vencida</span>'; }
+  function itemCot(q, conCliente) {
+    return '<button type="button" class="cot-item" data-action="cot-ver" data-id="' + esc(q.id) + '"><span class="u-top"><b>' + esc(q.numero) + "</b>" + chipCot(q) + "</span>" +
+      (conCliente ? "<span>" + esc(q.cliente_nombre) + "</span>" : "") +
+      '<small class="muted">' + esc((q.unidades || []).map(function (u) { return u.codigo; }).join(", ")) + " · " + esc(hace(q.created_at)) + " · " + esc(q.asesor_nombre || "") + "</small>" +
+      '<span class="u-precio">' + esc(dinero2(q.precio_final)) + (q.cuota_mensual != null ? ' <small class="muted">· ' + esc(dinero2(q.cuota_mensual)) + "/mes</small>" : "") + "</span></button>";
+  }
+  function vistaProformas() {
+    if (S.cotizaciones == null) { cargarCotizaciones(); return '<div class="empty">Cargando proformas…</div>'; }
+    var q = norm(S.cotQ).trim();
+    var lista = S.cotizaciones.filter(function (x) { return !q || norm([x.numero, x.cliente_nombre, (x.unidades || []).map(function (u) { return u.codigo; }).join(" ")].join(" ")).indexOf(q) >= 0; });
+    var h = '<div class="inv-filtros"><input type="search" id="cot-q" placeholder="Buscar por número, cliente o unidad" value="' + esc(S.cotQ) + '" aria-label="Buscar proformas" autocomplete="off"></div>';
+    if (!S.cotizaciones.length) return h + '<div class="empty"><b>Aún no hay proformas.</b><br>Crea la primera con «Nueva proforma»: busca al cliente, elige la unidad y envíasela por WhatsApp.</div>';
+    if (!lista.length) return h + '<div class="empty">Ninguna proforma coincide.</div>';
+    return h + '<div class="inv-lista">' + lista.map(function (x) { return itemCot(x, true); }).join("") + "</div>";
+  }
+  function abrirFichaCot(id) {
+    var q = (S.cotizaciones || []).concat((S.det && S.det.cots) || []).filter(function (x) { return x.id === id; })[0]; if (!q) return;
+    var puedeAnular = q.estado === "emitida" && activa() && (esGestor() || (S.rol === "agente" && q.asesor_email === S.email));
+    abrirModal('<div class="row" style="justify-content:space-between"><h2 style="margin:0">Proforma ' + esc(q.numero) + "</h2>" + chipCot(q) + "</div>" +
+      '<dl class="kv"><dt>Cliente</dt><dd>' + esc(q.cliente_nombre) + "</dd><dt>Proyecto</dt><dd>" + esc(proyTxt(q.proyecto)) + "</dd><dt>Unidades</dt><dd>" + esc((q.unidades || []).map(function (u) { return u.codigo; }).join(", ")) + "</dd>" +
+      "<dt>Precio final</dt><dd>" + esc(dinero2(q.precio_final)) + "</dd>" + (q.cuota_mensual != null ? "<dt>Cuota estimada</dt><dd>" + esc(dinero2(q.cuota_mensual)) + " al mes</dd>" : "<dt>Forma de pago</dt><dd>Contado</dd>") +
+      "<dt>Emitida</dt><dd>" + esc(hace(q.created_at)) + " por " + esc(q.asesor_nombre || q.asesor_email || "") + "</dd><dt>Válida hasta</dt><dd>" + esc(fechaLarga(q.vigencia_hasta + "T12:00:00")) + "</dd></dl>" +
+      (q.estado === "emitida" ? '<div class="cot-ok-acciones"><a class="btn btn-wa" href="' + esc(waProforma(q)) + '" target="_blank" rel="noopener">' + icon("chat") + " Reenviar por WhatsApp</a>" +
+        '<a class="btn" href="' + esc(urlProforma(q.token, true)) + '" target="_blank" rel="noopener">Ver y descargar PDF</a>' +
+        '<button class="btn" data-action="copiar-texto" data-t="' + esc(urlProforma(q.token)) + '">' + icon("copy", "icon-sm") + " Copiar enlace</button></div>" : "") +
+      '<div class="row end">' + (opPorId(q.oportunidad_id) && !(S.det && S.det.op.id === q.oportunidad_id) ? '<button class="btn btn-sm" data-action="cot-ir-lead" data-id="' + esc(q.oportunidad_id) + '">Ir al lead</button>' : "") +
+      (puedeAnular ? '<button class="btn btn-sm" data-action="cot-anular" data-id="' + esc(q.id) + '">Anular</button>' : "") + '<button class="btn" data-action="cerrar-modal">Cerrar</button></div>');
+  }
+
+  /* --------------------------------------------- Configuración del cotizador (por proyecto) */
+  async function abrirConfigCot(slug) {
+    await cargarCfgCot();
+    var c = cfgDe(slug), p = S.proyectos.filter(function (x) { return x.slug === slug; })[0] || { nombre: slug };
+    var pref = c.prefijo || slug.replace(/[^a-z0-9]/g, "").slice(0, 4).toUpperCase();
+    function f(n, et, v, ayuda, extra) { return '<label class="fld"><span>' + et + '</span><input name="' + n + '" value="' + esc(v == null ? "" : String(v).replace(".", ",")) + '" ' + (extra || 'inputmode="decimal"') + ">" + (ayuda ? '<small class="muted">' + ayuda + "</small>" : "") + "</label>"; }
+    abrirModal("<h2>Cotizador · " + esc(p.nombre) + '</h2><form class="form" id="form-cfg-cot" data-s="' + esc(slug) + '" novalidate>' +
+      '<p class="muted" style="margin:0">Son los valores con los que arranca cada proforma. El asesor puede ajustarlos al cotizar (excepto el descuento máximo).</p>' +
+      '<div class="form2">' + f("prefijo", "Prefijo del número", pref, "Ej. " + esc(pref) + "-0001", 'maxlength="6" autocapitalize="characters"') + f("vigencia_dias", "Vigencia (días)", c.vigencia_dias, "", 'inputmode="numeric"') + "</div>" +
+      '<div class="form2">' + f("entrada_pct", "Entrada (%)", c.entrada_pct, "Incluye la reserva") + f("cuotas_entrada", "Cuotas de la entrada", c.cuotas_entrada, "0 = a la firma", 'inputmode="numeric"') + "</div>" +
+      '<div class="form2"><label class="fld"><span>Reserva</span><select name="reserva_tipo"><option value="porcentaje"' + (c.reserva_tipo === "porcentaje" ? " selected" : "") + '>Porcentaje del precio</option><option value="monto"' + (c.reserva_tipo === "monto" ? " selected" : "") + ">Monto fijo</option></select></label>" +
+      f("reserva_valor", "Valor de la reserva", c.reserva_valor, "En % o en $ según lo elegido") + "</div>" +
+      '<div class="form2">' + f("tasa_anual", "Tasa del crédito (% anual)", c.tasa_anual) + f("plazo_anios", "Plazo del crédito (años)", c.plazo_anios, "", 'inputmode="numeric"') + "</div>" +
+      '<div class="form2">' + f("descuento_max_pct", "Descuento máximo de un agente (%)", c.descuento_max_pct, "Los administradores no tienen tope") + f("whatsapp", "WhatsApp del proyecto (opcional)", c.whatsapp, "El cliente lo ve en su proforma", 'inputmode="tel"') + "</div>" +
+      '<label class="fld"><span>Condiciones (salen al pie de la proforma)</span><textarea name="condiciones" maxlength="1500" placeholder="Ej. Precios sujetos a cambio sin previo aviso. La reserva no es reembolsable.">' + esc(c.condiciones || "") + "</textarea></label>" +
+      '<div class="row end"><button type="button" class="btn" data-action="cerrar-modal">Cancelar</button><button class="btn btn-primary" type="submit">Guardar</button></div></form>');
+  }
+  async function guardarConfigCot(f, btn) {
+    var fd = new FormData(f), d = { prefijo: String(fd.get("prefijo") || "").trim().toUpperCase(), reserva_tipo: fd.get("reserva_tipo"), whatsapp: fd.get("whatsapp"), condiciones: fd.get("condiciones") }, malo = "";
+    [["vigencia_dias", "La vigencia"], ["entrada_pct", "La entrada"], ["cuotas_entrada", "Las cuotas"], ["reserva_valor", "La reserva"], ["tasa_anual", "La tasa"], ["plazo_anios", "El plazo"], ["descuento_max_pct", "El descuento máximo"]].forEach(function (p) {
+      var v = numCot(fd.get(p[0])); if (v == null || isNaN(v)) malo = malo || p[1] + " no es un número válido."; else d[p[0]] = v;
+    });
+    if (!/^[A-Z0-9]{1,6}$/.test(d.prefijo)) malo = malo || "El prefijo usa de 1 a 6 letras o números, sin espacios.";
+    if (malo) { toast(malo, true); return; }
+    return conBoton(btn, async function () {
+      var r = await sb.rpc("guardar_config_cotizador", { p_org: S.org.id, p_proyecto: f.dataset.s, p_datos: d }); if (r.error) throw r.error;
+      (S.cotCfg = S.cotCfg || {})[f.dataset.s] = r.data; cerrarModal(); toast("Cotizador guardado");
+    });
+  }
+
+  /* ------------------------------------------------------------ Fotos de una unidad */
+  /* Se achican en el teléfono (máx. 1600 px, JPG) antes de subir: suben rápido y pesan poco en la web. */
+  function achicarFoto(file) {
+    return new Promise(function (ok, mal) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(img.width, img.height)), w = Math.round(img.width * k), h = Math.round(img.height * k);
+        var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+        var cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        cv.toBlob(function (b) { b ? ok(b) : mal(new Error("No pudimos procesar la foto")); }, "image/jpeg", 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); mal(new Error("Esa imagen no se puede abrir")); };
+      img.src = url;
+    });
+  }
+  async function subirFotos(input) {
+    var id = input.dataset.id, u = unidadPorId(id), files = [].slice.call(input.files || []); if (!u || !files.length) return;
+    var actuales = (u.fotos || []).slice(), cupo = 8 - actuales.length;
+    if (cupo <= 0) { toast("Ya tiene 8 fotos. Quita alguna para agregar otras.", true); return; }
+    var malas = files.filter(function (f) { return !/^image\/(jpeg|png|webp)$/.test(f.type); });
+    if (malas.length) { toast("Solo fotos JPG, PNG o WebP.", true); input.value = ""; return; }
+    if (files.length > cupo) toast("Solo caben " + cupo + " fotos más; subimos las primeras.");
+    var cont = $("u-fotos"); if (cont) cont.insertAdjacentHTML("beforeend", '<span class="u-subiendo"><span class="spin dark"></span> Subiendo…</span>');
+    try {
+      var nuevas = [];
+      for (var i = 0; i < Math.min(files.length, cupo); i++) {
+        var blob = await achicarFoto(files[i]);
+        if (blob.size > 3 * 1024 * 1024) throw new Error("Una foto sigue pesando más de 3 MB después de achicarla.");
+        var ruta = S.org.id + "/" + u.id + "/" + Date.now() + "-" + i + ".jpg";
+        var up = await sb.storage.from("inventario").upload(ruta, blob, { contentType: "image/jpeg", upsert: false }); if (up.error) throw up.error;
+        nuevas.push(ruta);
+      }
+      var r = await sb.rpc("guardar_fotos_unidad", { p_unidad: u.id, p_fotos: actuales.concat(nuevas) }); if (r.error) throw r.error;
+      u.fotos = r.data || actuales.concat(nuevas); toast(nuevas.length === 1 ? "Foto agregada" : nuevas.length + " fotos agregadas");
+      abrirUnidad(u.id); render();
+    } catch (e) { toast(mensajeError(e), true); abrirUnidad(u.id); }
+  }
+  async function ordenarFotos(el, quitar) {
+    var u = unidadPorId(el.dataset.id), f = el.dataset.f; if (!u) return;
+    var lista = (u.fotos || []).filter(function (x) { return x !== f; });
+    if (!quitar) lista.unshift(f);
+    return conBoton(el, async function () {
+      var r = await sb.rpc("guardar_fotos_unidad", { p_unidad: u.id, p_fotos: lista }); if (r.error) throw r.error;
+      u.fotos = r.data || lista;
+      if (quitar) sb.storage.from("inventario").remove([f]).then(function () {}, function () {});
+      toast(quitar ? "Foto quitada" : "Portada actualizada"); abrirUnidad(u.id); render();
+    });
   }
 
   /* ------------------------------------------------- Marca de la empresa (logo, colores, tema) */
@@ -1505,6 +1896,47 @@
       instalarEvento.prompt(); instalarEvento.userChoice.finally(function () { instalarEvento = null; cerrarModal(); });
     },
     "aj-sec": function (el) { if (el.dataset.s !== "marca") S.mDraft = null; S.ajSec = el.dataset.s; render(); },
+    "inv-sub": function (el) { S.invSub = el.dataset.s; render(); },
+    "nueva-proforma": function () { abrirCotizador({}); },
+    "cotizar-unidad": function (el) { abrirCotizador({ unidad: el.dataset.id }); },
+    "proforma-lead": function (el) { abrirCotizador({ op: el.dataset.id }); },
+    "cot-lead": function (el) { S.cot.op = el.dataset.id; S.cot.nuevo = null; var o = opPorId(el.dataset.id);
+      if (o && o.proyecto && PROYECTOS[o.proyecto] && !S.cot.unidades.length && o.proyecto !== S.cot.proyecto) { S.cot.proyecto = o.proyecto; pintarCotUnidades(); }
+      pintarCotCliente(); pintarCotResumen(); },
+    "cot-cambiar": function () { S.cot.op = null; S.cot.buscar = ""; pintarCotCliente(); pintarCotResumen(); var b = $("cot-buscar"); if (b) b.focus(); },
+    "cot-nuevo": function () {
+      var q = S.cot.buscar.trim(), esTel = /^[+\d\s()-]{6,}$/.test(q), esCorreo = q.indexOf("@") > 0;
+      S.cot.nuevo = { nombre: esTel || esCorreo ? "" : q, telefono: esTel ? q : "", correo: esCorreo ? q : "" }; S.cot.op = null;
+      pintarCotCliente(); pintarCotResumen(); var n = $(S.cot.nuevo.nombre ? "cot-n-telefono" : "cot-n-nombre"); if (n) n.focus();
+    },
+    "cot-buscar-existente": function () { S.cot.nuevo = null; pintarCotCliente(); pintarCotResumen(); var b = $("cot-buscar"); if (b) b.focus(); },
+    "cot-agregar-u": function (el) {
+      if (S.cot.unidades.length >= 10) { toast("Máximo 10 unidades por proforma", true); return; }
+      S.cot.unidades.push(el.dataset.id); S.cot.buscarU = ""; pintarCotUnidades(); pintarCotCondiciones(); pintarCotResumen();
+    },
+    "cot-quitar-u": function (el) { S.cot.unidades = S.cot.unidades.filter(function (x) { return x !== el.dataset.id; }); pintarCotUnidades(); pintarCotCondiciones(); pintarCotResumen(); },
+    "cot-forma": function (el) { S.cot.forma = el.dataset.f; pintarCotCondiciones(); pintarCotResumen(); },
+    "cot-desc-modo": function () {
+      var c = S.cot, e = estadoCot(), v = numCot(c.descuento);
+      if (v != null && !isNaN(v) && e.lista) c.descuento = String(c.descModo === "pct" ? GPUCotizar.r2(e.lista * v / 100) : GPUCotizar.r2(v * 100 / e.lista)).replace(".", ",");
+      c.descModo = c.descModo === "pct" ? "monto" : "pct"; pintarCotCondiciones(); pintarCotResumen();
+    },
+    "cot-emitir": function (el) { return emitirCot(el); },
+    "cot-otra": function () { var q = S.cot.hecho; abrirCotizador({ op: q.oportunidad_id }); },
+    "cot-ver": function (el) { abrirFichaCot(el.dataset.id); },
+    "cot-ir-lead": function (el) { cerrarModal(); abrirHoja(el.dataset.id); },
+    "cot-anular": function (el) {
+      abrirModal('<h2>Anular proforma</h2><form class="form" id="form-anular" data-id="' + esc(el.dataset.id) + '"><p class="muted" style="margin:0">El enlace que tiene el cliente dirá que ya no es válida. Queda en el historial del lead.</p>' +
+        '<label class="fld"><span>Motivo</span><input name="motivo" required minlength="3" maxlength="300" placeholder="Ej. El cliente pidió otra unidad"></label>' +
+        '<div class="row end"><button type="button" class="btn" data-action="cerrar-modal">Cancelar</button><button class="btn btn-primary" type="submit">Anular proforma</button></div></form>');
+    },
+    "copiar-texto": function (el) {
+      var t = el.dataset.t, listo = function () { toast("Enlace copiado"); };
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(listo, function () { window.prompt("Copia el enlace:", t); }); else window.prompt("Copia el enlace:", t);
+    },
+    "cfg-cot": function (el) { abrirConfigCot(el.dataset.s); },
+    "foto-portada": function (el) { return ordenarFotos(el, false); },
+    "foto-quitar": function (el) { if (window.confirm("¿Quitar esta foto?")) return ordenarFotos(el, true); },
     "inv-estado": function (el) { S.invF.estado = el.dataset.e; S.invMax = 60; render(); },
     "inv-mas": function () { S.invMax += 60; render(); },
     unidad: function (el) { abrirUnidad(el.dataset.id); },
@@ -1623,7 +2055,13 @@
   });
   document.addEventListener("change", function (e) {
     var t = e.target;
-    if (t.id === "inv-proyecto") { S.invF.proyecto = t.value; S.invMax = 60; render(); }
+    if (t.id === "cot-proyecto" && S.cot) {
+      var cf = cfgDe(t.value); S.cot.proyecto = t.value; S.cot.unidades = []; S.cot.buscarU = ""; S.cot.reservaTocada = false;
+      S.cot.entradaPct = String(cf.entrada_pct); S.cot.cuotas = String(cf.cuotas_entrada); S.cot.tasa = String(cf.tasa_anual); S.cot.plazo = String(cf.plazo_anios);
+      pintarCotUnidades(); pintarCotCondiciones(); pintarCotResumen();
+    }
+    else if (t.id === "u-fotos-input") { subirFotos(t); }
+    else if (t.id === "inv-proyecto") { S.invF.proyecto = t.value; S.invMax = 60; render(); }
     else if (t.id === "inv-tipo") { S.invF.tipo = t.value; S.invMax = 60; render(); }
     else if (t.id === "imp-archivo") { elegirArchivoImp(t); }
     else if (t.id === "imp-proyecto" && S.imp) { S.imp.proyecto = t.value; pintarImportar(); }
@@ -1651,6 +2089,19 @@
   });
   var busqueda;
   document.addEventListener("input", function (e) {
+    var c = S.cot, id = e.target.id;
+    if (c && id === "cot-buscar") { c.buscar = e.target.value; pintarCotResultados(); }
+    else if (c && c.nuevo && /^cot-n-/.test(id)) { c.nuevo[id.slice(6)] = e.target.value; pintarCotDuplicado(); pintarCotResumen(); }
+    else if (c && id === "cot-buscar-u") {
+      c.buscarU = e.target.value; clearTimeout(busqueda);
+      busqueda = setTimeout(function () { pintarCotUnidades(); var b = $("cot-buscar-u"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 150);
+    }
+    else if (c && /^cot-(descuento|entrada|reserva|cuotas|tasa|plazo)$/.test(id)) {
+      var k = { "cot-descuento": "descuento", "cot-entrada": "entradaPct", "cot-reserva": "reserva", "cot-cuotas": "cuotas", "cot-tasa": "tasa", "cot-plazo": "plazo" }[id];
+      c[k] = e.target.value; if (k === "reserva") c.reservaTocada = true; pintarCotResumen();
+    }
+    else if (c && id === "cot-notas") c.notas = e.target.value;
+    if (id === "cot-q") { S.cotQ = e.target.value; clearTimeout(busqueda); busqueda = setTimeout(render, 200); }
     if (e.target.id === "inv-q") {
       S.invF.q = e.target.value; S.invMax = 60; clearTimeout(busqueda);
       busqueda = setTimeout(render, 200);
@@ -1709,6 +2160,15 @@
     }
     if (f.id === "form-marca") return guardarMarca(f, btn);
     if (f.id === "form-unidad") return guardarUnidad(f, btn);
+    if (f.id === "form-cfg-cot") return guardarConfigCot(f, btn);
+    if (f.id === "form-anular") {
+      var mot = String(new FormData(f).get("motivo") || "").trim();
+      if (mot.length < 3) { toast("Escribe el motivo", true); return; }
+      return conBoton(btn, async function () {
+        var r = await sb.rpc("anular_cotizacion", { p_id: f.dataset.id, p_motivo: mot }); if (r.error) throw r.error;
+        cerrarModal(); toast("Proforma anulada"); S.cotizaciones = null; if (S.vista === "inventario") render(); if (S.det) cargarDetalle(S.det.op.id, true);
+      });
+    }
     if (f.id === "form-empresa") {
       return conBoton(btn, async function () {
         var r = await sb.rpc("actualizar_organizacion", { p_org: S.org.id, p_nombre: fd.nombre, p_reparto: fd.reparto }); if (r.error) throw r.error;

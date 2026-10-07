@@ -6,7 +6,7 @@ let n = 0; const ok = (m) => console.log("ok  - " + m + " (" + ++n + ")");
 
 const U = (o) => Object.assign({ proyecto: "torre", proyecto_nombre: "Torre Alba", codigo: "A-1", tipo: "departamento", bloque: null, piso: null, area_m2: null, dormitorios: null, banos: null, parqueos: null, bodegas: null, precio: null, estado: "disponible", descripcion: null }, o);
 const DATOS = { unidades: [
-  U({ codigo: "A-10", piso: "10", area_m2: 85.5, dormitorios: 2, banos: 2.5, parqueos: 1, precio: 120000 }),
+  U({ codigo: "A-10", piso: "10", fotos: ["org/u10/1.jpg"], area_m2: 85.5, dormitorios: 2, banos: 2.5, parqueos: 1, precio: 120000 }),
   U({ codigo: "A-2", piso: "2", area_m2: 60, dormitorios: 1, banos: 1, precio: 85000, descripcion: "<img src=x onerror=alert(1)>Vista al parque" }),
   U({ codigo: "A-3", piso: "3", tipo: "suite", dormitorios: 1, precio: null }),
   U({ codigo: "A-4", piso: "4", estado: "reservada", dormitorios: 3, precio: 150000 }),
@@ -44,7 +44,9 @@ const HTML = (extra = "") => `<!doctype html><meta charset=utf-8><title>Web de u
     const t = await dentro(page, ".u").nth(2).textContent();
     assert.match(t, /Piso 10/); assert.match(t, /85,5 m²/); assert.match(t, /2 dorm\./); assert.match(t, /2,5 baños/); assert.match(t, /1 parqueo/); assert.match(t, /\$120\.000|\$\s?120,000|120\.000/); ok("ficha: piso, área, dormitorios, baños, parqueos y precio con formato");
     assert.match(await dentro(page, ".u").nth(1).textContent(), /Consultar precio/); ok("sin precio dice «Consultar precio»");
-    assert.equal(await dentro(page, "img").count(), 0); assert.match(await dentro(page, ".u").nth(0).textContent(), /<img src=x onerror=alert\(1\)>Vista al parque/); ok("el texto del CRM se muestra como texto, nunca como HTML");
+    assert.match(await dentro(page, ".u").nth(2).locator("img.foto").getAttribute("src"), /^https:\/\/fake\.supabase\.co\/storage\/v1\/object\/public\/inventario\/org\/u10\/1\.jpg$/);
+    assert.equal(await dentro(page, ".u").nth(0).locator("img").count(), 0); ok("la portada de la unidad encabeza su tarjeta (solo si tiene foto)");
+    assert.equal(await dentro(page, "img:not(.foto)").count(), 0); assert.match(await dentro(page, ".u").nth(0).textContent(), /<img src=x onerror=alert\(1\)>Vista al parque/); ok("el texto del CRM se muestra como texto, nunca como HTML");
 
     /* 3. Filtros */
     await dentro(page, "select").nth(2).selectOption("t");

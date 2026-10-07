@@ -41,6 +41,11 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 [[headers]]
+  for = "/proforma/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+[[headers]]
   for = "/consola/*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"

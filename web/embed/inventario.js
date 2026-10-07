@@ -45,6 +45,7 @@
     "select{font:inherit;padding:8px 10px;border:1px solid #cfcfcf;border-radius:10px;background:#fff;color:#161616;min-height:40px}" +
     ".lista{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}" +
     ".u{border:1px solid #e3e3e3;border-radius:14px;padding:14px;background:#fff;display:grid;gap:6px;align-content:start}" +
+    ".u .foto{width:calc(100% + 28px);margin:-14px -14px 4px;height:160px;object-fit:cover;border-radius:14px 14px 0 0;display:block}" +
     ".u h3{margin:0;font-size:17px;display:flex;justify-content:space-between;gap:8px;align-items:center}" +
     ".u small{color:#555}.precio{font-size:19px;font-weight:700}" +
     ".chip{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}" +
@@ -107,6 +108,7 @@
         var g = el("div", "lista");
         us.forEach(function (u) {
           var t = el("article", "u"), h = el("h3");
+          if (u.fotos && u.fotos[0]) { var im = el("img", "foto"); im.src = URL_ + "/storage/v1/object/public/inventario/" + u.fotos[0]; im.alt = "Unidad " + u.codigo; im.loading = "lazy"; t.appendChild(im); }
           h.appendChild(el("span", "", (proyecto ? "" : u.proyecto_nombre + " · ") + u.codigo));
           h.appendChild(el("span", "chip " + u.estado, ESTADOS[u.estado] || u.estado)); t.appendChild(h);
           var det = [TIPOS[u.tipo] || u.tipo, u.bloque ? "Torre/Bloque " + u.bloque : "", u.piso ? "Piso " + u.piso : ""].filter(Boolean).join(" · ");

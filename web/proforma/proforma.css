@@ -1,0 +1,67 @@
+/* GPUnlock CRM · Proforma para el cliente (pantalla y PDF A4). Los colores salen de la marca de la inmobiliaria. */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{--m:#F2582B;--m-txt:#B93A14;--m-50:#FEF3EF;--m-on:#fff;--tinta:#161616;--suave:#4A4A4A;--gris:#6B6B6B;--linea:#E7E2DE;color-scheme:light}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#F4F1EE;color:var(--tinta);font:15px/1.5 var(--font-body,system-ui,sans-serif);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-display,system-ui,sans-serif);margin:0;line-height:1.15;letter-spacing:-.01em}
+.acciones{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 16px;background:rgba(244,241,238,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--linea);background:#fff;color:var(--tinta);font:600 15px/1 var(--font-body,system-ui);text-decoration:none;cursor:pointer}
+.btn-marca{background:var(--m);border-color:var(--m);color:var(--m-on)}
+.btn:focus-visible{outline:3px solid var(--m);outline-offset:2px}
+.hoja{max-width:820px;margin:20px auto 40px;background:#fff;border-radius:18px;box-shadow:0 18px 50px -24px rgba(0,0,0,.25);padding:34px 36px 26px;position:relative;overflow:hidden}
+.hoja::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:linear-gradient(90deg,var(--m),var(--m-acento,var(--m)))}
+.estado{padding:40px 10px;text-align:center;color:var(--suave)}
+.estado h1{font-size:1.4rem;margin-bottom:8px;color:var(--tinta)}
+.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--linea)}
+.empresa{display:flex;align-items:center;gap:12px;min-width:0}
+.empresa img{max-height:56px;max-width:190px;object-fit:contain}
+.empresa b{font-family:var(--font-display,system-ui);font-size:1.25rem}
+.numero{text-align:right}
+.numero small{display:block;color:var(--gris);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.numero h1{font-size:1.6rem;color:var(--m-txt)}
+.numero p{margin:2px 0 0;color:var(--suave);font-size:.9rem}
+.chip{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:700;background:var(--m-50);color:var(--m-txt)}
+.chip.vencida{background:#FDECEC;color:#A12A2A}
+.datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 20px;margin:18px 0}
+.datos div small{display:block;color:var(--gris);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.datos div span{font-weight:600}
+.foto{width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin:4px 0 16px;display:block}
+h2{font-size:1.05rem;margin:22px 0 10px;color:var(--m-txt);text-transform:uppercase;letter-spacing:.08em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th{text-align:left;font-weight:600;color:var(--suave);background:var(--m-50);padding:9px 10px;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px;border-bottom:1px solid var(--linea);vertical-align:top}
+td.num,th.num{text-align:right;white-space:nowrap}
+.resumen{display:grid;gap:0;margin-top:4px}
+.linea{display:flex;justify-content:space-between;gap:16px;padding:9px 2px;border-bottom:1px dashed var(--linea)}
+.linea span{color:var(--suave)}
+.linea b{white-space:nowrap}
+.linea.total{border-bottom:0;padding-top:14px;font-size:1.15rem}
+.linea.total span{color:var(--tinta);font-weight:700}
+.linea.total b{color:var(--m-txt);font-size:1.45rem}
+.destacado{margin-top:14px;padding:16px 18px;border-radius:14px;background:var(--m-50);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.destacado span{color:var(--suave)}
+.destacado b{font-size:1.5rem;color:var(--m-txt);font-family:var(--font-display,system-ui)}
+.notas{margin-top:16px;color:var(--suave);font-size:.92rem;white-space:pre-line}
+.legal{margin-top:18px;color:var(--gris);font-size:.78rem;line-height:1.45;white-space:pre-line}
+.pie{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:26px;padding-top:14px;border-top:1px solid var(--linea);font-size:.82rem;color:var(--gris)}
+.impulsado{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--gris);white-space:nowrap;text-decoration:none}
+.impulsado img{height:16px;width:auto}
+.impulsado b{font-family:var(--font-display,system-ui);font-weight:800;letter-spacing:-.02em;color:#161616}
+.impulsado b i{font-style:normal;color:#C2410C}
+@media (max-width:600px){
+  .hoja{margin:0;border-radius:0;padding:24px 16px 20px;box-shadow:none}
+  .numero{text-align:left}
+  .tabla-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+  table{min-width:520px}
+}
+@page{size:A4;margin:12mm}
+@media print{
+  body{background:#fff}
+  .acciones{display:none!important}
+  .hoja{max-width:none;margin:0;padding:0;border-radius:0;box-shadow:none;overflow:visible}
+  .hoja::before{position:static;display:block;height:4px;margin-bottom:14px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .foto{max-height:220px}
+  tr,.destacado,.linea{break-inside:avoid}
+}
